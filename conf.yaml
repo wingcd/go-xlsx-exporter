@@ -1,0 +1,30 @@
+package: "ACTGame.Proto"
+target_code_dir: "./gen/code"
+target_data_dir: "./gen/data"
+languages:
+  default: cn
+  languages:
+    - cn
+    - en
+sheets:
+ -
+  type: define # define / table
+  xls_file: 'data/define.xlsx'
+  sheet: 'define'  
+  target_type: 'Defines'
+  target_data_file: "define"
+  gen_code: true
+  gen_data: false
+  forgin_keys:
+ - 
+  type: table
+  xls_file: 'data/common.xlsx'
+  sheet: 'enum'
+  target_code_file: 'Enums'
+  target_data_file:
+  gen_code: true
+  gen_data: true  
+  forgin_keys:
+    -
+     T1: 'Defines.id'
+     T2: 'Defines.index'

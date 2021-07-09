@@ -16,6 +16,19 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
+var pbFieldEncodeTypes = map[string]string{
+	"bool":   "varint",
+	"int":    "varint",
+	"int32":  "varint",
+	"uint":   "varint",
+	"uint32": "varint",
+	"int64":  "varint",
+	"uint64": "varint",
+	"float":  "fixed32",
+	"double": "fixed64",
+	"string": "bytes",
+}
+
 func IsArray(valueType string) bool {
 	valueType = strings.Trim(valueType, " ")
 	repeated := false
@@ -28,6 +41,22 @@ func IsArray(valueType string) bool {
 func GetBaseType(valueType string) string {
 	valueType = strings.Trim(valueType, " ")
 	return strings.Replace(valueType, "[]", "", -1)
+}
+
+func GetEncodeType(valueType string) string {
+	valueType = strings.Trim(valueType, " ")
+	repeated := false
+	if strings.Contains(valueType, "[]") {
+		repeated = true
+	}
+	if repeated {
+		return "bytes"
+	}
+	var rawType = strings.Replace(valueType, "[]", "", -1)
+	if tp, ok := pbFieldEncodeTypes[rawType]; ok {
+		return tp
+	}
+	return ""
 }
 
 func Split(s, sep string) []string {
@@ -52,20 +81,18 @@ func Split(s, sep string) []string {
 	return rstrs
 }
 
-var (
-	supportTypes = map[string]string{
-		"bool":   "bool",
-		"int":    "int32",
-		"int32":  "int32",
-		"uint":   "fixed32",
-		"uint32": "fixed32",
-		"int64":  "int64",
-		"uint64": "fixed64",
-		"float":  "float",
-		"double": "double",
-		"string": "string",
-	}
-)
+var supportTypes = map[string]string{
+	"bool":   "bool",
+	"int":    "int32",
+	"int32":  "int32",
+	"uint":   "fixed32",
+	"uint32": "fixed32",
+	"int64":  "int64",
+	"uint64": "fixed64",
+	"float":  "float",
+	"double": "double",
+	"string": "string",
+}
 
 //
 func ConvertEnumValue(info *model.DefineTableInfo, valueType, value string) (error, int32) {

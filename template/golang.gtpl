@@ -5,6 +5,7 @@
 package {{.Package}}
 
 import (
+    "github.com/golang/protobuf/proto"
     "google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/runtime/protoimpl"
 	"reflect"
@@ -19,6 +20,26 @@ const ( {{range .Items}}
     {{$item.TypeName}}_{{.FieldName}} {{$item.TypeName}} = {{.Value}} {{if ne .Desc ""}} //{{.Desc}} {{end -}}
   {{end}}
 )
+
+var {{$item.TypeName}}_name = map[int32]string{
+	{{range .Items -}}
+        {{.Value}}:"{{.FieldName}}",
+    {{end -}}
+}
+
+var {{$item.TypeName}}_value = map[string]int32{
+    {{range .Items -}}
+        "{{.FieldName}}":{{.Value}},
+    {{end -}}
+}
+
+func (x {{$item.TypeName}}) String() string {
+	name, ok := {{$item.TypeName}}_name[int32(x)]
+    if !ok {
+        name = "UNKNOWN"
+    }
+	return name
+}
 {{end}}
 
 {{- /*生成类类型*/}}
@@ -28,9 +49,9 @@ type {{$item.TypeName}} struct {
 {{range $item.Headers}}
     {{if ne .Desc ""}} //{{.Desc}} {{end}}
     {{- if .IsArray}}
-    {{.FieldName}} []*{{.ValueType -}}
+    {{.FieldName}} []*{{.ValueType}} `protobuf:"{{.FieldName}},1,opt,name={{.FieldName}}" json:"{{.FieldName}},omitempty"`
     {{- else}}
-    {{.FieldName}} {{.ValueType -}}
+    {{.FieldName}} {{.ValueType}} `protobuf:"{{.FieldName}},1,opt,name={{.FieldName}}" json:"{{.FieldName}},omitempty"`
     {{end -}}
 {{end}}
 }

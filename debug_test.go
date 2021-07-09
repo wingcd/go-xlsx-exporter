@@ -222,5 +222,5 @@ func TestGenGolangFile(t *testing.T) {
 	settings.SetTables([]*model.DataTable{t_user, t_class})
 
 	settings.PackageName = "gen"
-	generator.Build("golang", "./gen/DataMode.go")
+	generator.Build("golang", "./gen/DataMode.pb.go")
 }

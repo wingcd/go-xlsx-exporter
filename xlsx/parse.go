@@ -63,6 +63,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
 		item.ValueType = utils.GetBaseType(row[model.DEFINE_COLUMN_TYPE_INDEX])
 		item.IsArray = utils.IsArray(row[model.DEFINE_COLUMN_TYPE_INDEX])
+		item.EncodeType = utils.GetEncodeType(row[model.DEFINE_COLUMN_TYPE_INDEX])
 		info.Items = append(info.Items, item)
 	}
 

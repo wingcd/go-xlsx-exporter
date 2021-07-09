@@ -1,22 +1,38 @@
 package model
 
+// 定义表数据项（按行）
 type DefineTableItem struct {
-	FieldName    string
+	// 字段名
+	FieldName string
+	// 表中定义的原始类型
 	RawValueType string
-	ValueType    string
-	Value        string
-	Desc         string
-	IsArray      bool
-	Index        int
+	// 转换后的值类型
+	ValueType string
+	// 二进制编码方式
+	EncodeType string
+	// 值
+	Value string
+	// 描述
+	Desc string
+	// 是否数组
+	IsArray bool
+	// 编号（1开始）
+	Index int
 }
 
+// 定义表类型（同类型分组）
 type DefineTableInfo struct {
-	Category     string
-	TypeName     string
+	// 类型（enum/struct）
+	Category string
+	// 类型名
+	TypeName string
+	// 表名
 	DefinedTable string
-	Items        []*DefineTableItem
+	// 类型子项
+	Items []*DefineTableItem
 }
 
+// 判断是否为当前定义类型
 func (d *DefineTableInfo) IsValid(typeName string) bool {
 	for _, item := range d.Items {
 		if item.FieldName == typeName {
@@ -26,24 +42,41 @@ func (d *DefineTableInfo) IsValid(typeName string) bool {
 	return false
 }
 
+// 数据表表头
 type DataTableHeader struct {
-	Desc         string
+	// 描述（注释）
+	Desc string
+	// 表中定义的原始类型
 	RawValueType string
-	ValueType    string
+	// 转换后的值类型
+	ValueType string
+	// 二进制编码方式
+	EncodeType string
+	// 是否支持客户端导出
 	ExportClient bool
+	// 是否支持服务器导出
 	ExportServer bool
-	FieldName    string
-	IsArray      bool
-	Index        int
+	// 字段名
+	FieldName string
+	// 是否数组
+	IsArray bool
+	// 编号(1开始)
+	Index int
 }
 
+// 数据表
 type DataTable struct {
-	TypeName     string
-	Headers      []*DataTableHeader
+	// 类型名
+	TypeName string
+	// 表头
+	Headers []*DataTableHeader
+	// 表文件名
 	DefinedTable string
-	Data         [][]string
+	// 数据
+	Data [][]string
 }
 
+// 定义的结构体转表类型
 func Struct2Table(info *DefineTableInfo) *DataTable {
 	if info.Category != DEFINE_TYPE_STRUCT {
 		return nil
@@ -59,6 +92,7 @@ func Struct2Table(info *DefineTableInfo) *DataTable {
 		header.IsArray = item.IsArray
 		header.RawValueType = item.RawValueType
 		header.ValueType = item.ValueType
+		header.EncodeType = item.EncodeType
 		header.FieldName = item.FieldName
 		header.Index = item.Index
 		table.Headers = append(table.Headers, &header)

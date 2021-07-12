@@ -16,21 +16,8 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-var pbFieldEncodeTypes = map[string]string{
-	"bool":   "varint",
-	"int":    "varint",
-	"int32":  "varint",
-	"uint":   "varint",
-	"uint32": "varint",
-	"int64":  "varint",
-	"uint64": "varint",
-	"float":  "fixed32",
-	"double": "fixed64",
-	"string": "bytes",
-}
-
 func IsArray(valueType string) bool {
-	valueType = strings.Trim(valueType, " ")
+	valueType = strings.Replace(valueType, " ", "", -1)
 	repeated := false
 	if strings.Contains(valueType, "[]") {
 		repeated = true
@@ -39,24 +26,8 @@ func IsArray(valueType string) bool {
 }
 
 func GetBaseType(valueType string) string {
-	valueType = strings.Trim(valueType, " ")
+	valueType = strings.Replace(valueType, " ", "", -1)
 	return strings.Replace(valueType, "[]", "", -1)
-}
-
-func GetEncodeType(valueType string) string {
-	valueType = strings.Trim(valueType, " ")
-	repeated := false
-	if strings.Contains(valueType, "[]") {
-		repeated = true
-	}
-	if repeated {
-		return "bytes"
-	}
-	var rawType = strings.Replace(valueType, "[]", "", -1)
-	if tp, ok := pbFieldEncodeTypes[rawType]; ok {
-		return tp
-	}
-	return ""
 }
 
 func Split(s, sep string) []string {
@@ -171,7 +142,7 @@ func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{
 
 // 将表格中支持的类型转换为protobuf支持的类型
 func ParseType(vtype string) (bool, string) {
-	vtype = strings.Trim(vtype, " ")
+	vtype = strings.Replace(vtype, " ", "", -1)
 	repeated := false
 	if strings.Contains(vtype, "[]") {
 		repeated = true
@@ -237,7 +208,7 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 }
 
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
-	rawType = strings.Trim(rawType, " ")
+	rawType = strings.Replace(rawType, " ", "", -1)
 	repeated := false
 	if strings.Contains(rawType, "[]") {
 		repeated = true

@@ -45,7 +45,7 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 		protoTemplate = string(data)
 	}
 
-	tpl, err := template.New("proto").Parse(protoTemplate)
+	tpl, err := template.New("proto").Funcs(funcs).Parse(protoTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return nil
@@ -84,6 +84,7 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 		header := model.DataTableHeader{}
 		header.Index = 1
 		header.FieldName = "Items"
+		header.TitleFieldName = header.FieldName
 		header.IsArray = true
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"

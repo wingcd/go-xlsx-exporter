@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"strings"
+
 	"github.com/wingcd/go-xlsx-protobuf/model"
 )
 
@@ -23,6 +25,8 @@ func GetAllTables() []*model.DataTable {
 			tables = append(tables, table)
 		}
 	}
+
+	ProProcessTable(tables)
 
 	for _, table := range TABLES {
 		tables = append(tables, table)
@@ -49,6 +53,18 @@ func SetTables(tables []*model.DataTable) {
 	for _, table := range tables {
 		TABLES = append(TABLES, table)
 	}
+
+	ProProcessTable(tables)
+}
+
+func GetEnum(pbType string) *model.DefineTableInfo {
+	if DEFINES == nil {
+		return nil
+	}
+	if val, ok := DEFINES[pbType]; ok {
+		return val
+	}
+	return nil
 }
 
 func IsEnum(pbType string) bool {
@@ -69,4 +85,66 @@ func IsStruct(pbType string) bool {
 		return val.Category == model.DEFINE_TYPE_STRUCT && ok
 	}
 	return false
+}
+
+func IsTable(pbType string) bool {
+	if TABLES == nil {
+		return false
+	}
+
+	for _, table := range TABLES {
+		if table.TypeName == pbType {
+			return true
+		}
+	}
+	return false
+}
+
+var pbFieldEncodeTypes = map[string]string{
+	"bool":   "varint",
+	"int":    "varint",
+	"int32":  "varint",
+	"uint":   "varint",
+	"uint32": "varint",
+	"int64":  "varint",
+	"uint64": "varint",
+	"float":  "fixed32",
+	"double": "fixed64",
+	"string": "bytes",
+}
+
+// 获取编码类型
+// 返回值： 编码类型，是否枚举, 是否结构体
+func GetEncodeType(valueType string) (string, bool, bool) {
+	valueType = strings.Replace(valueType, " ", "", -1)
+	repeated := false
+	if strings.Contains(valueType, "[]") {
+		repeated = true
+	}
+	var rawType = strings.Replace(valueType, "[]", "", -1)
+	var isEnum = IsEnum(rawType)
+	var isStruct = IsStruct(rawType) || IsTable(rawType)
+	if repeated {
+		return "bytes", isEnum, isStruct
+	}
+	if tp, ok := pbFieldEncodeTypes[rawType]; ok {
+		return tp, isEnum, isStruct
+	} else if isEnum {
+		return "varint", isEnum, isStruct
+	}
+	return "", isEnum, isStruct
+}
+
+func ProProcessStruct(structs []*model.StructInfo) {
+	for _, st := range structs {
+		st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
+	}
+}
+
+func ProProcessTable(tables []*model.DataTable) {
+	for _, table := range tables {
+		for _, header := range table.Headers {
+			header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
+		}
+	}
 }

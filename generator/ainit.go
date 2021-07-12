@@ -6,11 +6,41 @@ import (
 	"go-xlsx-protobuf/utils"
 	"log"
 	"os"
+	"text/template"
 )
 
 var (
 	generators = make(map[string]Generator, 0)
+
+	funcs template.FuncMap
 )
+
+func init() {
+	funcs = make(template.FuncMap)
+	funcs["space"] = func() string {
+		return " "
+	}
+
+	funcs["table"] = func() string {
+		return "	"
+	}
+
+	funcs["add"] = func(a, b int) int {
+		return a + b
+	}
+
+	funcs["sub"] = func(a, b int) int {
+		return a - b
+	}
+
+	funcs["join"] = func(strs ...string) string {
+		var ret = ""
+		for _, str := range strs {
+			ret += str
+		}
+		return ret
+	}
+}
 
 type Generator interface {
 	Generate() *bytes.Buffer

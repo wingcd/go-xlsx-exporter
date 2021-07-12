@@ -46,7 +46,7 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		csharpTemplate = string(data)
 	}
 
-	tpl, err := template.New("csharp").Parse(csharpTemplate)
+	tpl, err := template.New("csharp").Funcs(funcs).Parse(csharpTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return nil
@@ -89,6 +89,7 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		header := model.DataTableHeader{}
 		header.Index = 1
 		header.FieldName = "Items"
+		header.TitleFieldName = header.FieldName
 		header.IsArray = true
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"

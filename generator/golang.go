@@ -2,8 +2,10 @@ package generator
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 	"text/template"
 
 	"github.com/wingcd/go-xlsx-protobuf/model"
@@ -30,9 +32,65 @@ type goFileDesc struct {
 	Package string
 	Enums   []*model.DefineTableInfo
 	Tables  []*model.DataTable
+
+	FileRawDesc string
 }
 
 type goGenerator struct {
+}
+
+var defaultGoValues = map[string]string{
+	"bool":   "false",
+	"int":    "0",
+	"int32":  "0",
+	"uint":   "0",
+	"uint32": "0",
+	"int64":  "0",
+	"uint64": "0",
+	"float":  "0",
+	"double": "0",
+	"string": "\"\"",
+}
+
+func init() {
+	funcs["title"] = strings.Title
+
+	funcs["default"] = func(item interface{}) string {
+		var nilType = "nil"
+		switch inst := item.(type) {
+		case *model.DataTableHeader:
+			if inst.IsArray {
+				return fmt.Sprintf("make([]*%s, 0)", inst.ValueType)
+			} else if inst.IsEnum {
+				var enumInfo = settings.GetEnum(inst.ValueType)
+				if enumInfo != nil {
+					return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
+				}
+			} else if inst.IsStruct {
+				return nilType
+			} else if val, ok := defaultGoValues[inst.ValueType]; ok {
+				return val
+			}
+		case *model.DataTable:
+			return nilType
+		case *model.DefineTableInfo:
+			return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
+		case string:
+			if val, ok := defaultGoValues[inst]; ok {
+				return val
+			} else if settings.IsEnum(inst) {
+				var enumInfo = settings.GetEnum(inst)
+				if enumInfo != nil {
+					return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
+				}
+			} else if settings.IsTable(inst) || settings.IsStruct(inst) {
+				return nilType
+			}
+		}
+		return ""
+	}
+
+	Regist("golang", &goGenerator{})
 }
 
 func (g *goGenerator) Generate() *bytes.Buffer {
@@ -45,7 +103,10 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 		goTemplate = string(data)
 	}
 
-	tpl, err := template.New("golang").Parse(goTemplate)
+	// 生成proto缓存文件
+	Build("proto", "./gen/all.proto")
+
+	tpl, err := template.New("golang").Funcs(funcs).Parse(goTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return nil
@@ -84,8 +145,10 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 		header := model.DataTableHeader{}
 		header.Index = 1
 		header.FieldName = "Items"
+		header.TitleFieldName = header.FieldName
 		header.IsArray = true
 		header.ValueType = t.TypeName
+		header.EncodeType = "bytes"
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
 
@@ -101,8 +164,4 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 	}
 
 	return buf
-}
-
-func init() {
-	Regist("golang", &goGenerator{})
 }

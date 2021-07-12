@@ -4,6 +4,7 @@
 
 syntax = "proto3";
 package {{.Package}};
+option go_package = ".;{{.Package}}";
 
 {{- /*生成枚举类型*/}}
 {{range .Enums}}

@@ -3,6 +3,7 @@ package xlsx
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -58,12 +59,12 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 
 		item := new(model.DefineTableItem)
 		item.FieldName = row[model.DEFINE_COLUMN_FIELD_INDEX]
+		item.TitleFieldName = strings.Title(item.FieldName)
 		item.Value = row[model.DEFINE_COLUMN_VALUE_INDEX]
 		item.Desc = row[model.DEFINE_COLUMN_COMMENT_INDEX]
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
-		item.ValueType = utils.GetBaseType(row[model.DEFINE_COLUMN_TYPE_INDEX])
-		item.IsArray = utils.IsArray(row[model.DEFINE_COLUMN_TYPE_INDEX])
-		item.EncodeType = utils.GetEncodeType(row[model.DEFINE_COLUMN_TYPE_INDEX])
+		item.IsArray = utils.IsArray(item.RawValueType)
+		item.ValueType = utils.GetBaseType(item.RawValueType)
 		info.Items = append(info.Items, item)
 	}
 
@@ -81,6 +82,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 						log.Printf("[错误] 枚举值类型错误 类型：%s 列：%s \n", info.TypeName, item.Desc)
 					}
 				}
+				item.Index = int(value)
 				item.Value = strconv.FormatInt(int64(value), 10)
 				preValue = value
 			}
@@ -89,13 +91,17 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 			if len(info.Items) > 0 && (info.Items[0].Value != "" && info.Items[0].Value != "0") {
 				item := new(model.DefineTableItem)
 				item.FieldName = "UNKNOWN"
+				item.TitleFieldName = item.FieldName
 				item.ValueType = ""
 				item.Value = "0"
 				item.Desc = ""
 				item.IsArray = false
+				item.Index = 0
 
 				info.Items = append([]*model.DefineTableItem{item}, info.Items...)
 			}
+
+			sort.Sort(model.DefineTableItems(info.Items))
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
 			for i, item := range info.Items {
 				item.Index = i + 1
@@ -135,9 +141,10 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 			header.ExportServer = true
 		}
 		header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
+		header.TitleFieldName = strings.Title(header.FieldName)
 		header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
-		header.ValueType = utils.GetBaseType(col[model.DATA_ROW_TYPE_INDEX])
-		header.IsArray = utils.IsArray(col[model.DATA_ROW_TYPE_INDEX])
+		header.IsArray = utils.IsArray(header.RawValueType)
+		header.ValueType = utils.GetBaseType(header.RawValueType)
 		header.Index = i + 1
 		table.Headers = append(table.Headers, header)
 	}

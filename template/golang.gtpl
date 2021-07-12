@@ -5,59 +5,136 @@
 package {{.Package}}
 
 import (
-    "github.com/golang/protobuf/proto"
-    "google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/runtime/protoimpl"
-	"reflect"
-	"sync"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
+	reflect "reflect"
+	sync "sync"
 )
+
+const (
+	// Verify that this generated code is sufficiently up-to-date.
+	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+	// Verify that runtime/protoimpl is sufficiently up-to-date.
+	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+)
+
+{{$TypeDescPrefix := join .Package ".types."}}
 
 {{- /*生成枚举类型*/}}
 {{range $index,$item := .Enums}}
 // Defined in table: {{.DefinedTable}}
 type {{$item.TypeName}} int32
 const ( {{range .Items}}
-    {{$item.TypeName}}_{{.FieldName}} {{$item.TypeName}} = {{.Value}} {{if ne .Desc ""}} //{{.Desc}} {{end -}}
+    {{$item.TypeName}}_{{.TitleFieldName}} {{$item.TypeName}} = {{.Value}} {{if ne .Desc ""}} //{{.Desc}} {{end -}}
   {{end}}
 )
 
-var {{$item.TypeName}}_name = map[int32]string{
+var (
+    {{$item.TypeName}}_name = map[int32]string{
 	{{range .Items -}}
-        {{.Value}}:"{{.FieldName}}",
+        {{.Value}}:"{{.TitleFieldName}}",
     {{end -}}
-}
+    }
 
-var {{$item.TypeName}}_value = map[string]int32{
+    {{$item.TypeName}}_value = map[string]int32{
     {{range .Items -}}
-        "{{.FieldName}}":{{.Value}},
+        "{{.TitleFieldName}}":{{.Value}},
     {{end -}}
+    }
+)
+
+func (x {{$item.TypeName}}) Enum() *{{$item.TypeName}} {
+	p := new({{$item.TypeName}})
+	*p = x
+	return p
 }
 
 func (x {{$item.TypeName}}) String() string {
-	name, ok := {{$item.TypeName}}_name[int32(x)]
-    if !ok {
-        name = "UNKNOWN"
-    }
-	return name
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
+
+func ({{$item.TypeName}}) Descriptor() protoreflect.EnumDescriptor {
+	return file_types_types_proto_enumTypes[{{$index}}].Descriptor()
+}
+
+func ({{$item.TypeName}}) Type() protoreflect.EnumType {
+	return &file_types_types_proto_enumTypes[{{$index}}]
+}
+
+func (x {{$item.TypeName}}) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use {{$item.TypeName}}.Descriptor instead.
+func ({{$item.TypeName}}) EnumDescriptor() ([]byte, []int) {
+	return file_types_types_proto_rawDescGZIP(), []int{ {{- $index -}} }
+}
+
+{{- /*生成枚举类型结束*/}}
 {{end}}
 
 {{- /*生成类类型*/}}
 {{- range $index,$item := .Tables}}
 // Defined in table: {{.DefinedTable}}
-type {{$item.TypeName}} struct { 
-{{range $item.Headers}}
+type {{.TypeName}} struct { 
+    state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+{{range .Headers}}
     {{if ne .Desc ""}} //{{.Desc}} {{end}}
-    {{- if .IsArray}}
-    {{.FieldName}} []*{{.ValueType}} `protobuf:"{{.FieldName}},1,opt,name={{.FieldName}}" json:"{{.FieldName}},omitempty"`
-    {{- else}}
-    {{.FieldName}} {{.ValueType}} `protobuf:"{{.FieldName}},1,opt,name={{.FieldName}}" json:"{{.FieldName}},omitempty"`
-    {{end -}}
+    {{- $typeDesc := ""}}
+    {{- if .IsEnum}} {{$typeDesc = join ",enum=" $TypeDescPrefix .ValueType}}{{end}}    
+    {{- $arratDesc := ""}}
+    {{- if .IsArray}} {{$arratDesc = "[]*"}}{{end}}
+    {{.TitleFieldName}} {{$arratDesc}}{{.ValueType}} `protobuf:"{{.EncodeType}},{{.Index}},opt,name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"`
+    {{- space -}}
 {{end}}
 }
-{{- /*proto.Message 接口指定的函数*/}}
-func (m *{{$item.TypeName}}) ProtoReflect() protoreflect.Message {
-    return nil
+
+func (x *{{.TypeName}}) Reset() {
+	*x = {{.TypeName}}{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_test_proto_msgTypes[{{$index}}]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
 }
 
+func (x *{{.TypeName}}) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*{{.TypeName}}) ProtoMessage() {}
+
+func (x *{{.TypeName}}) ProtoReflect() protoreflect.Message {
+	mi := &file_test_proto_msgTypes[{{$index}}]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Data.ProtoReflect.Descriptor instead.
+func (*{{.TypeName}}) Descriptor() ([]byte, []int) {
+	return file_test_proto_rawDescGZIP(), []int{ {{- $index -}} }
+}
+
+{{- /*生成属性get方法*/}}
+{{range .Headers}}
+{{- $returnType := .ValueType}}
+{{- if .IsArray}} {{ $returnType = join "[]*" $returnType}} {{end}}
+func (x *{{$item.TypeName}}) Get{{.TitleFieldName}}() {{$returnType}} {
+	if x != nil {
+		return x.{{.TitleFieldName}}
+	}
+	return {{default .}}
+}
+{{end}}
+
+{{- /*生成类类型结束*/}}
 {{end}}

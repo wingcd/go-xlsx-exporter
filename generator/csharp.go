@@ -2,8 +2,11 @@ package generator
 
 import (
 	"bytes"
+	"fmt"
+	"go-xlsx-protobuf/utils"
 	"io/ioutil"
 	"log"
+	"strings"
 	"text/template"
 
 	"github.com/wingcd/go-xlsx-protobuf/model"
@@ -11,6 +14,67 @@ import (
 )
 
 var csharpTemplate = ""
+
+func csFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
+	var ret = ""
+	if isArray {
+		var arr = value.([]interface{})
+		var lst []string
+		for _, it := range arr {
+			lst = append(lst, csFormatValue(it, valueType, isEnum, false))
+		}
+		ret = fmt.Sprintf("new %s[]{%s}", valueType, strings.Join(lst, ","))
+	} else if isEnum {
+		for _, e := range settings.ENUMS {
+			if e.TypeName == valueType {
+				for _, it := range e.Items {
+					if it.Value == value {
+						ret = it.FieldName
+						break
+					}
+				}
+				break
+			}
+		}
+	} else if valueType == "float" {
+		ret = fmt.Sprintf("%vf", value)
+	} else if valueType == "string" {
+		ret = fmt.Sprintf("\"%v\"", value)
+	} else {
+		ret = fmt.Sprintf("%v", value)
+	}
+	return ret
+}
+
+func init() {
+	funcs["value_format"] = func(value string, item interface{}) string {
+		var isEnum = false
+		var valueType = ""
+		var rawValueType = ""
+		var fieldName = ""
+		switch inst := item.(type) {
+		case *model.DefineTableItem:
+			fieldName = inst.FieldName
+			isEnum = inst.IsEnum
+			valueType = inst.ValueType
+			rawValueType = inst.RawValueType
+		case *model.DataTableHeader:
+			fieldName = inst.FieldName
+			isEnum = inst.IsEnum
+			valueType = inst.ValueType
+			rawValueType = inst.RawValueType
+		}
+
+		var ok, val, isArray = utils.ParseValue(rawValueType, value)
+		if !ok {
+			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
+			return value
+		}
+		return csFormatValue(val, valueType, isEnum, isArray)
+	}
+
+	Regist("csharp", &csharpGenerator{})
+}
 
 var supportCSharpTypes = map[string]string{
 	"bool":   "bool",
@@ -32,6 +96,7 @@ type csharpFileDesc struct {
 	Namespace string
 	Enums     []*model.DefineTableInfo
 	Structs   []*model.DefineTableInfo
+	Consts    []*model.DefineTableInfo
 	Tables    []*model.DataTable
 }
 
@@ -63,6 +128,7 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		Namespace: settings.PackageName,
 		Enums:     make([]*model.DefineTableInfo, 0),
 		Structs:   make([]*model.DefineTableInfo, 0),
+		Consts:    make([]*model.DefineTableInfo, 0),
 		Tables:    make([]*model.DataTable, 0),
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
@@ -74,6 +140,12 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 	for _, e := range settings.STRUCTS {
 		fd.Structs = append(fd.Structs, e)
 	}
+	settings.PreProcessDefine(fd.Structs)
+
+	for _, e := range settings.CONSTS {
+		fd.Consts = append(fd.Consts, e)
+	}
+	settings.PreProcessDefine(fd.Consts)
 
 	for _, t := range settings.TABLES {
 		fd.Tables = append(fd.Tables, t)
@@ -101,10 +173,10 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
-		settings.PreProcessTable([]*model.DataTable{&table})
 
 		fd.Tables = append(fd.Tables, &table)
 	}
+	settings.PreProcessTable(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 
@@ -115,8 +187,4 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 	}
 
 	return buf
-}
-
-func init() {
-	Regist("csharp", &csharpGenerator{})
 }

@@ -100,3 +100,24 @@ func Struct2Table(info *DefineTableInfo) *DataTable {
 
 	return &table
 }
+
+// 定义的常量转表类型
+func Const2Table(info *DefineTableInfo) *DataTable {
+	if info.Category != DEFINE_TYPE_CONST {
+		return nil
+	}
+	table := DataTable{}
+	table.TypeName = info.TypeName
+	table.Headers = make([]*DataTableHeader, 0)
+	table.DefinedTable = info.DefinedTable
+
+	for _, item := range info.Items {
+		header := DataTableHeader{}
+		header.ExportClient = true
+		header.ExportServer = true
+		header.StructInfo = item.StructInfo
+		table.Headers = append(table.Headers, &header)
+	}
+
+	return &table
+}

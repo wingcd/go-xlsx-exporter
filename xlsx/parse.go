@@ -106,6 +106,10 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 			for i, item := range info.Items {
 				item.Index = i + 1
 			}
+		} else if info.Category == model.DEFINE_TYPE_CONST {
+			for i, item := range info.Items {
+				item.Index = i + 1
+			}
 		}
 	}
 

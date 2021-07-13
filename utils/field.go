@@ -172,6 +172,7 @@ func ParseBool(s string) (bool, error) {
 	return false, errors.New("invalid bool value")
 }
 
+// 值类型转换
 func ConvertValue(vtype, value string) (error, interface{}) {
 	var ret interface{}
 	var err error
@@ -207,6 +208,7 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 	return err, ret
 }
 
+// 通过原始类型对值进行转换
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
 	rawType = strings.Replace(rawType, " ", "", -1)
 	repeated := false

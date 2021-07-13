@@ -3,6 +3,7 @@ package model
 const (
 	DEFINE_TYPE_ENUM   = "enum"
 	DEFINE_TYPE_STRUCT = "struct"
+	DEFINE_TYPE_CONST  = "const"
 
 	DEFINE_COLUMN_COUNT = 6
 

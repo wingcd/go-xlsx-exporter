@@ -9,6 +9,17 @@ using ProtoBuf;
 
 namespace {{.Namespace}}
 {
+    {{- /*生成常量类型*/}}
+    {{- range .Consts}}
+    // Defined in table: {{.DefinedTable}}
+    public class {{.TypeName}}
+    { {{range .Items}}
+        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        public const {{.ValueType}} {{.FieldName}} = {{value_format .Value .}};
+    {{end -}}
+    }
+    {{end}}
+
     {{- /*生成枚举类型*/}}
     {{- range .Enums}}
     // Defined in table: {{.DefinedTable}}

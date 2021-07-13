@@ -96,10 +96,10 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
-		settings.PreProcessTable([]*model.DataTable{&table})
 
 		fd.Tables = append(fd.Tables, &table)
 	}
+	settings.PreProcessTable(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

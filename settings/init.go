@@ -15,6 +15,7 @@ var (
 	DEFINES map[string]*model.DefineTableInfo
 	ENUMS   []*model.DefineTableInfo
 	STRUCTS []*model.DefineTableInfo
+	CONSTS  []*model.DefineTableInfo
 	TABLES  []*model.DataTable
 )
 
@@ -27,8 +28,6 @@ func GetAllTables() []*model.DataTable {
 		}
 	}
 
-	PreProcessTable(tables)
-
 	for _, table := range TABLES {
 		tables = append(tables, table)
 	}
@@ -38,13 +37,18 @@ func GetAllTables() []*model.DataTable {
 
 func SetDefines(defines map[string]*model.DefineTableInfo) {
 	DEFINES = defines
+
 	ENUMS = make([]*model.DefineTableInfo, 0)
 	STRUCTS = make([]*model.DefineTableInfo, 0)
+	CONSTS = make([]*model.DefineTableInfo, 0)
+
 	for _, info := range defines {
 		if info.Category == model.DEFINE_TYPE_ENUM {
 			ENUMS = append(ENUMS, info)
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
 			STRUCTS = append(STRUCTS, info)
+		} else if info.Category == model.DEFINE_TYPE_CONST {
+			CONSTS = append(CONSTS, info)
 		}
 	}
 }
@@ -54,8 +58,6 @@ func SetTables(tables []*model.DataTable) {
 	for _, table := range tables {
 		TABLES = append(TABLES, table)
 	}
-
-	PreProcessTable(tables)
 }
 
 func GetEnum(pbType string) *model.DefineTableInfo {
@@ -136,9 +138,11 @@ func GetEncodeType(valueType string) (string, bool, bool) {
 	return "", isEnum, isStruct
 }
 
-func PreProcessStruct(structs []*model.StructInfo) {
-	for _, st := range structs {
-		st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
+func PreProcessDefine(defines []*model.DefineTableInfo) {
+	for _, d := range defines {
+		for _, st := range d.Items {
+			st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
+		}
 	}
 }
 

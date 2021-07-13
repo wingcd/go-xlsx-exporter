@@ -16,6 +16,10 @@ var (
 	funcs template.FuncMap
 )
 
+type commonFileDesc struct {
+	GoProtoVersion string
+}
+
 func init() {
 	funcs = make(template.FuncMap)
 

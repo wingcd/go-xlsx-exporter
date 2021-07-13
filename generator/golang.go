@@ -9,10 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/wingcd/go-xlsx-protobuf/model"
 	"github.com/wingcd/go-xlsx-protobuf/settings"
 	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 )
 
@@ -84,6 +84,8 @@ func init() {
 }
 
 type goFileDesc struct {
+	commonFileDesc
+
 	Version string
 	Package string
 	Enums   []*model.DefineTableInfo
@@ -187,6 +189,7 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 		Tables:   make([]*model.DataTable, 0),
 		FileName: filename,
 	}
+	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	fd.genProtoRawDesc()
 

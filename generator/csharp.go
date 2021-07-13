@@ -26,6 +26,8 @@ var supportCSharpTypes = map[string]string{
 }
 
 type csharpFileDesc struct {
+	commonFileDesc
+
 	Version   string
 	Namespace string
 	Enums     []*model.DefineTableInfo
@@ -63,6 +65,7 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		Structs:   make([]*model.DefineTableInfo, 0),
 		Tables:    make([]*model.DataTable, 0),
 	}
+	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	for _, e := range settings.ENUMS {
 		fd.Enums = append(fd.Enums, e)

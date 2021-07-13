@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	GO_PROTO_VERTION  = "v1.27.1"
 	TOOL_VERSION      = "1.0"
 	EXPORT_FOR_CLIENT = false
 	PackageName       = "PBGen"

@@ -15,11 +15,11 @@ type StructInfo struct {
 	EncodeType string
 	// 值
 	Value string
-	// 是否枚举
+	// 基础值是否枚举
 	IsEnum bool
-	// 是否结构
+	// 基础值是否结构
 	IsStruct bool
-	// 是否数组
+	// 基础值是否数组
 	IsArray bool
 	// 编号（1开始）
 	Index int

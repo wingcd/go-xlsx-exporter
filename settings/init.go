@@ -26,7 +26,7 @@ func GetAllTables() []*model.DataTable {
 		}
 	}
 
-	ProProcessTable(tables)
+	PreProcessTable(tables)
 
 	for _, table := range TABLES {
 		tables = append(tables, table)
@@ -54,7 +54,7 @@ func SetTables(tables []*model.DataTable) {
 		TABLES = append(TABLES, table)
 	}
 
-	ProProcessTable(tables)
+	PreProcessTable(tables)
 }
 
 func GetEnum(pbType string) *model.DefineTableInfo {
@@ -135,16 +135,20 @@ func GetEncodeType(valueType string) (string, bool, bool) {
 	return "", isEnum, isStruct
 }
 
-func ProProcessStruct(structs []*model.StructInfo) {
+func PreProcessStruct(structs []*model.StructInfo) {
 	for _, st := range structs {
 		st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
 	}
 }
 
-func ProProcessTable(tables []*model.DataTable) {
+func PreProcessHeader(header *model.DataTableHeader) {
+	header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
+}
+
+func PreProcessTable(tables []*model.DataTable) {
 	for _, table := range tables {
 		for _, header := range table.Headers {
-			header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
+			PreProcessHeader(header)
 		}
 	}
 }

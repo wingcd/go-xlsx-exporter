@@ -36,6 +36,10 @@ type csharpFileDesc struct {
 type csharpGenerator struct {
 }
 
+func (g *csharpGenerator) SetOutput(output string) {
+
+}
+
 func (g *csharpGenerator) Generate() *bytes.Buffer {
 	if csharpTemplate == "" {
 		data, err := ioutil.ReadFile("./template/csharp.gtpl")
@@ -94,6 +98,7 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
+		settings.PreProcessTable([]*model.DataTable{&table})
 
 		fd.Tables = append(fd.Tables, &table)
 	}

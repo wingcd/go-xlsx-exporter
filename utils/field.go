@@ -381,3 +381,64 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 
 	return protodesc.NewFile(&file, nil)
 }
+
+func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
+	var file descriptorpb.FileDescriptorProto
+	file.Syntax = proto.String("proto3")
+	file.Name = proto.String(filename + ".proto")
+	file.Package = proto.String(settings.PackageName)
+
+	// 创建公共定义类型，枚举与结构
+	for _, item := range settings.ENUMS {
+		if item.Category == model.DEFINE_TYPE_ENUM {
+			var ed descriptorpb.EnumDescriptorProto
+			ed.Name = proto.String(item.TypeName)
+
+			for _, field := range item.Items {
+				var vd descriptorpb.EnumValueDescriptorProto
+				vd.Name = proto.String(field.FieldName)
+				v, _ := strconv.Atoi(field.Value)
+				vd.Number = proto.Int32(int32(v))
+				ed.Value = append(ed.Value, &vd)
+			}
+			file.EnumType = append(file.EnumType, &ed)
+		}
+	}
+
+	// 创建表数据结构
+	var tables = settings.GetAllTables()
+	for _, tab := range tables {
+		var desc descriptorpb.DescriptorProto
+		desc.Name = proto.String(tab.TypeName)
+		for _, field := range tab.Headers {
+			var fd descriptorpb.FieldDescriptorProto
+			fd.Name = proto.String(field.FieldName)
+			fd.JsonName = proto.String(field.FieldName)
+			fd.Number = proto.Int32(int32(field.Index))
+			TableType2PbType(field.ValueType, &fd, false)
+			if field.IsArray {
+				fd.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
+			} else {
+				fd.Label = descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()
+			}
+
+			desc.Field = append(desc.Field, &fd)
+		}
+		file.MessageType = append(file.MessageType, &desc)
+
+		// 创建列表结构
+		var itemsDesc descriptorpb.DescriptorProto
+		itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
+		var itemsFD descriptorpb.FieldDescriptorProto
+		itemsFD.Name = proto.String("Items")
+		itemsFD.JsonName = proto.String("Items")
+		itemsFD.Number = proto.Int32(int32(1))
+		TableType2PbType(tab.TypeName, &itemsFD, true)
+		itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
+		itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
+
+		file.MessageType = append(file.MessageType, &itemsDesc)
+	}
+
+	return protodesc.NewFile(&file, nil)
+}

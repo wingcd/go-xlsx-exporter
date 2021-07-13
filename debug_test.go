@@ -68,7 +68,7 @@ func TestParseDataXlsx(t *testing.T) {
 
 // 测试proto数据序列化
 func TestPBSerialize(t *testing.T) {
-	settings.DEFINES = xlsx.ParseDefineSheet("data/define.xlsx", "define")
+	settings.SetDefines(xlsx.ParseDefineSheet("data/define.xlsx", "define"))
 
 	user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	user.TypeName = "User"
@@ -76,7 +76,9 @@ func TestPBSerialize(t *testing.T) {
 	class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	class.TypeName = "PClass"
 
-	fd, _ := utils.BuildDynamicType([]*model.DataTable{class, user})
+	settings.SetTables([]*model.DataTable{class, user})
+
+	fd, _ := utils.BuildFileDesc("test")
 
 	fooMessageDescriptor := fd.Messages().ByName("User")
 	msg := dynamicpb.NewMessage(fooMessageDescriptor)
@@ -139,24 +141,27 @@ func TestPBSerialize(t *testing.T) {
 }
 
 func TestSaveSerializeData(t *testing.T) {
-	settings.DEFINES = xlsx.ParseDefineSheet("data/define.xlsx", "define")
+	settings.SetDefines(xlsx.ParseDefineSheet("data/define.xlsx", "define"))
 
 	class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	class.TypeName = "PClass"
-	serialize.GenDataFile("./gen/bytes/", class)
 
 	user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	user.TypeName = "User"
 
-	ret, filename, fd := serialize.GenDataFile("./gen/bytes/", user)
-	fmt.Printf("%v-%s \n", ret, filename)
+	settings.SetTables([]*model.DataTable{class, user})
+
+	var pbname = "DataModel"
+	fd, _ := utils.BuildFileDesc(pbname)
+
+	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES)
 
 	itemMD := fd.Messages().ByName("User")
 
 	listMD := fd.Messages().ByName("User_ARRAY")
 	msg := dynamicpb.NewMessage(listMD)
 
-	f, err := os.Open(filename)
+	f, err := os.Open("./gen/bytes/user.bytes")
 	defer f.Close()
 	if err != nil {
 		fmt.Print(err.Error())

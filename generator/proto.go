@@ -35,6 +35,10 @@ type protoFileDesc struct {
 type protoGenerator struct {
 }
 
+func (g *protoGenerator) SetOutput(output string) {
+
+}
+
 func (g *protoGenerator) Generate() *bytes.Buffer {
 	if protoTemplate == "" {
 		data, err := ioutil.ReadFile("./template/proto.gtpl")
@@ -89,6 +93,7 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
+		settings.PreProcessTable([]*model.DataTable{&table})
 
 		fd.Tables = append(fd.Tables, &table)
 	}

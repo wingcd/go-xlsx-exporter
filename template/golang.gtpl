@@ -7,7 +7,6 @@ package {{.Package}}
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	reflect "reflect"
 	sync "sync"
 )
@@ -19,7 +18,10 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-{{$TypeDescPrefix := join .Package ".types."}}
+{{- $G := .}}
+{{- $TypeDescPrefix := join .Package "."}}
+{{- $innerVarPrefix := join "file_" .FileName "_proto"}}
+{{- $outterVarPrefix := upperF $innerVarPrefix}}
 
 {{- /*生成枚举类型*/}}
 {{range $index,$item := .Enums}}
@@ -55,11 +57,11 @@ func (x {{$item.TypeName}}) String() string {
 }
 
 func ({{$item.TypeName}}) Descriptor() protoreflect.EnumDescriptor {
-	return file_types_types_proto_enumTypes[{{$index}}].Descriptor()
+	return {{$innerVarPrefix}}_enumTypes[{{$index}}].Descriptor()
 }
 
 func ({{$item.TypeName}}) Type() protoreflect.EnumType {
-	return &file_types_types_proto_enumTypes[{{$index}}]
+	return &{{$innerVarPrefix}}_enumTypes[{{$index}}]
 }
 
 func (x {{$item.TypeName}}) Number() protoreflect.EnumNumber {
@@ -68,7 +70,7 @@ func (x {{$item.TypeName}}) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use {{$item.TypeName}}.Descriptor instead.
 func ({{$item.TypeName}}) EnumDescriptor() ([]byte, []int) {
-	return file_types_types_proto_rawDescGZIP(), []int{ {{- $index -}} }
+	return {{$innerVarPrefix}}_rawDescGZIP(), []int{ {{- $index -}} }
 }
 
 {{- /*生成枚举类型结束*/}}
@@ -81,13 +83,20 @@ type {{.TypeName}} struct {
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-{{range .Headers}}
-    {{if ne .Desc ""}} //{{.Desc}} {{end}}
+{{range .Headers}}    
     {{- $typeDesc := ""}}
+	{{- $fieldTag := "opt"}}
     {{- if .IsEnum}} {{$typeDesc = join ",enum=" $TypeDescPrefix .ValueType}}{{end}}    
-    {{- $arratDesc := ""}}
-    {{- if .IsArray}} {{$arratDesc = "[]*"}}{{end}}
-    {{.TitleFieldName}} {{$arratDesc}}{{.ValueType}} `protobuf:"{{.EncodeType}},{{.Index}},opt,name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"`
+	{{- $arratDesc := ""}}
+	{{- if .IsArray}} 
+		{{- $fieldTag = "rep"}}
+		{{- if .IsStruct}} 
+			{{- $arratDesc = "[]*"}} 
+		{{- else}} 
+			{{- $arratDesc = "[]"}} 
+		{{- end}} 
+	{{- end}}
+    {{.TitleFieldName}} {{$arratDesc}}{{.ValueType}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} //{{.Desc}} {{end}}
     {{- space -}}
 {{end}}
 }
@@ -95,7 +104,7 @@ type {{.TypeName}} struct {
 func (x *{{.TypeName}}) Reset() {
 	*x = {{.TypeName}}{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_test_proto_msgTypes[{{$index}}]
+		mi := &{{$innerVarPrefix}}_msgTypes[{{$index}}]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -108,7 +117,7 @@ func (x *{{.TypeName}}) String() string {
 func (*{{.TypeName}}) ProtoMessage() {}
 
 func (x *{{.TypeName}}) ProtoReflect() protoreflect.Message {
-	mi := &file_test_proto_msgTypes[{{$index}}]
+	mi := &{{$innerVarPrefix}}_msgTypes[{{$index}}]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -119,15 +128,19 @@ func (x *{{.TypeName}}) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Data.ProtoReflect.Descriptor instead.
+// Deprecated: Use {{.TypeName}}.ProtoReflect.Descriptor instead.
 func (*{{.TypeName}}) Descriptor() ([]byte, []int) {
-	return file_test_proto_rawDescGZIP(), []int{ {{- $index -}} }
+	return {{$innerVarPrefix}}_rawDescGZIP(), []int{ {{- $index -}} }
 }
 
 {{- /*生成属性get方法*/}}
 {{range .Headers}}
 {{- $returnType := .ValueType}}
-{{- if .IsArray}} {{ $returnType = join "[]*" $returnType}} {{end}}
+{{- if .IsArray}}	
+	{{- $arratDesc := ""}}
+ 	{{- if .IsArray}} {{if .IsStruct}} {{$arratDesc = "[]*"}} {{else}} {{$arratDesc = "[]"}} {{end}} {{end}}
+	{{- $returnType = join $arratDesc $returnType}} 
+{{- end}}
 func (x *{{$item.TypeName}}) Get{{.TitleFieldName}}() {{$returnType}} {
 	if x != nil {
 		return x.{{.TitleFieldName}}
@@ -138,3 +151,86 @@ func (x *{{$item.TypeName}}) Get{{.TitleFieldName}}() {{$returnType}} {
 
 {{- /*生成类类型结束*/}}
 {{end}}
+
+{{- /*生成文件信息*/}}
+var {{$outterVarPrefix}} protoreflect.FileDescriptor
+
+var {{$innerVarPrefix}}_rawDesc = []byte{
+{{.FileRawDesc}}
+}
+
+var (
+	{{$innerVarPrefix}}_rawDescOnce sync.Once
+	{{$innerVarPrefix}}_rawDescData = {{$innerVarPrefix}}_rawDesc
+)
+
+func {{$innerVarPrefix}}_rawDescGZIP() []byte {
+	{{$innerVarPrefix}}_rawDescOnce.Do(func() {
+		{{$innerVarPrefix}}_rawDescData = protoimpl.X.CompressGZIP({{$innerVarPrefix}}_rawDescData)
+	})
+	return {{$innerVarPrefix}}_rawDescData
+}
+
+var {{$innerVarPrefix}}_enumTypes = make([]protoimpl.EnumInfo, {{len .Enums}})
+var {{$innerVarPrefix}}_msgTypes = make([]protoimpl.MessageInfo, {{len .Tables}})
+var {{$innerVarPrefix}}_goTypes = []interface{}{
+	{{$typeCount := 0}}
+	{{- range .Enums}}	
+	{{- space -}}
+	({{.TypeName}})(0),				// {{$typeCount}}: {{$G.Package}}.{{.TypeName}}
+	{{- $typeCount = add $typeCount 1}}
+	{{end}}
+	{{- range .Tables}}
+	{{- space -}}
+	(*{{.TypeName}})(nil),				// {{$typeCount}}: {{$G.Package}}.{{.TypeName}}
+	{{- $typeCount = add $typeCount 1}}
+	{{end}}
+}
+
+var {{$innerVarPrefix}}_depIdxs = []int32{
+	{{.DepIdexs}}
+}
+
+func init() { {{$innerVarPrefix}}_init() }
+func {{$innerVarPrefix}}_init() {
+	if {{$outterVarPrefix}} != nil {
+		return
+	}
+	if !protoimpl.UnsafeEnabled {
+		{{- $msgCount := 0}}
+		{{- range .Tables}}
+		{{$innerVarPrefix}}_msgTypes[{{$msgCount}}].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*{{.TypeName}}); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		{{- $msgCount = add $msgCount 1}}
+		{{end}}
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: {{$innerVarPrefix}}_rawDesc,
+			NumEnums:      {{len .Enums}},
+			NumMessages:   {{len .Tables}},
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           {{$innerVarPrefix}}_goTypes,
+		DependencyIndexes: {{$innerVarPrefix}}_depIdxs,
+		EnumInfos:         {{$innerVarPrefix}}_enumTypes,
+		MessageInfos:      {{$innerVarPrefix}}_msgTypes,
+	}.Build()
+	{{$outterVarPrefix}} = out.File
+	{{$innerVarPrefix}}_rawDesc = nil
+	{{$innerVarPrefix}}_goTypes = nil
+	{{$innerVarPrefix}}_depIdxs = nil
+}

@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strings"
 	"text/template"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/wingcd/go-xlsx-protobuf/model"
 	"github.com/wingcd/go-xlsx-protobuf/settings"
+	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"google.golang.org/protobuf/reflect/protodesc"
 )
 
 var goTemplate = ""
@@ -27,18 +31,6 @@ var supportGoTypes = map[string]string{
 	"string": "string",
 }
 
-type goFileDesc struct {
-	Version string
-	Package string
-	Enums   []*model.DefineTableInfo
-	Tables  []*model.DataTable
-
-	FileRawDesc string
-}
-
-type goGenerator struct {
-}
-
 var defaultGoValues = map[string]string{
 	"bool":   "false",
 	"int":    "0",
@@ -53,14 +45,12 @@ var defaultGoValues = map[string]string{
 }
 
 func init() {
-	funcs["title"] = strings.Title
-
 	funcs["default"] = func(item interface{}) string {
 		var nilType = "nil"
 		switch inst := item.(type) {
 		case *model.DataTableHeader:
 			if inst.IsArray {
-				return fmt.Sprintf("make([]*%s, 0)", inst.ValueType)
+				return nilType
 			} else if inst.IsEnum {
 				var enumInfo = settings.GetEnum(inst.ValueType)
 				if enumInfo != nil {
@@ -93,6 +83,86 @@ func init() {
 	Regist("golang", &goGenerator{})
 }
 
+type goFileDesc struct {
+	Version string
+	Package string
+	Enums   []*model.DefineTableInfo
+	Tables  []*model.DataTable
+
+	FileName    string
+	FileRawDesc string
+	DepIdexs    string
+}
+
+type goGenerator struct {
+	output string
+}
+
+func (g *goGenerator) SetOutput(output string) {
+	g.output = output
+}
+
+func (f *goFileDesc) genProtoRawDesc() {
+	var fd, err = utils.BuildFileDesc(f.FileName)
+	if err != nil {
+		fmt.Errorf(err.Error())
+		return
+	}
+
+	// 生成依赖索引数组
+	var depIdxs []string
+	var totalIdx = 0
+
+	for i := 0; i < fd.Messages().Len(); i++ {
+		var msg = fd.Messages().Get(i)
+
+		for fi := 0; fi < msg.Fields().Len(); fi++ {
+			var field = msg.Fields().Get(fi)
+			if field.Enum() != nil {
+				// 0, // 0: gen.SInfo.DataType:type_name -> gen.EDataType
+				depIdxs = append(depIdxs, fmt.Sprintf("%v, // %v: %v:type_name -> %v",
+					field.Enum().Index(), totalIdx,
+					msg.FullName(),
+					field.Enum().FullName(),
+				))
+				totalIdx++
+			} else if field.Message() != nil {
+				var baseIdx = fd.Enums().Len()
+				depIdxs = append(depIdxs, fmt.Sprintf("%v, // %v: %v:type_name -> %v",
+					field.Message().Index()+baseIdx, totalIdx,
+					msg.FullName(),
+					field.Message().FullName(),
+				))
+				totalIdx++
+			}
+		}
+	}
+
+	depIdxs = append(depIdxs, fmt.Sprintf("%v, // [%v:%v] is the sub-list for method output_type", totalIdx, totalIdx, totalIdx))
+	depIdxs = append(depIdxs, fmt.Sprintf("%v, // [%v:%v] is the sub-list for method input_type", totalIdx, totalIdx, totalIdx))
+	depIdxs = append(depIdxs, fmt.Sprintf("%v, // [%v:%v] is the sub-list for extension type_name", totalIdx, totalIdx, totalIdx))
+	depIdxs = append(depIdxs, fmt.Sprintf("%v, // [%v:%v] is the sub-list for extension extendee", totalIdx, totalIdx, totalIdx))
+	depIdxs = append(depIdxs, fmt.Sprintf("0, // [0:%v] is the sub-list for field type_name", totalIdx))
+
+	f.DepIdexs = strings.Join(depIdxs, "\n")
+
+	// proto.FileDescriptor(XXX)
+	// 生成文件描述数据
+	pt := protodesc.ToFileDescriptorProto(fd)
+	var b, _ = proto.Marshal(pt)
+	if len(b) > 0 {
+		// var v = protoimpl.X.CompressGZIP(b)
+		var rets = make([]string, 0)
+		for i, b := range b {
+			if (i%16) == 0 && i != 0 {
+				rets = append(rets, "\n")
+			}
+			rets = append(rets, fmt.Sprintf("0x%02x,", b))
+		}
+		f.FileRawDesc = strings.Join(rets, "")
+	}
+}
+
 func (g *goGenerator) Generate() *bytes.Buffer {
 	if goTemplate == "" {
 		data, err := ioutil.ReadFile("./template/golang.gtpl")
@@ -103,21 +173,22 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 		goTemplate = string(data)
 	}
 
-	// 生成proto缓存文件
-	Build("proto", "./gen/all.proto")
-
 	tpl, err := template.New("golang").Funcs(funcs).Parse(goTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return nil
 	}
 
+	var filename = strings.Split(filepath.Base(g.output), ".")[0]
 	var fd = goFileDesc{
-		Version: settings.TOOL_VERSION,
-		Package: settings.PackageName,
-		Enums:   make([]*model.DefineTableInfo, 0),
-		Tables:  make([]*model.DataTable, 0),
+		Version:  settings.TOOL_VERSION,
+		Package:  settings.PackageName,
+		Enums:    make([]*model.DefineTableInfo, 0),
+		Tables:   make([]*model.DataTable, 0),
+		FileName: filename,
 	}
+
+	fd.genProtoRawDesc()
 
 	for _, e := range settings.ENUMS {
 		fd.Enums = append(fd.Enums, e)
@@ -151,6 +222,7 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 		header.EncodeType = "bytes"
 		header.RawValueType = t.TypeName + "[]"
 		table.Headers = []*model.DataTableHeader{&header}
+		settings.PreProcessTable([]*model.DataTable{&table})
 
 		fd.Tables = append(fd.Tables, &table)
 	}

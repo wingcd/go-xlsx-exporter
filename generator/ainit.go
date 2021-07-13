@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"go-xlsx-protobuf/settings"
 	"go-xlsx-protobuf/utils"
 	"log"
 	"os"
@@ -17,6 +18,18 @@ var (
 
 func init() {
 	funcs = make(template.FuncMap)
+
+	funcs["upperF"] = func(str string) string {
+		if len(str) < 1 {
+			return ""
+		}
+		strArry := []rune(str)
+		if strArry[0] >= 97 && strArry[0] <= 122 {
+			strArry[0] -= 32
+		}
+		return string(strArry)
+	}
+
 	funcs["space"] = func() string {
 		return " "
 	}
@@ -40,9 +53,17 @@ func init() {
 		}
 		return ret
 	}
+
+	funcs["is_value_type"] = func(valueType string) bool {
+		if settings.IsStruct(valueType) || settings.IsTable(valueType) {
+			return false
+		}
+		return true
+	}
 }
 
 type Generator interface {
+	SetOutput(output string)
 	Generate() *bytes.Buffer
 }
 
@@ -54,6 +75,7 @@ func Build(typeName, outfile string) bool {
 	utils.CheckPath(outfile)
 
 	if gen, ok := generators[typeName]; ok {
+		gen.SetOutput(outfile)
 		code := gen.Generate()
 
 		f, err := os.Create(outfile)

@@ -151,7 +151,7 @@ func TestSaveSerializeData(t *testing.T) {
 
 	settings.SetTables([]*model.DataTable{class, user})
 
-	var pbname = "DataModel"
+	var pbname = ""
 	fd, _ := utils.BuildFileDesc(pbname)
 
 	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES)
@@ -188,6 +188,19 @@ func TestSaveSerializeData(t *testing.T) {
 		v = item.Get(itemMD.Fields().ByName("Age"))
 		fmt.Printf("id:%v get %v \n", i, v)
 	}
+}
+
+func TestGenProtoBytesFile(t *testing.T) {
+	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define")
+	settings.SetDefines(defines)
+
+	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
+	t_user.TypeName = "User"
+	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
+	t_class.TypeName = "PClass"
+	settings.SetTables([]*model.DataTable{t_user, t_class})
+
+	generator.Build("proto_bytes", "./gen/bytes/")
 }
 
 func TestGenProtoFile(t *testing.T) {

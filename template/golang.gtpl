@@ -77,6 +77,22 @@ func ({{$item.TypeName}}) EnumDescriptor() ([]byte, []int) {
 {{- /*生成枚举类型结束*/}}
 {{end}}
 
+{{- /*生成常量类型*/}}
+{{- if gt (len .Consts) 0}}
+{{- range .Consts}}
+// Defined in table: {{.DefinedTable}}
+{{range .Items}}
+{{- $arrDesc := ""}}
+{{- $varName := "const"}}
+{{- if .IsArray }} {{$arrDesc = "[]"}} {{$varName = "var"}} {{end}}
+{{if ne .Desc ""}} //{{.Desc}} {{end}}
+{{$varName}} {{.FieldName}} {{$arrDesc}}{{.ValueType}} = {{value_format .Value .}};
+{{end -}}
+{{end}}
+
+{{- /*生成常量类型结束*/}}
+{{end}}
+
 {{- /*生成类类型*/}}
 {{- range $index,$item := .Tables}}
 // Defined in table: {{.DefinedTable}}

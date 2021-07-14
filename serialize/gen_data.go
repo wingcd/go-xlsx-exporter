@@ -44,7 +44,7 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable) (b
 
 	utils.CheckPath(dir)
 
-	dtfileName := dir + strings.ToLower(table.TypeName) + ".bytes"
+	dtfileName := dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
 	fd, err := utils.BuildFileDesc("DataModel") // utils.BuildDynamicType([]*model.DataTable{table})
 	if err != nil {
 		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())

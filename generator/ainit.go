@@ -67,8 +67,7 @@ func init() {
 }
 
 type Generator interface {
-	SetOutput(output string)
-	Generate() *bytes.Buffer
+	Generate(output string) (save bool, data *bytes.Buffer)
 }
 
 func Regist(name string, g Generator) {
@@ -79,18 +78,21 @@ func Build(typeName, outfile string) bool {
 	utils.CheckPath(outfile)
 
 	if gen, ok := generators[typeName]; ok {
-		gen.SetOutput(outfile)
-		code := gen.Generate()
+		save, code := gen.Generate(outfile)
 
-		f, err := os.Create(outfile)
-		defer f.Close()
-		if err != nil {
-			fmt.Errorf(err.Error())
-		}
+		if save {
+			f, err := os.Create(outfile)
+			defer f.Close()
+			if err != nil {
+				fmt.Errorf(err.Error())
+				return false
+			}
 
-		_, err = f.WriteString(code.String())
-		if err != nil {
-			fmt.Errorf(err.Error())
+			_, err = f.WriteString(code.String())
+			if err != nil {
+				fmt.Errorf(err.Error())
+				return false
+			}
 		}
 
 		return ok

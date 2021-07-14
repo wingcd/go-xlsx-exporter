@@ -19,32 +19,69 @@ import (
 var goTemplate = ""
 
 var supportGoTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int32",
-	"int32":  "int32",
-	"uint":   "uint32",
-	"uint32": "uint32",
-	"int64":  "int64",
-	"uint64": "uint64",
-	"float":  "float32",
-	"double": "float64",
-	"string": "string",
+	"bool":    "bool",
+	"int":     "int32",
+	"int32":   "int32",
+	"uint":    "uint32",
+	"uint32":  "uint32",
+	"int64":   "int64",
+	"uint64":  "uint64",
+	"float":   "float32",
+	"float32": "float32",
+	"double":  "float64",
+	"float64": "float64",
+	"string":  "string",
 }
 
 var defaultGoValues = map[string]string{
-	"bool":   "false",
-	"int":    "0",
-	"int32":  "0",
-	"uint":   "0",
-	"uint32": "0",
-	"int64":  "0",
-	"uint64": "0",
-	"float":  "0",
-	"double": "0",
-	"string": "\"\"",
+	"bool":    "false",
+	"int":     "0",
+	"int32":   "0",
+	"uint":    "0",
+	"uint32":  "0",
+	"int64":   "0",
+	"uint64":  "0",
+	"float":   "0",
+	"float32": "0",
+	"double":  "0",
+	"float64": "0",
+	"string":  "\"\"",
 }
 
-func init() {
+func goFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
+	var ret = ""
+	if isArray {
+		var arr = value.([]interface{})
+		var lst []string
+		for _, it := range arr {
+			lst = append(lst, goFormatValue(it, valueType, isEnum, false))
+		}
+		ret = fmt.Sprintf("[]%s{ %s }", valueType, strings.Join(lst, ", "))
+	} else if isEnum {
+		var enumStr = utils.ToEnumString(valueType, value.(int32))
+		if enumStr != "" {
+			ret = fmt.Sprintf("%s_%s", valueType, enumStr)
+		} else {
+			fmt.Printf("[错误] 值解析失败 类型:%s 值：%v \n", valueType, value)
+		}
+	} else if valueType == "float" {
+		ret = fmt.Sprintf("float32(%v)", value)
+	} else if valueType == "string" {
+		ret = fmt.Sprintf("\"%v\"", value)
+	} else {
+		ret = fmt.Sprintf("%v", value)
+	}
+	return ret
+}
+
+var goGenetatorInited = false
+
+func registGoFuncs() {
+	if goGenetatorInited {
+		return
+	}
+	goGenetatorInited = true
+
 	funcs["default"] = func(item interface{}) string {
 		var nilType = "nil"
 		switch inst := item.(type) {
@@ -80,7 +117,31 @@ func init() {
 		return ""
 	}
 
-	Regist("golang", &goGenerator{})
+	funcs["value_format"] = func(value string, item interface{}) string {
+		var isEnum = false
+		var valueType = ""
+		var rawValueType = ""
+		var fieldName = ""
+		switch inst := item.(type) {
+		case *model.DefineTableItem:
+			fieldName = inst.FieldName
+			isEnum = inst.IsEnum
+			valueType = inst.ValueType
+			rawValueType = inst.RawValueType
+		case *model.DataTableHeader:
+			fieldName = inst.FieldName
+			isEnum = inst.IsEnum
+			valueType = inst.ValueType
+			rawValueType = inst.RawValueType
+		}
+
+		var ok, val, isArray = utils.ParseValue(rawValueType, value)
+		if !ok {
+			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
+			return value
+		}
+		return goFormatValue(val, valueType, isEnum, isArray)
+	}
 }
 
 type goFileDesc struct {
@@ -89,6 +150,7 @@ type goFileDesc struct {
 	Version string
 	Package string
 	Enums   []*model.DefineTableInfo
+	Consts  []*model.DefineTableInfo
 	Tables  []*model.DataTable
 
 	FileName    string
@@ -97,11 +159,6 @@ type goFileDesc struct {
 }
 
 type goGenerator struct {
-	output string
-}
-
-func (g *goGenerator) SetOutput(output string) {
-	g.output = output
 }
 
 func (f *goFileDesc) genProtoRawDesc() {
@@ -165,12 +222,14 @@ func (f *goFileDesc) genProtoRawDesc() {
 	}
 }
 
-func (g *goGenerator) Generate() *bytes.Buffer {
+func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+	registGoFuncs()
+
 	if goTemplate == "" {
 		data, err := ioutil.ReadFile("./template/golang.gtpl")
 		if err != nil {
 			log.Println(err)
-			return nil
+			return false, nil
 		}
 		goTemplate = string(data)
 	}
@@ -178,35 +237,43 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 	tpl, err := template.New("golang").Funcs(funcs).Parse(goTemplate)
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return false, nil
 	}
 
-	var filename = strings.Split(filepath.Base(g.output), ".")[0]
+	var filename = strings.Split(filepath.Base(output), ".")[0]
 	var fd = goFileDesc{
 		Version:  settings.TOOL_VERSION,
 		Package:  settings.PackageName,
-		Enums:    make([]*model.DefineTableInfo, 0),
+		Enums:    settings.ENUMS[:],
+		Consts:   settings.CONSTS[:],
 		Tables:   make([]*model.DataTable, 0),
 		FileName: filename,
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
+	settings.PreProcessDefine(fd.Consts)
 
 	fd.genProtoRawDesc()
 
-	for _, e := range settings.ENUMS {
-		fd.Enums = append(fd.Enums, e)
+	for _, c := range fd.Consts {
+		for _, it := range c.Items {
+			if !it.IsEnum && !it.IsStruct {
+				it.ValueType = supportGoTypes[it.ValueType]
+			}
+		}
 	}
 
 	tables := settings.GetAllTables()
+	settings.PreProcessTable(tables)
+
 	for _, t := range tables {
 		fd.Tables = append(fd.Tables, t)
 
 		// 处理类型
 		for _, h := range t.Headers {
-			if !settings.IsEnum(h.ValueType) && !settings.IsStruct(h.ValueType) {
+			if !h.IsEnum && !h.IsStruct {
 				if _, ok := supportGoTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
-					return nil
+					return false, nil
 				}
 				h.ValueType = supportGoTypes[h.ValueType]
 			}
@@ -235,8 +302,12 @@ func (g *goGenerator) Generate() *bytes.Buffer {
 	err = tpl.Execute(buf, &fd)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return false, nil
 	}
 
-	return buf
+	return true, buf
+}
+
+func init() {
+	Regist("golang", &goGenerator{})
 }

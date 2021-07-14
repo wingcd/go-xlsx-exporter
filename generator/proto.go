@@ -13,16 +13,18 @@ import (
 var protoTemplate = ""
 
 var supportProtoTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int32",
-	"int32":  "int32",
-	"uint":   "fixed32",
-	"uint32": "fixed32",
-	"int64":  "int64",
-	"uint64": "fixed64",
-	"float":  "float",
-	"double": "double",
-	"string": "string",
+	"bool":    "bool",
+	"int":     "int32",
+	"int32":   "int32",
+	"uint":    "fixed32",
+	"uint32":  "fixed32",
+	"int64":   "int64",
+	"uint64":  "fixed64",
+	"float":   "float",
+	"float32": "float",
+	"double":  "double",
+	"float64": "double",
+	"string":  "string",
 }
 
 type protoFileDesc struct {
@@ -37,16 +39,12 @@ type protoFileDesc struct {
 type protoGenerator struct {
 }
 
-func (g *protoGenerator) SetOutput(output string) {
-
-}
-
-func (g *protoGenerator) Generate() *bytes.Buffer {
+func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	if protoTemplate == "" {
 		data, err := ioutil.ReadFile("./template/proto.gtpl")
 		if err != nil {
 			log.Println(err)
-			return nil
+			return false, nil
 		}
 		protoTemplate = string(data)
 	}
@@ -54,31 +52,28 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 	tpl, err := template.New("proto").Funcs(funcs).Parse(protoTemplate)
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return false, nil
 	}
 
 	var fd = protoFileDesc{
 		Version: settings.TOOL_VERSION,
 		Package: settings.PackageName,
-		Enums:   make([]*model.DefineTableInfo, 0),
+		Enums:   settings.ENUMS[:],
 		Tables:  make([]*model.DataTable, 0),
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
-	for _, e := range settings.ENUMS {
-		fd.Enums = append(fd.Enums, e)
-	}
-
 	tables := settings.GetAllTables()
+	settings.PreProcessTable(tables)
 	for _, t := range tables {
 		fd.Tables = append(fd.Tables, t)
 
 		// 处理类型
 		for _, h := range t.Headers {
-			if !settings.IsEnum(h.ValueType) && !settings.IsStruct(h.ValueType) {
+			if !h.IsEnum && !h.IsStruct {
 				if _, ok := supportProtoTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
-					return nil
+					return false, nil
 				}
 				h.ValueType = supportProtoTypes[h.ValueType]
 			}
@@ -106,10 +101,10 @@ func (g *protoGenerator) Generate() *bytes.Buffer {
 	err = tpl.Execute(buf, &fd)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return false, nil
 	}
 
-	return buf
+	return true, buf
 }
 
 func init() {

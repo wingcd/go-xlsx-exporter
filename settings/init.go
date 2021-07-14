@@ -11,6 +11,7 @@ var (
 	TOOL_VERSION      = "1.0"
 	EXPORT_FOR_CLIENT = false
 	PackageName       = "PBGen"
+	PbBytesFileExt    = ".bytes"
 
 	DEFINES map[string]*model.DefineTableInfo
 	ENUMS   []*model.DefineTableInfo
@@ -104,16 +105,18 @@ func IsTable(pbType string) bool {
 }
 
 var pbFieldEncodeTypes = map[string]string{
-	"bool":   "varint",
-	"int":    "varint",
-	"int32":  "varint",
-	"uint":   "varint",
-	"uint32": "varint",
-	"int64":  "varint",
-	"uint64": "varint",
-	"float":  "fixed32",
-	"double": "fixed64",
-	"string": "bytes",
+	"bool":    "varint",
+	"int":     "varint",
+	"int32":   "varint",
+	"uint":    "varint",
+	"uint32":  "varint",
+	"int64":   "varint",
+	"uint64":  "varint",
+	"float":   "fixed32",
+	"float32": "fixed32",
+	"double":  "fixed64",
+	"float64": "fixed64",
+	"string":  "bytes",
 }
 
 // 获取编码类型

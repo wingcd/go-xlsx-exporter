@@ -23,18 +23,13 @@ func csFormatValue(value interface{}, valueType string, isEnum bool, isArray boo
 		for _, it := range arr {
 			lst = append(lst, csFormatValue(it, valueType, isEnum, false))
 		}
-		ret = fmt.Sprintf("new %s[]{%s}", valueType, strings.Join(lst, ","))
+		ret = fmt.Sprintf("new %s[]{ %s }", valueType, strings.Join(lst, ", "))
 	} else if isEnum {
-		for _, e := range settings.ENUMS {
-			if e.TypeName == valueType {
-				for _, it := range e.Items {
-					if it.Value == value {
-						ret = it.FieldName
-						break
-					}
-				}
-				break
-			}
+		var enumStr = utils.ToEnumString(valueType, value.(int32))
+		if enumStr != "" {
+			ret = fmt.Sprintf("%s.%s", valueType, enumStr)
+		} else {
+			fmt.Printf("[错误] 值解析失败 类型:%s 值：%v \n", valueType, value)
 		}
 	} else if valueType == "float" {
 		ret = fmt.Sprintf("%vf", value)
@@ -46,7 +41,14 @@ func csFormatValue(value interface{}, valueType string, isEnum bool, isArray boo
 	return ret
 }
 
-func init() {
+var csGenetatorInited = false
+
+func registCSFuncs() {
+	if csGenetatorInited {
+		return
+	}
+	csGenetatorInited = true
+
 	funcs["value_format"] = func(value string, item interface{}) string {
 		var isEnum = false
 		var valueType = ""
@@ -72,21 +74,21 @@ func init() {
 		}
 		return csFormatValue(val, valueType, isEnum, isArray)
 	}
-
-	Regist("csharp", &csharpGenerator{})
 }
 
 var supportCSharpTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int",
-	"int32":  "int",
-	"uint":   "uint",
-	"uint32": "uint",
-	"int64":  "long",
-	"uint64": "ulong",
-	"float":  "float",
-	"double": "double",
-	"string": "string",
+	"bool":    "bool",
+	"int":     "int",
+	"int32":   "int",
+	"uint":    "uint",
+	"uint32":  "uint",
+	"int64":   "long",
+	"uint64":  "ulong",
+	"float":   "float",
+	"float32": "float",
+	"double":  "double",
+	"float64": "double",
+	"string":  "string",
 }
 
 type csharpFileDesc struct {
@@ -103,16 +105,14 @@ type csharpFileDesc struct {
 type csharpGenerator struct {
 }
 
-func (g *csharpGenerator) SetOutput(output string) {
+func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+	registCSFuncs()
 
-}
-
-func (g *csharpGenerator) Generate() *bytes.Buffer {
 	if csharpTemplate == "" {
 		data, err := ioutil.ReadFile("./template/csharp.gtpl")
 		if err != nil {
 			log.Println(err)
-			return nil
+			return false, nil
 		}
 		csharpTemplate = string(data)
 	}
@@ -120,42 +120,48 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 	tpl, err := template.New("csharp").Funcs(funcs).Parse(csharpTemplate)
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return false, nil
 	}
 
 	var fd = csharpFileDesc{
 		Version:   settings.TOOL_VERSION,
 		Namespace: settings.PackageName,
-		Enums:     make([]*model.DefineTableInfo, 0),
-		Structs:   make([]*model.DefineTableInfo, 0),
-		Consts:    make([]*model.DefineTableInfo, 0),
+		Enums:     settings.ENUMS[:],
+		Structs:   settings.STRUCTS[:],
+		Consts:    settings.CONSTS[:],
 		Tables:    make([]*model.DataTable, 0),
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
-	for _, e := range settings.ENUMS {
-		fd.Enums = append(fd.Enums, e)
-	}
-
-	for _, e := range settings.STRUCTS {
-		fd.Structs = append(fd.Structs, e)
-	}
 	settings.PreProcessDefine(fd.Structs)
-
-	for _, e := range settings.CONSTS {
-		fd.Consts = append(fd.Consts, e)
-	}
 	settings.PreProcessDefine(fd.Consts)
 
+	for _, c := range fd.Structs {
+		for _, it := range c.Items {
+			if !it.IsEnum && !it.IsStruct {
+				it.ValueType = supportCSharpTypes[it.ValueType]
+			}
+		}
+	}
+
+	for _, c := range fd.Consts {
+		for _, it := range c.Items {
+			if !it.IsEnum && !it.IsStruct {
+				it.ValueType = supportCSharpTypes[it.ValueType]
+			}
+		}
+	}
+
+	settings.PreProcessTable(settings.TABLES)
 	for _, t := range settings.TABLES {
 		fd.Tables = append(fd.Tables, t)
 
 		// 处理类型
 		for _, h := range t.Headers {
-			if !settings.IsEnum(h.ValueType) && !settings.IsStruct(h.ValueType) {
+			if !h.IsEnum && !h.IsStruct {
 				if _, ok := supportCSharpTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
-					return nil
+					return false, nil
 				}
 				h.ValueType = supportCSharpTypes[h.ValueType]
 			}
@@ -183,8 +189,12 @@ func (g *csharpGenerator) Generate() *bytes.Buffer {
 	err = tpl.Execute(buf, &fd)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return false, nil
 	}
 
-	return buf
+	return true, buf
+}
+
+func init() {
+	Regist("csharp", &csharpGenerator{})
 }

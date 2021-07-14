@@ -52,17 +52,32 @@ func Split(s, sep string) []string {
 	return rstrs
 }
 
-var supportTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int32",
-	"int32":  "int32",
-	"uint":   "fixed32",
-	"uint32": "fixed32",
-	"int64":  "int64",
-	"uint64": "fixed64",
-	"float":  "float",
-	"double": "double",
-	"string": "string",
+var supportProtoTypes = map[string]string{
+	"bool":    "bool",
+	"int":     "int32",
+	"int32":   "int32",
+	"uint":    "fixed32",
+	"uint32":  "fixed32",
+	"int64":   "int64",
+	"uint64":  "fixed64",
+	"float":   "float",
+	"float32": "float",
+	"double":  "double",
+	"float64": "double",
+	"string":  "string",
+}
+
+func ToEnumString(valueType string, value int32) string {
+	for _, e := range settings.ENUMS {
+		if valueType == e.TypeName {
+			for _, it := range e.Items {
+				if it.Value == strconv.Itoa(int(value)) {
+					return it.FieldName
+				}
+			}
+		}
+	}
+	return ""
 }
 
 //
@@ -149,7 +164,7 @@ func ParseType(vtype string) (bool, string) {
 	}
 	vtype = strings.Replace(vtype, "[]", "", -1)
 
-	if tp, ok := supportTypes[vtype]; !ok {
+	if tp, ok := supportProtoTypes[vtype]; !ok {
 		return false, ""
 	} else if repeated {
 		return true, "repeated " + tp
@@ -161,9 +176,9 @@ func ParseType(vtype string) (bool, string) {
 func ParseBool(s string) (bool, error) {
 	s = strings.ToUpper(s)
 	switch s {
-	case "是", "yes", "YES", "1", "true", "TRUE", "True":
+	case "是", "真", "yes", "YES", "1", "true", "TRUE", "True":
 		return true, nil
-	case "否", "no", "NO", "0", "false", "FALSE", "False":
+	case "否", "假", "no", "NO", "0", "false", "FALSE", "False":
 		return false, nil
 	case "":
 		return false, nil
@@ -384,6 +399,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 	return protodesc.NewFile(&file, nil)
 }
 
+// 生成proto文件描述，文件名可以任意设置
 func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
 	var file descriptorpb.FileDescriptorProto
 	file.Syntax = proto.String("proto3")

@@ -9,17 +9,6 @@ using ProtoBuf;
 
 namespace {{.Namespace}}
 {
-    {{- /*生成常量类型*/}}
-    {{- range .Consts}}
-    // Defined in table: {{.DefinedTable}}
-    public class {{.TypeName}}
-    { {{range .Items}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
-        public const {{.ValueType}} {{.FieldName}} = {{value_format .Value .}};
-    {{end -}}
-    }
-    {{end}}
-
     {{- /*生成枚举类型*/}}
     {{- range .Enums}}
     // Defined in table: {{.DefinedTable}}
@@ -30,6 +19,19 @@ namespace {{.Namespace}}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoEnum]
         {{.FieldName}} = {{.Value}}, 
+    {{end -}}
+    }
+    {{end}}
+    
+    {{- /*生成常量类型*/}}
+    {{- range .Consts}}
+    // Defined in table: {{.DefinedTable}}
+    public class {{.TypeName}}
+    { {{range .Items}}
+        {{- $arrDesc := ""}}
+        {{- if .IsArray }} {{$arrDesc = "[]"}} {{end}}
+        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        public const {{.ValueType}}{{$arrDesc}} {{.FieldName}} = {{value_format .Value .}};
     {{end -}}
     }
     {{end}}

@@ -76,6 +76,29 @@ func (EDataType) EnumDescriptor() ([]byte, []int) {
 }
 
 // Defined in table: data/define.xlsx:define
+
+//版本号
+const VERSION string = "v.1.0.0"
+
+//最大连接数
+const MAX_CONNECT int32 = 100
+
+//概率
+const UP_RATIO float32 = 3.1
+
+var VERSIONS []string = []string{"v.1.0.0", "v1.1.0"}
+
+const DataType EDataType = EDataType_CSHARP
+
+var DataTypes []EDataType = []EDataType{EDataType_CSHARP, EDataType_GOLANG}
+
+var Times []float32 = []float32{1.2, 2.3, 3.1}
+
+const Open bool = true
+
+var Opens []bool = []bool{true, true, false}
+
+// Defined in table: data/define.xlsx:define
 type SInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

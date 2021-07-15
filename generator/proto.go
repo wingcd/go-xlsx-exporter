@@ -79,20 +79,22 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 			}
 		}
 
-		// 添加数组类型
-		table := model.DataTable{}
-		table.DefinedTable = t.DefinedTable
-		table.TypeName = t.TypeName + "_ARRAY"
-		header := model.DataTableHeader{}
-		header.Index = 1
-		header.FieldName = "Items"
-		header.TitleFieldName = header.FieldName
-		header.IsArray = true
-		header.ValueType = t.TypeName
-		header.RawValueType = t.TypeName + "[]"
-		table.Headers = []*model.DataTableHeader{&header}
+		if t.IsDataTable {
+			// 添加数组类型
+			table := model.DataTable{}
+			table.DefinedTable = t.DefinedTable
+			table.TypeName = t.TypeName + "_ARRAY"
+			header := model.DataTableHeader{}
+			header.Index = 1
+			header.FieldName = "Items"
+			header.TitleFieldName = header.FieldName
+			header.IsArray = true
+			header.ValueType = t.TypeName
+			header.RawValueType = t.TypeName + "[]"
+			table.Headers = []*model.DataTableHeader{&header}
 
-		fd.Tables = append(fd.Tables, &table)
+			fd.Tables = append(fd.Tables, &table)
+		}
 	}
 	settings.PreProcessTable(fd.Tables)
 

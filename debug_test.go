@@ -140,6 +140,15 @@ func TestPBSerialize(t *testing.T) {
 	}
 }
 
+func TestSaveSerializeDefineData(t *testing.T) {
+	settings.SetDefines(xlsx.ParseDefineSheet("data/define.xlsx", "define"))
+
+	var pbname = ""
+	fd, _ := utils.BuildFileDesc(pbname)
+
+	serialize.GenDefineTables(pbname, fd, "./gen/bytes/", settings.CONSTS)
+}
+
 func TestSaveSerializeData(t *testing.T) {
 	settings.SetDefines(xlsx.ParseDefineSheet("data/define.xlsx", "define"))
 

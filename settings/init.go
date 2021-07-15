@@ -29,6 +29,13 @@ func GetAllTables() []*model.DataTable {
 		}
 	}
 
+	for _, cost := range CONSTS {
+		table := model.Struct2Table(cost)
+		if table != nil {
+			tables = append(tables, table)
+		}
+	}
+
 	for _, table := range TABLES {
 		tables = append(tables, table)
 	}

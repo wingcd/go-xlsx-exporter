@@ -77,6 +77,8 @@ func Regist(name string, g Generator) {
 func Build(typeName, outfile string) bool {
 	utils.CheckPath(outfile)
 
+	fmt.Printf("启动生成器：%s,生成文件：%s...\n", typeName, outfile)
+
 	if gen, ok := generators[typeName]; ok {
 		save, code := gen.Generate(outfile)
 

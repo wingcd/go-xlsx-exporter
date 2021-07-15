@@ -52,6 +52,21 @@ func Split(s, sep string) []string {
 	return rstrs
 }
 
+var standardTypes = map[string]string{
+	"bool":    "bool",
+	"int":     "int",
+	"int32":   "int",
+	"uint":    "uint",
+	"uint32":  "uint",
+	"int64":   "int64",
+	"uint64":  "uint64",
+	"float":   "float",
+	"float32": "float",
+	"double":  "double",
+	"float64": "double",
+	"string":  "string",
+}
+
 var supportProtoTypes = map[string]string{
 	"bool":    "bool",
 	"int":     "int32",
@@ -65,6 +80,13 @@ var supportProtoTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+}
+
+func ConvertToStandardType(valueType string) string {
+	if tp, ok := standardTypes[valueType]; ok {
+		return tp
+	}
+	return valueType
 }
 
 func ToEnumString(valueType string, value int32) string {
@@ -293,9 +315,9 @@ func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto, 
 
 func Convert2PBValue(valueType string, value interface{}) (val pref.Value, err error) {
 	switch valueType {
-	case "int32":
+	case "int", "int32":
 		val = pref.ValueOfInt32(value.(int32))
-	case "uint32":
+	case "uint", "uint32":
 		val = pref.ValueOfUint32(value.(uint32))
 	case "int64":
 		val = pref.ValueOfInt64(value.(int64))
@@ -362,6 +384,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		}
 	}
 
+	settings.PreProcessTable(tables)
 	// 创建表数据结构
 	for _, tab := range tables {
 		var desc descriptorpb.DescriptorProto
@@ -382,18 +405,20 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		}
 		file.MessageType = append(file.MessageType, &desc)
 
-		// 创建列表结构
-		var itemsDesc descriptorpb.DescriptorProto
-		itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
-		var itemsFD descriptorpb.FieldDescriptorProto
-		itemsFD.Name = proto.String("Items")
-		itemsFD.JsonName = proto.String("Items")
-		itemsFD.Number = proto.Int32(int32(1))
-		TableType2PbType(tab.TypeName, &itemsFD, true)
-		itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
-		itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
+		if tab.IsDataTable {
+			// 创建列表结构
+			var itemsDesc descriptorpb.DescriptorProto
+			itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
+			var itemsFD descriptorpb.FieldDescriptorProto
+			itemsFD.Name = proto.String("Items")
+			itemsFD.JsonName = proto.String("Items")
+			itemsFD.Number = proto.Int32(int32(1))
+			TableType2PbType(tab.TypeName, &itemsFD, true)
+			itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
+			itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
 
-		file.MessageType = append(file.MessageType, &itemsDesc)
+			file.MessageType = append(file.MessageType, &itemsDesc)
+		}
 	}
 
 	return protodesc.NewFile(&file, nil)
@@ -425,6 +450,8 @@ func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
 
 	// 创建表数据结构
 	var tables = settings.GetAllTables()
+	settings.PreProcessTable(tables)
+
 	for _, tab := range tables {
 		var desc descriptorpb.DescriptorProto
 		desc.Name = proto.String(tab.TypeName)
@@ -444,18 +471,20 @@ func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
 		}
 		file.MessageType = append(file.MessageType, &desc)
 
-		// 创建列表结构
-		var itemsDesc descriptorpb.DescriptorProto
-		itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
-		var itemsFD descriptorpb.FieldDescriptorProto
-		itemsFD.Name = proto.String("Items")
-		itemsFD.JsonName = proto.String("Items")
-		itemsFD.Number = proto.Int32(int32(1))
-		TableType2PbType(tab.TypeName, &itemsFD, true)
-		itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
-		itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
+		if tab.IsDataTable {
+			// 创建列表结构
+			var itemsDesc descriptorpb.DescriptorProto
+			itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
+			var itemsFD descriptorpb.FieldDescriptorProto
+			itemsFD.Name = proto.String("Items")
+			itemsFD.JsonName = proto.String("Items")
+			itemsFD.Number = proto.Int32(int32(1))
+			TableType2PbType(tab.TypeName, &itemsFD, true)
+			itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
+			itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
 
-		file.MessageType = append(file.MessageType, &itemsDesc)
+			file.MessageType = append(file.MessageType, &itemsDesc)
+		}
 	}
 
 	return protodesc.NewFile(&file, nil)

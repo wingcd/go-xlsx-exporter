@@ -78,11 +78,13 @@ type DataTable struct {
 	DefinedTable string
 	// 数据
 	Data [][]string
+	// 是否数据表
+	IsDataTable bool
 }
 
 // 定义的结构体转表类型
 func Struct2Table(info *DefineTableInfo) *DataTable {
-	if info.Category != DEFINE_TYPE_STRUCT {
+	if info.Category != DEFINE_TYPE_STRUCT && info.Category != DEFINE_TYPE_CONST {
 		return nil
 	}
 	table := DataTable{}

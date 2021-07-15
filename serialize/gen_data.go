@@ -35,6 +35,98 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 	return true
 }
 
+func GenDefineTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DefineTableInfo) bool {
+	if fd == nil {
+		f, err := utils.BuildFileDesc(pbFilename)
+		if err != nil {
+			fmt.Printf("%v\n", err.Error())
+		}
+		fd = f
+	}
+
+	for _, table := range tables {
+		if ok, _ := GenDefineTable(fd, dir, table); !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTableInfo) (bool, string) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	utils.CheckPath(dir)
+
+	dtfileName := dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
+	fd, err := utils.BuildFileDesc("")
+	if err != nil {
+		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())
+		return false, dtfileName
+	}
+
+	// 表数据类型
+	typeMD := fd.Messages().ByName(pref.Name(table.TypeName))
+
+	// 单行数据实例
+	item := dynamicpb.NewMessage(typeMD)
+	for cidx, ditem := range table.Items {
+		cellValue := ditem.Value
+		ok, value, _ := utils.ParseValue(ditem.RawValueType, cellValue)
+		if !ok {
+			panic(getErrStr(table.TypeName, 0, cidx, cellValue, ditem.Desc, ditem.FieldName))
+		}
+
+		if ditem.IsArray {
+			if settings.IsStruct(ditem.ValueType) {
+				// to do...
+			} else {
+				// 创建此变量的list
+				subField := typeMD.Fields().ByName(pref.Name(ditem.FieldName))
+				// 列表属性
+				subList := item.NewField(subField).List()
+				for _, valItem := range value.([]interface{}) {
+					val, err := utils.Convert2PBValue(ditem.ValueType, valItem)
+					if err != nil {
+						panic(getErrStr(table.TypeName, 0, cidx, cellValue, ditem.Desc, ditem.FieldName))
+					}
+					subList.Append(val)
+				}
+				item.Set(subField, pref.ValueOf(subList))
+			}
+		} else {
+			if settings.IsStruct(ditem.ValueType) {
+				// to do...
+			} else {
+				val, err := utils.Convert2PBValue(ditem.ValueType, value)
+				if err != nil {
+					panic(getErrStr(table.TypeName, 0, cidx, cellValue, ditem.Desc, ditem.FieldName))
+				}
+				item.Set(typeMD.Fields().ByName(pref.Name(ditem.FieldName)), val)
+			}
+		}
+	}
+
+	bytes, err := gproto.Marshal(item)
+	if err != nil {
+		panic(fmt.Sprintf("[错误] 序列化失败：%s \n", err.Error()))
+	}
+	f, err := os.Create(dtfileName)
+	defer f.Close()
+	if err != nil {
+		panic(fmt.Sprintf("[错误] 文件创建失败：%s \n", err.Error()))
+	}
+	_, err = f.Write(bytes)
+	if err != nil {
+		panic(fmt.Sprintf("[错误] 文件写入失败：%s \n", err.Error()))
+	}
+
+	return true, dtfileName
+}
+
 func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable) (bool, string) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -45,7 +137,7 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable) (b
 	utils.CheckPath(dir)
 
 	dtfileName := dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
-	fd, err := utils.BuildFileDesc("DataModel") // utils.BuildDynamicType([]*model.DataTable{table})
+	fd, err := utils.BuildFileDesc("")
 	if err != nil {
 		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())
 		return false, dtfileName

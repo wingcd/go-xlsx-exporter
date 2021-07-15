@@ -66,6 +66,8 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 		item.IsArray = utils.IsArray(item.RawValueType)
 		item.ValueType = utils.GetBaseType(item.RawValueType)
 		info.Items = append(info.Items, item)
+
+		item.ValueType = utils.ConvertToStandardType(item.ValueType)
 	}
 
 	// 预处理
@@ -79,7 +81,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 				} else {
 					value, err = strconv.Atoi(item.Value)
 					if err != nil {
-						log.Printf("[错误] 枚举值类型错误 类型：%s 列：%s \n", info.TypeName, item.Desc)
+						log.Fatalf("[错误] 枚举值类型错误 定义：%s 列：%s \n", info.TypeName, item.Desc)
 					}
 				}
 				item.Index = int(value)
@@ -134,6 +136,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	table = new(model.DataTable)
 	table.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
 	table.Headers = make([]*model.DataTableHeader, 0)
+	table.IsDataTable = true
 	for i, col := range cols {
 		header := new(model.DataTableHeader)
 		header.Desc = col[model.DATA_ROW_DESC_INDEX]
@@ -150,6 +153,8 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		header.IsArray = utils.IsArray(header.RawValueType)
 		header.ValueType = utils.GetBaseType(header.RawValueType)
 		header.Index = i + 1
+
+		header.ValueType = utils.ConvertToStandardType(header.ValueType)
 		table.Headers = append(table.Headers, header)
 	}
 

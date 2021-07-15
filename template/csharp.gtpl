@@ -22,19 +22,6 @@ namespace {{.Namespace}}
     {{end -}}
     }
     {{end}}
-    
-    {{- /*生成常量类型*/}}
-    {{- range .Consts}}
-    // Defined in table: {{.DefinedTable}}
-    public class {{.TypeName}}
-    { {{range .Items}}
-        {{- $arrDesc := ""}}
-        {{- if .IsArray }} {{$arrDesc = "[]"}} {{end}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
-        public const {{.ValueType}}{{$arrDesc}} {{.FieldName}} = {{value_format .Value .}};
-    {{end -}}
-    }
-    {{end}}
 
     {{- /*生成结构体类型*/}}
     {{- range .Structs}}
@@ -42,6 +29,24 @@ namespace {{.Namespace}}
     [Serializable]
     [ProtoContract]
     public struct {{.TypeName}}
+    { {{range .Items}}
+        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        [ProtoMember({{.Index}})]
+        {{- if .IsArray}}
+        public List<{{.ValueType}}> {{.FieldName}} { get; set; }
+        {{- else}}
+        public {{.ValueType}} {{.FieldName}} { get; set; }
+        {{end -}}
+    {{end}}
+    }
+    {{end}}
+
+    {{- /*生成配置类类型*/}}
+    {{- range .Consts}}
+    // Defined in table: {{.DefinedTable}}
+    [Serializable]
+    [ProtoContract]
+    public class {{.TypeName}}
     { {{range .Items}}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]

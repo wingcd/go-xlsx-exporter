@@ -6,12 +6,19 @@ import (
 	"github.com/wingcd/go-xlsx-protobuf/model"
 )
 
+const (
+	EXPORT_TYPE_IGNORE = 0
+	EXPORT_TYPE_CLIENT = 1
+	EXPORT_TYPE_SERVER = 2
+)
+
 var (
-	GO_PROTO_VERTION  = "v1.27.1"
-	TOOL_VERSION      = "1.0"
-	EXPORT_FOR_CLIENT = false
-	PackageName       = "PBGen"
-	PbBytesFileExt    = ".bytes"
+	GO_PROTO_VERTION = "v1.27.1"
+	TOOL_VERSION     = "1.0"
+	EXPORT_TYPE      = EXPORT_TYPE_IGNORE
+	PackageName      = "PBGen"
+	PbBytesFileExt   = ".bytes"
+	COMMENT_SYMBOL   = "#"
 
 	DEFINES map[string]*model.DefineTableInfo
 	ENUMS   []*model.DefineTableInfo
@@ -166,4 +173,8 @@ func PreProcessTable(tables []*model.DataTable) {
 			PreProcessHeader(header)
 		}
 	}
+}
+
+func WillIgnore(value string) bool {
+	return strings.Index(strings.Trim(value, " "), COMMENT_SYMBOL) == 0
 }

@@ -251,3 +251,12 @@ func TestGenGolangFile(t *testing.T) {
 	settings.PackageName = "gen"
 	generator.Build("golang", "./gen/DataMode.pb.go")
 }
+
+func TestGenGolangFileWithComment(t *testing.T) {
+	t_comment := xlsx.ParseDataSheet("data/model.xlsx", "comment")
+	t_comment.TypeName = "Comment"
+	settings.SetTables([]*model.DataTable{t_comment})
+
+	settings.PackageName = "gen"
+	generator.Build("golang", "./gen/Comment.pb.go")
+}

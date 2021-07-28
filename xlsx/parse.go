@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"fmt"
+	"go-xlsx-protobuf/settings"
 	"log"
 	"sort"
 	"strconv"
@@ -133,29 +134,82 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		return
 	}
 
+	ignoreCols := make(map[int]bool, 0)
+	ignoreRows := make(map[int]bool, 0)
+	// 过滤标准行前的注释项
+	filterCols := make([][]string, 0)
+	for ci, col := range cols {
+		if settings.WillIgnore(col[0]) {
+			ignoreCols[ci] = true
+		}
+		if ci == 0 {
+			for ri, row := range col {
+				if settings.WillIgnore(row) {
+					ignoreRows[ri] = true
+				}
+			}
+		}
+
+		if _, ignoreCol := ignoreCols[ci]; !ignoreCol {
+			newCol := make([]string, 0)
+			for cii, colVal := range col {
+				if _, ignoreRow := ignoreRows[cii]; !ignoreRow {
+					newCol = append(newCol, colVal)
+				}
+
+				// 找到前4个非注释行就退出
+				if len(newCol) == 4 {
+					break
+				}
+			}
+			filterCols = append(filterCols, newCol)
+		}
+	}
+	cols = filterCols
+
 	table = new(model.DataTable)
 	table.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
 	table.Headers = make([]*model.DataTableHeader, 0)
 	table.IsDataTable = true
+
 	for i, col := range cols {
 		header := new(model.DataTableHeader)
-		header.Desc = col[model.DATA_ROW_DESC_INDEX]
 		cs := strings.ToLower(col[model.DATA_ROW_CS_INDEX])
 		header.ExportClient = strings.Contains(cs, "c")
 		header.ExportServer = strings.Contains(cs, "s")
-		if !header.ExportClient && !header.ExportServer {
+		if cs == "" {
 			header.ExportClient = true
 			header.ExportServer = true
 		}
-		header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
-		header.TitleFieldName = strings.Title(header.FieldName)
-		header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
-		header.IsArray = utils.IsArray(header.RawValueType)
-		header.ValueType = utils.GetBaseType(header.RawValueType)
-		header.Index = i + 1
+		header.Desc = col[model.DATA_ROW_DESC_INDEX]
 
-		header.ValueType = utils.ConvertToStandardType(header.ValueType)
-		table.Headers = append(table.Headers, header)
+		ignore := false
+		if settings.EXPORT_TYPE != settings.EXPORT_TYPE_IGNORE {
+			if settings.EXPORT_TYPE_CLIENT == settings.EXPORT_TYPE && !header.ExportClient {
+				// 当为客户端导出，但此列不支持客户端时，过滤掉
+				ignore = true
+			} else if settings.EXPORT_TYPE_SERVER == settings.EXPORT_TYPE && !header.ExportServer {
+				// 当为后端导出，但此列不支持后端时，过滤掉
+				ignore = true
+			}
+		}
+		if settings.WillIgnore(header.Desc) {
+			ignore = true
+		}
+
+		if !ignore {
+			header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
+			header.TitleFieldName = strings.Title(header.FieldName)
+			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
+			header.IsArray = utils.IsArray(header.RawValueType)
+			header.ValueType = utils.GetBaseType(header.RawValueType)
+			header.Index = i + 1
+
+			header.ValueType = utils.ConvertToStandardType(header.ValueType)
+			table.Headers = append(table.Headers, header)
+		} else {
+			ignoreRows[i] = true
+		}
 	}
 
 	rows, err := f.GetRows(sheet)
@@ -163,18 +217,47 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		fmt.Println(err)
 		return
 	}
-	rows = rows[4:]
+	// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
+	filterRows := make([][]string, 0)
+	for _, row := range rows {
+		if !settings.WillIgnore(row[0]) {
+			filterRows = append(filterRows, row)
+		}
+	}
+	rows = filterRows[4:]
 
-	// 预处理数据，防止出现空数据
-	headSize := len(table.Headers)
+	// 预处理数据
+	// 1. 防止出现空数据
+	// 2. 过滤注释数据列
+	// 3. 过滤注释数据项（行）
+	realHeadSize := len(cols)
 	for ri, row := range rows {
-		if len(row) < headSize {
-			for i := 0; i < headSize-len(row); i++ {
+		// 判断是否需要过滤此条数据
+		if _, ignore := ignoreRows[ri]; ignore {
+			continue
+		}
+
+		if len(row) < realHeadSize {
+			for i := 0; i < realHeadSize-len(row); i++ {
 				row = append(row, "")
 			}
 			rows[ri] = row
 		}
+
+		// 预处理需要过滤掉的数据列
+		if len(ignoreRows) > 0 {
+			newRow := make([]string, 0)
+			for ci, col := range rows[ri] {
+				if _, ignore := ignoreCols[ci]; !ignore {
+					newRow = append(newRow, col)
+				}
+			}
+			rows[ri] = newRow
+		}
+
+		filterRows = append(filterRows, rows[ri])
 	}
+
 	table.Data = rows
 
 	return

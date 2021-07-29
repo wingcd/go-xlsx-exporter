@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
-	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 	gproto "google.golang.org/protobuf/proto"
 	pref "google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"

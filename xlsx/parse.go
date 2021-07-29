@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
-	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
 const (

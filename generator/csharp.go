@@ -8,10 +8,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
 )
 
 var csharpTemplate = ""

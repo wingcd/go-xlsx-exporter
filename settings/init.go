@@ -3,7 +3,7 @@ package settings
 import (
 	"strings"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
+	"github.com/wingcd/go-xlsx-exporter/model"
 )
 
 const (

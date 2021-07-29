@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"

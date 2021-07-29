@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
-	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 )

@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/wingcd/go-xlsx-protobuf/serialize"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
-	"github.com/wingcd/go-xlsx-protobuf/utils"
+	"github.com/wingcd/go-xlsx-exporter/serialize"
+	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
 type protoBytesGenerator struct {

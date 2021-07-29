@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wingcd/go-xlsx-protobuf/generator"
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/serialize"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
-	"github.com/wingcd/go-xlsx-protobuf/utils"
-	"github.com/wingcd/go-xlsx-protobuf/xlsx"
+	"github.com/wingcd/go-xlsx-exporter/generator"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/serialize"
+	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
+	"github.com/wingcd/go-xlsx-exporter/xlsx"
 
 	gproto "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/dynamicpb"

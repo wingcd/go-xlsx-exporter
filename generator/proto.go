@@ -6,8 +6,8 @@ import (
 	"log"
 	"text/template"
 
-	"github.com/wingcd/go-xlsx-protobuf/model"
-	"github.com/wingcd/go-xlsx-protobuf/settings"
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/settings"
 )
 
 var protoTemplate = ""

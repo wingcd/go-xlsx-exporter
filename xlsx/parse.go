@@ -207,7 +207,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
 			header.IsArray = utils.IsArray(header.RawValueType)
 			header.ValueType = utils.GetBaseType(header.RawValueType)
-			header.Index = ci + 1
+			header.Index = len(table.Headers) + 1
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
 			table.Headers = append(table.Headers, header)

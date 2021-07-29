@@ -40,6 +40,23 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 			continue
 		}
 
+		// 过滤注释
+		if settings.IsComment(row[0]) {
+			continue
+		}
+
+		// 空行过滤
+		var fixedColCount = 3
+		var catgory = strings.ToLower(row[model.DEFINE_CATEGORY_NAME_INDEX])
+		if catgory != model.DEFINE_TYPE_ENUM {
+			fixedColCount = 4
+		}
+		for ci := 0; ci < fixedColCount; ci++ {
+			if row[ci] == "" {
+				log.Printf("[警告] 有空定义行 表：%v 第%v行 \n", fmt.Sprintf("%s:%s", filename, sheet), ri+1)
+			}
+		}
+
 		var typename = row[model.DEFINE_COLUMN_NAME_INDEX]
 		var info *model.DefineTableInfo
 		if info, ok := infos[typename]; !ok {
@@ -47,7 +64,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 			info.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
 			infos[typename] = info
 
-			info.Category = row[model.DEFINE_CATEGORY_NAME_INDEX]
+			info.Category = catgory
 			info.TypeName = row[model.DEFINE_COLUMN_NAME_INDEX]
 			info.Items = make([]*model.DefineTableItem, 0)
 		}
@@ -82,7 +99,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 				} else {
 					value, err = strconv.Atoi(item.Value)
 					if err != nil {
-						log.Fatalf("[错误] 枚举值类型错误 定义：%s 列：%s \n", info.TypeName, item.Desc)
+						log.Fatalf("[错误] 枚举值类型错误 表：%s 列：%s \n", info.DefinedTable, item.Desc)
 					}
 				}
 				item.Index = int(value)
@@ -145,12 +162,12 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	// 过滤标准行前的注释项
 	filterCols := make([][]string, 0)
 	for ci, col := range cols {
-		if settings.WillIgnore(col[0]) {
+		if settings.IsComment(col[0]) {
 			ignoreCols[ci] = true
 		}
 		if ci == 0 {
 			for ri, cellValue := range col {
-				if settings.WillIgnore(cellValue) {
+				if settings.IsComment(cellValue) {
 					ignoreRows[ri] = true
 				}
 			}
@@ -180,7 +197,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 
 		// 处理空列
 		if col[model.DATA_ROW_FIELD_INDEX] == "" || col[model.DATA_ROW_TYPE_INDEX] == "" {
-			log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", sheet, ci+1)
+			log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", table.DefinedTable, ci+1)
 			return
 		}
 
@@ -204,7 +221,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 				ignore = true
 			}
 		}
-		if settings.WillIgnore(header.Desc) {
+		if settings.IsComment(header.Desc) {
 			ignore = true
 		}
 
@@ -237,9 +254,9 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	for ri, row := range rows {
 		// 索引列不能为空，否则过滤掉
 		var emptyIndex = row == nil
-		if emptyIndex || settings.WillIgnore(row[0]) {
+		if emptyIndex || settings.IsComment(row[0]) {
 			if emptyIndex {
-				log.Printf("[警告] 有空数据行 表：%v 第%v行 \n", sheet, ri+1)
+				log.Printf("[警告] 有空数据行 表：%v 第%v行 \n", table.DefinedTable, ri+1)
 			}
 			continue
 		}

@@ -33,7 +33,7 @@ func TestGoPBMode(t *testing.T) {
 	fmt.Printf("Level:%v \n", cdata.Level)
 }
 
-func TestGoPBListDat(t *testing.T) {
+func TestGoPBListData(t *testing.T) {
 	var data = PClass{}
 	data.ID = 1
 	data.Name = "test"
@@ -77,5 +77,38 @@ func TestGoLoadPBFile(t *testing.T) {
 		fmt.Printf("Name:%v \n", cdata.Name)
 		fmt.Printf("Type:%v \n", cdata.Type.String())
 		fmt.Printf("Level:%v \n", cdata.Level)
+	}
+}
+
+func TestGoLoadLanguage(t *testing.T) {
+	var lans_cn = Language_ARRAY{}
+	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
+	err := proto.Unmarshal(bytes, &lans_cn)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	var lans_en = Language_ARRAY{}
+	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
+	err = proto.Unmarshal(bytes, &lans_en)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	var lans_jp = Language_ARRAY{}
+	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
+	err = proto.Unmarshal(bytes, &lans_jp)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	for i := 0; i < len(lans_cn.Items); i++ {
+		var cn = lans_cn.Items[i]
+		var en = lans_en.Items[i]
+		var jp = lans_jp.Items[i]
+		fmt.Printf("ID: %v\n Name: %v, %v, %v \n", cn.ID, cn.Text, en.Text, jp.Text)
 	}
 }

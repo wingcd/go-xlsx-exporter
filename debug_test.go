@@ -163,7 +163,7 @@ func TestSaveSerializeData(t *testing.T) {
 	var pbname = ""
 	fd, _ := utils.BuildFileDesc(pbname)
 
-	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES)
+	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES, nil)
 
 	itemMD := fd.Messages().ByName("User")
 
@@ -248,6 +248,8 @@ func TestGenGolangFile(t *testing.T) {
 	t_class.TypeName = "PClass"
 	settings.SetTables([]*model.DataTable{t_user, t_class})
 
+	settings.AddLanguageTable()
+
 	settings.PackageName = "gen"
 	generator.Build("golang", "./gen/DataMode.pb.go")
 }
@@ -261,4 +263,24 @@ func TestGenGolangFileWithComment(t *testing.T) {
 	settings.SetTables([]*model.DataTable{t_comment})
 
 	generator.Build("golang", "./gen/Comment.pb.go")
+}
+
+func TestGenLanguageProtoBytes(t *testing.T) {
+	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define")
+	settings.SetDefines(defines)
+
+	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
+	t_user.TypeName = "User"
+	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
+	t_class.TypeName = "PClass"
+
+	t_location1 := xlsx.ParseDataSheet("data/i18n.xlsx", "location1")
+	t_location1.IsLanguage = true
+
+	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
+	t_location2.IsLanguage = true
+
+	settings.SetTables([]*model.DataTable{t_user, t_class, t_location1, t_location2})
+
+	generator.Build("proto_bytes", "./gen/bytes/")
 }

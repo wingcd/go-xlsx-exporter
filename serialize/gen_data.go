@@ -18,7 +18,7 @@ func getErrStr(typeName string, ridx, cidx int, val, colName, rowId string) stri
 	return fmt.Sprintf("[错误] 值解析失败 类型:%s 列号：%v(Name:%s) 行号:%v(ID:%s) 值：%v \n", typeName, cidx, colName, ridx, rowId, val)
 }
 
-func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DataTable) bool {
+func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DataTable, lanTables []*model.DataTable) bool {
 	if fd == nil {
 		f, err := utils.BuildFileDesc(pbFilename)
 		if err != nil {
@@ -27,11 +27,47 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 		fd = f
 	}
 
+	var langTable *model.DataTable = nil
 	for _, table := range tables {
-		if ok, _ := GenDataTable(fd, dir, table); !ok {
+		if table.IsLanguage {
+			langTable = table
+		}
+		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
 			return false
 		}
 	}
+
+	// 生成多语言文件
+	if lanTables != nil {
+		// 所有语音表组合
+		datas := make([][]string, 0)
+		// 所有语音项
+		langs := make([]string, 0)
+		for i, table := range lanTables {
+			datas = append(datas, table.Data...)
+
+			if i == 0 {
+				for hi := 1; hi < len(table.Headers); hi++ {
+					var header = table.Headers[hi]
+					langs = append(langs, strings.ToLower(header.FieldName))
+				}
+			}
+		}
+
+		// 构建数据
+		var langTableName = strings.ToLower(langTable.TypeName)
+		for i, lan := range langs {
+			langTable.Data = make([][]string, 0)
+			for _, row := range datas {
+				langTable.Data = append(langTable.Data, []string{row[0], row[i+1]})
+			}
+			filename := fmt.Sprintf("%s.%s", langTableName, lan)
+			if ok, _ := GenDataTable(fd, dir, langTable, filename); !ok {
+				return false
+			}
+		}
+	}
+
 	return true
 }
 
@@ -127,7 +163,7 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 	return true, dtfileName
 }
 
-func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable) (bool, string) {
+func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, filename string) (bool, string) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println(err)
@@ -136,7 +172,13 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable) (b
 
 	utils.CheckPath(dir)
 
-	dtfileName := dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
+	dtfileName := ""
+	if filename != "" {
+		dtfileName = dir + filename + settings.PbBytesFileExt
+	} else {
+		dtfileName = dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
+	}
+
 	fd, err := utils.BuildFileDesc("")
 	if err != nil {
 		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())

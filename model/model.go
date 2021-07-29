@@ -13,8 +13,6 @@ type StructInfo struct {
 	ValueType string
 	// 二进制编码方式
 	EncodeType string
-	// 值
-	Value string
 	// 基础值是否枚举
 	IsEnum bool
 	// 基础值是否结构
@@ -28,6 +26,8 @@ type StructInfo struct {
 // 定义表数据项（按行）
 type DefineTableItem struct {
 	StructInfo
+	// 值
+	Value string
 }
 
 type DefineTableItems []*DefineTableItem

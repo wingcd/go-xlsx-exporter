@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"go-xlsx-protobuf/generator"
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/wingcd/go-xlsx-protobuf/generator"
 	"github.com/wingcd/go-xlsx-protobuf/model"
 	"github.com/wingcd/go-xlsx-protobuf/serialize"
 	"github.com/wingcd/go-xlsx-protobuf/settings"
@@ -253,10 +253,12 @@ func TestGenGolangFile(t *testing.T) {
 }
 
 func TestGenGolangFileWithComment(t *testing.T) {
+	settings.PackageName = "gen"
+	settings.EXPORT_TYPE = settings.EXPORT_TYPE_SERVER
+
 	t_comment := xlsx.ParseDataSheet("data/model.xlsx", "comment")
 	t_comment.TypeName = "Comment"
 	settings.SetTables([]*model.DataTable{t_comment})
 
-	settings.PackageName = "gen"
 	generator.Build("golang", "./gen/Comment.pb.go")
 }

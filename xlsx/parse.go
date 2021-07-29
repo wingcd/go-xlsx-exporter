@@ -2,7 +2,6 @@ package xlsx
 
 import (
 	"fmt"
-	"go-xlsx-protobuf/settings"
 	"log"
 	"sort"
 	"strconv"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/wingcd/go-xlsx-protobuf/model"
+	"github.com/wingcd/go-xlsx-protobuf/settings"
 	"github.com/wingcd/go-xlsx-protobuf/utils"
 )
 
@@ -134,8 +134,14 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		return
 	}
 
-	ignoreCols := make(map[int]bool, 0)
+	table = new(model.DataTable)
+	table.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
+	table.Headers = make([]*model.DataTableHeader, 0)
+	table.IsDataTable = true
+
 	ignoreRows := make(map[int]bool, 0)
+	ignoreCols := make(map[int]bool, 0)
+
 	// 过滤标准行前的注释项
 	filterCols := make([][]string, 0)
 	for ci, col := range cols {
@@ -143,36 +149,34 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 			ignoreCols[ci] = true
 		}
 		if ci == 0 {
-			for ri, row := range col {
-				if settings.WillIgnore(row) {
+			for ri, cellValue := range col {
+				if settings.WillIgnore(cellValue) {
 					ignoreRows[ri] = true
 				}
 			}
 		}
 
-		if _, ignoreCol := ignoreCols[ci]; !ignoreCol {
-			newCol := make([]string, 0)
-			for cii, colVal := range col {
-				if _, ignoreRow := ignoreRows[cii]; !ignoreRow {
-					newCol = append(newCol, colVal)
-				}
-
-				// 找到前4个非注释行就退出
-				if len(newCol) == 4 {
-					break
-				}
+		// 不直接在此处过滤列，否则过滤数组索引与行数据不一致
+		newCol := make([]string, 0)
+		for cii, cellValue := range col {
+			if _, ignoreRow := ignoreRows[cii]; !ignoreRow {
+				newCol = append(newCol, cellValue)
 			}
-			filterCols = append(filterCols, newCol)
+
+			// 找到前4个非注释行就退出
+			if len(newCol) == 4 {
+				break
+			}
 		}
+		filterCols = append(filterCols, newCol)
 	}
 	cols = filterCols
 
-	table = new(model.DataTable)
-	table.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
-	table.Headers = make([]*model.DataTableHeader, 0)
-	table.IsDataTable = true
+	for ci, col := range cols {
+		if _, ignore := ignoreCols[ci]; ignore {
+			continue
+		}
 
-	for i, col := range cols {
 		header := new(model.DataTableHeader)
 		cs := strings.ToLower(col[model.DATA_ROW_CS_INDEX])
 		header.ExportClient = strings.Contains(cs, "c")
@@ -203,12 +207,12 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
 			header.IsArray = utils.IsArray(header.RawValueType)
 			header.ValueType = utils.GetBaseType(header.RawValueType)
-			header.Index = i + 1
+			header.Index = ci + 1
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
 			table.Headers = append(table.Headers, header)
 		} else {
-			ignoreRows[i] = true
+			ignoreCols[ci] = true
 		}
 	}
 
@@ -220,9 +224,10 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
 	filterRows := make([][]string, 0)
 	for _, row := range rows {
-		if !settings.WillIgnore(row[0]) {
-			filterRows = append(filterRows, row)
+		if len(row) == 0 || settings.WillIgnore(row[0]) {
+			continue
 		}
+		filterRows = append(filterRows, row)
 	}
 	rows = filterRows[4:]
 
@@ -230,28 +235,24 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	// 1. 防止出现空数据
 	// 2. 过滤注释数据列
 	// 3. 过滤注释数据项（行）
-	realHeadSize := len(cols)
+	realHeadSize := len(table.Headers)
 	for ri, row := range rows {
-		// 判断是否需要过滤此条数据
-		if _, ignore := ignoreRows[ri]; ignore {
-			continue
-		}
-
-		if len(row) < realHeadSize {
-			for i := 0; i < realHeadSize-len(row); i++ {
-				row = append(row, "")
-			}
-			rows[ri] = row
-		}
-
-		// 预处理需要过滤掉的数据列
-		if len(ignoreRows) > 0 {
+		if len(ignoreCols) > 0 {
 			newRow := make([]string, 0)
-			for ci, col := range rows[ri] {
+			for ci, cellValue := range row {
 				if _, ignore := ignoreCols[ci]; !ignore {
-					newRow = append(newRow, col)
+					// 判断是否需要过滤此条数据
+					newRow = append(newRow, cellValue)
 				}
 			}
+
+			// 补齐空数据
+			if len(newRow) < realHeadSize {
+				for i := 0; i < realHeadSize-len(newRow); i++ {
+					newRow = append(newRow, "")
+				}
+			}
+
 			rows[ri] = newRow
 		}
 

@@ -3,11 +3,12 @@ package generator
 import (
 	"bytes"
 	"fmt"
-	"go-xlsx-protobuf/settings"
-	"go-xlsx-protobuf/utils"
 	"log"
 	"os"
 	"text/template"
+
+	"github.com/wingcd/go-xlsx-protobuf/settings"
+	"github.com/wingcd/go-xlsx-protobuf/utils"
 )
 
 var (

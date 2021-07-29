@@ -5,7 +5,7 @@ type StructInfo struct {
 	Desc string
 	// 字段名
 	FieldName string
-	// 首字母大小字段名
+	// 首字母大写字段名
 	TitleFieldName string
 	// 表中定义的原始类型
 	RawValueType string
@@ -80,6 +80,8 @@ type DataTable struct {
 	Data [][]string
 	// 是否数据表
 	IsDataTable bool
+	// 是否多语言表
+	IsLanguage bool
 }
 
 // 定义的结构体转表类型

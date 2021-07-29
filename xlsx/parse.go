@@ -172,9 +172,16 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	}
 	cols = filterCols
 
+	var firstColIndex = -1
 	for ci, col := range cols {
 		if _, ignore := ignoreCols[ci]; ignore {
 			continue
+		}
+
+		// 处理空列
+		if col[model.DATA_ROW_FIELD_INDEX] == "" || col[model.DATA_ROW_TYPE_INDEX] == "" {
+			log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", sheet, ci+1)
+			return
 		}
 
 		header := new(model.DataTableHeader)
@@ -211,6 +218,10 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
 			table.Headers = append(table.Headers, header)
+
+			if firstColIndex < 0 {
+				firstColIndex = ci
+			}
 		} else {
 			ignoreCols[ci] = true
 		}
@@ -223,8 +234,13 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	}
 	// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
 	filterRows := make([][]string, 0)
-	for _, row := range rows {
-		if len(row) == 0 || settings.WillIgnore(row[0]) {
+	for ri, row := range rows {
+		// 索引列不能为空，否则过滤掉
+		var emptyIndex = row == nil
+		if emptyIndex || settings.WillIgnore(row[0]) {
+			if emptyIndex {
+				log.Printf("[警告] 有空数据行 表：%v 第%v行 \n", sheet, ri+1)
+			}
 			continue
 		}
 		filterRows = append(filterRows, row)

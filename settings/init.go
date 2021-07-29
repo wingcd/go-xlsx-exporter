@@ -68,6 +68,20 @@ func SetDefines(defines map[string]*model.DefineTableInfo) {
 	}
 }
 
+func AddLanguageTable() {
+	var table = model.DataTable{}
+	table.Headers = make([]*model.DataTableHeader, 0)
+
+	var hId = model.DataTableHeader{}
+	hId.FieldName = "ID"
+	hId.RawValueType = "uint"
+	hId.ValueType = "uint"
+	hId.Index = 1
+	hId.TitleFieldName = "ID"
+	table.Headers = append(table.Headers)
+
+}
+
 func SetTables(tables []*model.DataTable) {
 	TABLES = make([]*model.DataTable, 0)
 	for _, table := range tables {

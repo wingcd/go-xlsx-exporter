@@ -39,9 +39,9 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 
 	// 生成多语言文件
 	if lanTables != nil {
-		// 所有语音表组合
+		// 所有语言表组合
 		datas := make([][]string, 0)
-		// 所有语音项
+		// 所有语言类型
 		langs := make([]string, 0)
 		for i, table := range lanTables {
 			datas = append(datas, table.Data...)

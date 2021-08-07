@@ -64,7 +64,7 @@ namespace {{.Namespace}}
     // Defined in table: {{.DefinedTable}}
     [Serializable]
     [ProtoContract]
-    public class {{.TypeName}}
+    public class {{.TypeName}} : {{if .IsArray}}PBDataModels{{else}}PBDataModel{{end}}
     { {{range .Headers}}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]

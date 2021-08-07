@@ -233,7 +233,14 @@ func TestGenCSharpFile(t *testing.T) {
 	t_user.TypeName = "User"
 	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	t_class.TypeName = "PClass"
-	settings.SetTables([]*model.DataTable{t_user, t_class})
+
+	t_location1 := xlsx.ParseDataSheet("data/i18n.xlsx", "location1")
+	t_location1.IsLanguage = true
+
+	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
+	t_location2.IsLanguage = true
+
+	settings.SetTables([]*model.DataTable{t_user, t_class, t_location1, t_location2})
 
 	generator.Build("csharp", "./gen/DataMode.cs")
 }

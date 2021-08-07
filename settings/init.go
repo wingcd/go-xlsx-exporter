@@ -20,6 +20,8 @@ var (
 	PbBytesFileExt   = ".bytes"
 	COMMENT_SYMBOL   = "#"
 	WithLanaguge     = false
+	// just for debug
+	GenLanguageType = false
 
 	DEFINES     map[string]*model.DefineTableInfo
 	ENUMS       []*model.DefineTableInfo
@@ -111,6 +113,7 @@ func SetTables(tables []*model.DataTable) {
 			if LANG_TABLES == nil {
 				LANG_TABLES = make([]*model.DataTable, 0)
 			}
+			table.TypeName = "Language"
 			LANG_TABLES = append(LANG_TABLES, table)
 		} else {
 			TABLES = append(TABLES, table)

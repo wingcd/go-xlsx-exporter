@@ -82,6 +82,8 @@ type DataTable struct {
 	IsDataTable bool
 	// 是否多语言表
 	IsLanguage bool
+	// 是否数组
+	IsArray bool
 }
 
 // 定义的结构体转表类型

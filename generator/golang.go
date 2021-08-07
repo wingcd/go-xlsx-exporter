@@ -266,6 +266,11 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	settings.PreProcessTable(tables)
 
 	for _, t := range tables {
+		// 排除语言类型
+		if t.IsLanguage && !settings.GenLanguageType {
+			continue
+		}
+
 		fd.Tables = append(fd.Tables, t)
 
 		// 处理类型

@@ -155,6 +155,11 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 
 	settings.PreProcessTable(settings.TABLES)
 	for _, t := range settings.TABLES {
+		// 排除语言类型
+		if t.IsLanguage && !settings.GenLanguageType {
+			continue
+		}
+
 		fd.Tables = append(fd.Tables, t)
 
 		// 处理类型
@@ -172,6 +177,7 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 		table := model.DataTable{}
 		table.DefinedTable = t.DefinedTable
 		table.TypeName = t.TypeName + "_ARRAY"
+		table.IsArray = true
 		header := model.DataTableHeader{}
 		header.Index = 1
 		header.FieldName = "Items"

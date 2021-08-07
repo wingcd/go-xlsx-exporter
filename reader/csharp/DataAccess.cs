@@ -116,7 +116,7 @@ public class DataContainer<TID, TItem>
         localGenerator = fileNameGenerateHandle;
     }
 
-    public List<TItem> Load<TItem>()
+    public List<TItem> Load()
     {
         var type = typeof(TItem);
         var arrTypeName = type.FullName + "_ARRAY";
@@ -277,7 +277,7 @@ public class DataContainer<TID, TItem>
         List<TItem> list = null;
         try
         {
-            return Load<TItem>();
+            return Load();
         }
         catch (Exception e)
         {

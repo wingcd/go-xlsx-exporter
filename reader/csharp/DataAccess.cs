@@ -20,7 +20,7 @@ internal class T_LOG
 
 public class PBDataModel
 {
-    
+
 }
 
 public class PBDataModels : PBDataModel
@@ -65,16 +65,21 @@ public class DataContainer<TID, TItem>
             return localGenerator(typeName);
         }
 
-        if(DataAccess.Generator != null)
+        if (DataAccess.Generator != null)
         {
             return DataAccess.Generator(typeName);
         }
 
-        return Path.Combine(DataAccess.DataDir, typeName.ToLower());      
+        return Path.Combine(DataAccess.DataDir, typeName.ToLower());
     }
 
     private byte[] OnLoadData(string typeName)
     {
+        if (source != null)
+        {
+            return source.ToArray();
+        }
+
         var datafile = OnGenerateFilename(typeName);
 
         if (localLoader != null)
@@ -111,7 +116,7 @@ public class DataContainer<TID, TItem>
         localGenerator = fileNameGenerateHandle;
     }
 
-    public List<TItem> Load<TItem>() 
+    public List<TItem> Load<TItem>()
     {
         var type = typeof(TItem);
         var arrTypeName = type.FullName + "_ARRAY";
@@ -271,7 +276,7 @@ public class DataContainer<TID, TItem>
     {
         List<TItem> list = null;
         try
-        {            
+        {
             return Load<TItem>();
         }
         catch (Exception e)
@@ -288,5 +293,26 @@ public class DataContainer<TID, TItem>
             return ItemMap.ContainsKey(ID);
         }
         return false;
+    }
+
+    public void Clear()
+    {
+        if (_itemMap != null)
+        {
+            _itemMap.Clear();
+            _itemMap = null;
+        }
+
+        if (_items != null)
+        {
+            _items.Clear();
+            _items = null;
+        }
+
+        if (source != null)
+        {
+            source.Close();
+            source = null;
+        }
     }
 }

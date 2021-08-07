@@ -14,7 +14,6 @@ class Program
     static void Main(string[] args)
     {
         DataAccess.Initial("./data/");
-        I18N.SetLanguage("cn");
 
         Console.WriteLine("class table:");
         var classData = DataContainer<int, PClass>.Instance.Items;
@@ -32,7 +31,10 @@ class Program
         }
 
         var lanKey = "1";
-        Console.WriteLine($"tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
+        I18N.SetLanguage("cn");
+        Console.WriteLine($"中文：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
+        I18N.SetLanguage("en");
+        Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 
         ConsoleKey key;
         do { key = Console.ReadKey().Key; }

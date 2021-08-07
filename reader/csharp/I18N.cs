@@ -27,6 +27,11 @@ public class I18N : DataContainer<string, Language>
     public static string CurrentLanguage { get; private set; }
     public static void SetLanguage(string lan = "cn")
     {
+        if (CurrentLanguage != "")
+        {
+            Instance.Clear();
+        }
+
         CurrentLanguage = lan;
 
         Instance.Initial(null, GetFilename);
@@ -41,7 +46,7 @@ public class I18N : DataContainer<string, Language>
     public static string Translate(string key)
     {
         Language lan;
-        if(Instance.ItemMap.TryGetValue(key, out lan))
+        if (Instance.ItemMap.TryGetValue(key, out lan))
         {
             return lan.Text;
         }

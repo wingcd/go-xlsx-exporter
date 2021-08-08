@@ -31,6 +31,7 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 	for _, table := range tables {
 		if table.IsLanguage {
 			langTable = table
+			continue
 		}
 		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
 			return false
@@ -117,7 +118,7 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 		}
 
 		if ditem.IsArray {
-			if settings.IsStruct(ditem.ValueType) {
+			if utils.IsStruct(ditem.ValueType) {
 				// to do...
 			} else {
 				// 创建此变量的list
@@ -134,7 +135,7 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 				item.Set(subField, pref.ValueOf(subList))
 			}
 		} else {
-			if settings.IsStruct(ditem.ValueType) {
+			if utils.IsStruct(ditem.ValueType) {
 				// to do...
 			} else {
 				val, err := utils.Convert2PBValue(ditem.ValueType, value)
@@ -205,7 +206,7 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 			}
 
 			if header.IsArray {
-				if settings.IsStruct(header.ValueType) {
+				if utils.IsStruct(header.ValueType) {
 					// to do...
 				} else {
 					// 创建此变量的list
@@ -222,7 +223,7 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 					item.Set(subField, pref.ValueOf(subList))
 				}
 			} else {
-				if settings.IsStruct(header.ValueType) {
+				if utils.IsStruct(header.ValueType) {
 					// to do...
 				} else {
 					val, err := utils.Convert2PBValue(header.ValueType, value)

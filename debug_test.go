@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/wingcd/go-xlsx-exporter/generator"
-	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/serialize"
 	"github.com/wingcd/go-xlsx-exporter/settings"
 	"github.com/wingcd/go-xlsx-exporter/utils"
@@ -76,7 +75,7 @@ func TestPBSerialize(t *testing.T) {
 	class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	class.TypeName = "PClass"
 
-	settings.SetTables([]*model.DataTable{class, user})
+	settings.SetTables(class, user)
 
 	fd, _ := utils.BuildFileDesc("test")
 
@@ -158,7 +157,7 @@ func TestSaveSerializeData(t *testing.T) {
 	user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	user.TypeName = "User"
 
-	settings.SetTables([]*model.DataTable{class, user})
+	settings.SetTables(class, user)
 
 	var pbname = ""
 	fd, _ := utils.BuildFileDesc(pbname)
@@ -205,22 +204,33 @@ func TestGenProtoBytesFile(t *testing.T) {
 
 	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	t_user.TypeName = "User"
+
+	// 表格拆分
 	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	t_class.TypeName = "PClass"
-	settings.SetTables([]*model.DataTable{t_user, t_class})
+	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
+	t_class1.TypeName = "PClass"
+
+	settings.SetTables(t_user, t_class, t_class1)
 
 	generator.Build("proto_bytes", "./gen/bytes/")
 }
 
 func TestGenProtoFile(t *testing.T) {
 	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define")
-	settings.SetDefines(defines)
+	consts := xlsx.ParseDefineSheet("data/define.xlsx", "consts")
+	settings.SetDefines(defines, consts)
 
 	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	t_user.TypeName = "User"
+
+	// 表格拆分
 	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	t_class.TypeName = "PClass"
-	settings.SetTables([]*model.DataTable{t_user, t_class})
+	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
+	t_class1.TypeName = "PClass"
+
+	settings.SetTables(t_user, t_class, t_class1)
 
 	generator.Build("proto", "./gen/all.proto")
 }
@@ -240,7 +250,7 @@ func TestGenCSharpFile(t *testing.T) {
 	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
 	t_location2.IsLanguage = true
 
-	settings.SetTables([]*model.DataTable{t_user, t_class, t_location1, t_location2})
+	settings.SetTables(t_user, t_class, t_location1, t_location2)
 
 	generator.Build("csharp", "./gen/DataMode.cs")
 }
@@ -253,7 +263,7 @@ func TestGenGolangFile(t *testing.T) {
 	t_user.TypeName = "User"
 	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	t_class.TypeName = "PClass"
-	settings.SetTables([]*model.DataTable{t_user, t_class})
+	settings.SetTables(t_user, t_class)
 
 	settings.AddLanguageTable()
 
@@ -267,7 +277,7 @@ func TestGenGolangFileWithComment(t *testing.T) {
 
 	t_comment := xlsx.ParseDataSheet("data/model.xlsx", "comment")
 	t_comment.TypeName = "Comment"
-	settings.SetTables([]*model.DataTable{t_comment})
+	settings.SetTables(t_comment)
 
 	generator.Build("golang", "./gen/Comment.pb.go")
 }
@@ -278,8 +288,12 @@ func TestGenLanguageProtoBytes(t *testing.T) {
 
 	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	t_user.TypeName = "User"
+
+	// 表格拆分
 	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
 	t_class.TypeName = "PClass"
+	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
+	t_class1.TypeName = "PClass"
 
 	t_location1 := xlsx.ParseDataSheet("data/i18n.xlsx", "location1")
 	t_location1.IsLanguage = true
@@ -287,7 +301,7 @@ func TestGenLanguageProtoBytes(t *testing.T) {
 	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
 	t_location2.IsLanguage = true
 
-	settings.SetTables([]*model.DataTable{t_user, t_class, t_location1, t_location2})
+	settings.SetTables(t_user, t_class, t_class1, t_location1, t_location2)
 
 	generator.Build("proto_bytes", "./gen/bytes/")
 }

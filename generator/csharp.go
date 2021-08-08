@@ -8,10 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/wingcd/go-xlsx-exporter/utils"
-
 	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
 var csharpTemplate = ""
@@ -134,8 +133,8 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
-	settings.PreProcessDefine(fd.Structs)
-	settings.PreProcessDefine(fd.Consts)
+	utils.PreProcessDefine(fd.Structs)
+	utils.PreProcessDefine(fd.Consts)
 
 	for _, c := range fd.Structs {
 		for _, it := range c.Items {
@@ -153,7 +152,7 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 		}
 	}
 
-	settings.PreProcessTable(settings.TABLES)
+	utils.PreProcessTable(settings.TABLES)
 	for _, t := range settings.TABLES {
 		// 排除语言类型
 		if t.IsLanguage && !settings.GenLanguageType {
@@ -189,7 +188,7 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 
 		fd.Tables = append(fd.Tables, &table)
 	}
-	settings.PreProcessTable(fd.Tables)
+	utils.PreProcessTable(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

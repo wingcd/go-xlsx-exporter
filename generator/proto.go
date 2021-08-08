@@ -8,6 +8,7 @@ import (
 
 	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/settings"
+	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
 var protoTemplate = ""
@@ -64,7 +65,7 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	tables := settings.GetAllTables()
-	settings.PreProcessTable(tables)
+	utils.PreProcessTable(tables)
 	for _, t := range tables {
 		// 排除语言类型
 		if t.IsLanguage && !settings.GenLanguageType {
@@ -102,7 +103,7 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 			fd.Tables = append(fd.Tables, &table)
 		}
 	}
-	settings.PreProcessTable(fd.Tables)
+	utils.PreProcessTable(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

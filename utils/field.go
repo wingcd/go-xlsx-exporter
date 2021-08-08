@@ -213,7 +213,7 @@ func ParseBool(s string) (bool, error) {
 func ConvertValue(vtype, value string) (error, interface{}) {
 	var ret interface{}
 	var err error
-	if settings.IsEnum(vtype) {
+	if IsEnum(vtype) {
 		_, ret, _ = ResolveEnumValue(vtype, value)
 	} else {
 		switch vtype {
@@ -301,10 +301,10 @@ func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto, 
 	case "string":
 		pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()
 	default:
-		if settings.IsEnum(pbType) {
+		if IsEnum(pbType) {
 			pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum()
 			pbDesc.TypeName = proto.String(settings.PackageName + "." + pbType)
-		} else if settings.IsStruct(pbType) || customType {
+		} else if IsStruct(pbType) || customType {
 			pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum()
 			pbDesc.TypeName = proto.String(settings.PackageName + "." + pbType)
 		} else {
@@ -332,7 +332,7 @@ func Convert2PBValue(valueType string, value interface{}) (val pref.Value, err e
 	case "string":
 		val = pref.ValueOfString(value.(string))
 	default:
-		if settings.IsEnum(valueType) {
+		if IsEnum(valueType) {
 			val = pref.ValueOfEnum(pref.EnumNumber(value.(int32)))
 		} else {
 			err = errors.New("unknown pb type: " + valueType)
@@ -384,7 +384,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		}
 	}
 
-	settings.PreProcessTable(tables)
+	PreProcessTable(tables)
 	// 创建表数据结构
 	for _, tab := range tables {
 		var desc descriptorpb.DescriptorProto
@@ -450,7 +450,7 @@ func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
 
 	// 创建表数据结构
 	var tables = settings.GetAllTables()
-	settings.PreProcessTable(tables)
+	PreProcessTable(tables)
 
 	for _, tab := range tables {
 		var desc descriptorpb.DescriptorProto

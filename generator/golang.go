@@ -105,12 +105,12 @@ func registGoFuncs() {
 		case string:
 			if val, ok := defaultGoValues[inst]; ok {
 				return val
-			} else if settings.IsEnum(inst) {
+			} else if utils.IsEnum(inst) {
 				var enumInfo = settings.GetEnum(inst)
 				if enumInfo != nil {
 					return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
 				}
-			} else if settings.IsTable(inst) || settings.IsStruct(inst) {
+			} else if utils.IsTable(inst) || utils.IsStruct(inst) {
 				return nilType
 			}
 		}
@@ -250,7 +250,7 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		FileName: filename,
 	}
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
-	settings.PreProcessDefine(fd.Consts)
+	utils.PreProcessDefine(fd.Consts)
 
 	fd.genProtoRawDesc()
 
@@ -263,7 +263,7 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	}
 
 	tables := settings.GetAllTables()
-	settings.PreProcessTable(tables)
+	utils.PreProcessTable(tables)
 
 	for _, t := range tables {
 		// 排除语言类型
@@ -302,7 +302,7 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 			fd.Tables = append(fd.Tables, &table)
 		}
 	}
-	settings.PreProcessTable(fd.Tables)
+	utils.PreProcessTable(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

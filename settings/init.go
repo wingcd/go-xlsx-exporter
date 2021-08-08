@@ -10,12 +10,17 @@ const (
 	EXPORT_TYPE_IGNORE = 0
 	EXPORT_TYPE_CLIENT = 1
 	EXPORT_TYPE_SERVER = 2
+
+	EXPORT_DATA_TYPE_ALL  = 0
+	EXPORT_DATA_TYPE_CODE = 1
+	EXPORT_DATA_TYPE_DATA = 2
 )
 
 var (
 	GO_PROTO_VERTION = "v1.27.1"
 	TOOL_VERSION     = "1.0"
 	EXPORT_TYPE      = EXPORT_TYPE_IGNORE
+	EXPORT_DATA_TYPE = EXPORT_DATA_TYPE_ALL
 	PackageName      = "PBGen"
 	PbBytesFileExt   = ".bytes"
 	COMMENT_SYMBOL   = "#"
@@ -51,17 +56,32 @@ func GetAllTables() []*model.DataTable {
 		tables = append(tables, table)
 	}
 
-	return tables
+	return CombineTables(tables)
 }
 
-func SetDefines(defines map[string]*model.DefineTableInfo) {
-	DEFINES = defines
+func SetDefines(defines ...map[string]*model.DefineTableInfo) {
+	DEFINES = make(map[string]*model.DefineTableInfo)
+	for _, ds := range defines {
+		for _, d := range ds {
+			DEFINES[d.TypeName] = d
+		}
+	}
+
+	//合并定义项目
+	defs := make(map[string]*model.DefineTableInfo)
+	for _, df := range DEFINES {
+		if define, ok := defs[df.TypeName]; ok {
+			define.Items = append(define.Items, df.Items...)
+		} else {
+			defs[df.TypeName] = df
+		}
+	}
 
 	ENUMS = make([]*model.DefineTableInfo, 0)
 	STRUCTS = make([]*model.DefineTableInfo, 0)
 	CONSTS = make([]*model.DefineTableInfo, 0)
 
-	for _, info := range defines {
+	for _, info := range DEFINES {
 		if info.Category == model.DEFINE_TYPE_ENUM {
 			ENUMS = append(ENUMS, info)
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
@@ -105,7 +125,7 @@ func AddLanguageTable() *model.DataTable {
 	return &table
 }
 
-func SetTables(tables []*model.DataTable) {
+func SetTables(tables ...*model.DataTable) {
 	TABLES = make([]*model.DataTable, 0)
 
 	for _, table := range tables {
@@ -128,6 +148,8 @@ func SetTables(tables []*model.DataTable) {
 		}
 		table.DefinedTable = strings.Join(sourceFiles, ";")
 	}
+
+	TABLES = CombineTables(TABLES)
 }
 
 func GetEnum(pbType string) *model.DefineTableInfo {
@@ -140,96 +162,16 @@ func GetEnum(pbType string) *model.DefineTableInfo {
 	return nil
 }
 
-func IsEnum(pbType string) bool {
-	if DEFINES == nil {
-		return false
-	}
-	if val, ok := DEFINES[pbType]; ok {
-		return val.Category == model.DEFINE_TYPE_ENUM && ok
-	}
-	return false
-}
-
-func IsStruct(pbType string) bool {
-	if DEFINES == nil {
-		return false
-	}
-	if val, ok := DEFINES[pbType]; ok {
-		return val.Category == model.DEFINE_TYPE_STRUCT && ok
-	}
-	return false
-}
-
-func IsTable(pbType string) bool {
-	if TABLES == nil {
-		return false
-	}
-
-	for _, table := range TABLES {
-		if table.TypeName == pbType {
-			return true
+func CombineTables(tables []*model.DataTable) []*model.DataTable {
+	var ts = make(map[string]*model.DataTable, 0)
+	var newTables = make([]*model.DataTable, 0)
+	for _, t := range tables {
+		if table, ok := ts[t.TypeName]; ok {
+			table.Data = append(table.Data, t.Data...)
+		} else {
+			ts[t.TypeName] = t
+			newTables = append(newTables, t)
 		}
 	}
-	return false
-}
-
-var pbFieldEncodeTypes = map[string]string{
-	"bool":    "varint",
-	"int":     "varint",
-	"int32":   "varint",
-	"uint":    "varint",
-	"uint32":  "varint",
-	"int64":   "varint",
-	"uint64":  "varint",
-	"float":   "fixed32",
-	"float32": "fixed32",
-	"double":  "fixed64",
-	"float64": "fixed64",
-	"string":  "bytes",
-}
-
-// 获取编码类型
-// 返回值： 编码类型，是否枚举, 是否结构体
-func GetEncodeType(valueType string) (string, bool, bool) {
-	valueType = strings.Replace(valueType, " ", "", -1)
-	repeated := false
-	if strings.Contains(valueType, "[]") {
-		repeated = true
-	}
-	var rawType = strings.Replace(valueType, "[]", "", -1)
-	var isEnum = IsEnum(rawType)
-	var isStruct = IsStruct(rawType) || IsTable(rawType)
-	if repeated {
-		return "bytes", isEnum, isStruct
-	}
-	if tp, ok := pbFieldEncodeTypes[rawType]; ok {
-		return tp, isEnum, isStruct
-	} else if isEnum {
-		return "varint", isEnum, isStruct
-	}
-	return "", isEnum, isStruct
-}
-
-func PreProcessDefine(defines []*model.DefineTableInfo) {
-	for _, d := range defines {
-		for _, st := range d.Items {
-			st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
-		}
-	}
-}
-
-func PreProcessHeader(header *model.DataTableHeader) {
-	header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
-}
-
-func PreProcessTable(tables []*model.DataTable) {
-	for _, table := range tables {
-		for _, header := range table.Headers {
-			PreProcessHeader(header)
-		}
-	}
-}
-
-func IsComment(value string) bool {
-	return strings.Index(strings.Trim(value, " "), COMMENT_SYMBOL) == 0
+	return newTables
 }

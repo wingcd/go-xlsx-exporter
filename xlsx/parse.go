@@ -41,7 +41,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 		}
 
 		// 过滤注释
-		if settings.IsComment(row[0]) {
+		if utils.IsComment(row[0]) {
 			continue
 		}
 
@@ -162,12 +162,12 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	// 过滤标准行前的注释项
 	filterCols := make([][]string, 0)
 	for ci, col := range cols {
-		if settings.IsComment(col[0]) {
+		if utils.IsComment(col[0]) {
 			ignoreCols[ci] = true
 		}
 		if ci == 0 {
 			for ri, cellValue := range col {
-				if settings.IsComment(cellValue) {
+				if utils.IsComment(cellValue) {
 					ignoreRows[ri] = true
 				}
 			}
@@ -221,7 +221,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 				ignore = true
 			}
 		}
-		if settings.IsComment(header.Desc) {
+		if utils.IsComment(header.Desc) {
 			ignore = true
 		}
 
@@ -254,7 +254,7 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 	for ri, row := range rows {
 		// 索引列不能为空，否则过滤掉
 		var emptyIndex = row == nil
-		if emptyIndex || settings.IsComment(row[0]) {
+		if emptyIndex || utils.IsComment(row[0]) {
 			if emptyIndex {
 				log.Printf("[警告] 有空数据行 表：%v 第%v行 \n", table.DefinedTable, ri+1)
 			}

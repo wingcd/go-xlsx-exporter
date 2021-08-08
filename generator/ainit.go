@@ -7,7 +7,6 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/wingcd/go-xlsx-exporter/settings"
 	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
@@ -60,7 +59,7 @@ func init() {
 	}
 
 	funcs["is_value_type"] = func(valueType string) bool {
-		if settings.IsStruct(valueType) || settings.IsTable(valueType) {
+		if utils.IsStruct(valueType) || utils.IsTable(valueType) {
 			return false
 		}
 		return true

@@ -425,7 +425,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 }
 
 // 生成proto文件描述，文件名可以任意设置
-func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
+func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDescriptor, error) {
 	var file descriptorpb.FileDescriptorProto
 	file.Syntax = proto.String("proto3")
 	file.Name = proto.String(filename + ".proto")
@@ -453,6 +453,11 @@ func BuildFileDesc(filename string) (protoreflect.FileDescriptor, error) {
 	PreProcessTable(tables)
 
 	for _, tab := range tables {
+		// 当不生成语言类型时，过滤语言类型
+		if tab.IsLanguage && !includeLanguage {
+			continue
+		}
+
 		var desc descriptorpb.DescriptorProto
 		desc.Name = proto.String(tab.TypeName)
 		for _, field := range tab.Headers {

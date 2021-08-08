@@ -17,26 +17,46 @@ const (
 	totalSize = 6
 )
 
-func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTableInfo) {
-	infos = make(map[string]*model.DefineTableInfo, 0)
-
-	fmt.Printf("parse file %s...\n", filename)
-
-	f, err := excelize.OpenFile(filename)
-	if err != nil {
-		fmt.Println(err)
+// @params filename 文件名,表格名，文件名，表格名...
+func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo) {
+	var size = len(files)
+	var cnt = size / 2
+	if size == 0 || size%2 != 0 {
+		log.Print("[错误] 参数错误 \n")
 		return
 	}
 
-	rows, err := f.GetRows(sheet)
-	if err != nil {
-		fmt.Println(err)
-		return
+	infos = make(map[string]*model.DefineTableInfo, 0)
+
+	rows := make([][]string, 0)
+	for i := 0; i < cnt; i++ {
+		filename := files[i*2]
+		sheet := files[i*2+1]
+
+		fmt.Printf("parse file %s:%s...\n", filename, sheet)
+		f, err := excelize.OpenFile(filename)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		rs, err := f.GetRows(sheet)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		rows = append(rows, rs...)
 	}
 
 	for ri, row := range rows {
 		// 种类	类型名	字段名	值	说明
 		if ri == 0 {
+			continue
+		}
+
+		if row == nil {
+			// log.Printf("[警告] 有空定义行 表：%v 第%v行 \n", fmt.Sprintf("%s:%s", files[0], files[1]), ri+1)
 			continue
 		}
 
@@ -53,7 +73,8 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 		}
 		for ci := 0; ci < fixedColCount; ci++ {
 			if row[ci] == "" {
-				log.Printf("[警告] 有空定义行 表：%v 第%v行 \n", fmt.Sprintf("%s:%s", filename, sheet), ri+1)
+				// log.Printf("[警告] 有空定义行 表：%v 第%v行 \n", fmt.Sprintf("%s:%s", files[0], files[1]), ri+1)
+				continue
 			}
 		}
 
@@ -61,7 +82,7 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 		var info *model.DefineTableInfo
 		if info, ok := infos[typename]; !ok {
 			info = new(model.DefineTableInfo)
-			info.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
+			info.DefinedTable = fmt.Sprintf("%s:%s", files[0], files[1])
 			infos[typename] = info
 
 			info.Category = catgory
@@ -97,10 +118,11 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 				if item.Value == "" {
 					value = preValue + 1
 				} else {
-					value, err = strconv.Atoi(item.Value)
+					v, err := strconv.Atoi(item.Value)
 					if err != nil {
 						log.Fatalf("[错误] 枚举值类型错误 表：%s 列：%s \n", info.DefinedTable, item.Desc)
 					}
+					value = v
 				}
 				item.Index = int(value)
 				item.Value = strconv.FormatInt(int64(value), 10)
@@ -136,23 +158,80 @@ func ParseDefineSheet(filename, sheet string) (infos map[string]*model.DefineTab
 	return
 }
 
-func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
-	fmt.Printf("parse file %s...\n", filename)
-
-	f, err := excelize.OpenFile(filename)
-	if err != nil {
-		fmt.Println(err)
+// @params filename 文件名,表格名，文件名，表格名...
+func ParseDataSheet(files ...string) (table *model.DataTable) {
+	var size = len(files)
+	var cnt = size / 2
+	if size == 0 || size%2 != 0 {
+		log.Print("[错误] 参数错误 \n")
 		return
 	}
 
-	cols, err := f.GetCols(sheet)
-	if err != nil {
-		fmt.Println(err)
-		return
+	cols := make([][]string, 0)
+	rows := make([][]string, 0)
+
+	for i := 0; i < cnt; i++ {
+		filename := files[i*2]
+		sheet := files[i*2+1]
+
+		fmt.Printf("parse file %s:%s...\n", filename, sheet)
+
+		f, err := excelize.OpenFile(filename)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// 只需要第一张表的列数据
+		if i == 0 {
+			cls, err := f.GetCols(sheet)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
+			filterCols := make([][]string, 0)
+			for ci, col := range cls {
+				// 索引列不能为空，否则过滤掉
+				var emptyIndex = col == nil
+				if emptyIndex || utils.IsComment(col[0]) {
+					if emptyIndex {
+						log.Printf("[警告] 有空数据列 表：%v-%v 第%v行 \n", filename, sheet, ci+1)
+					}
+					continue
+				}
+				filterCols = append(filterCols, col)
+			}
+			cols = append(cols, filterCols...)
+		}
+
+		// 获取所有行
+		rs, err := f.GetRows(sheet)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
+		filterRows := make([][]string, 0)
+		for ri, row := range rs {
+			// 索引列不能为空，否则过滤掉
+			var emptyIndex = row == nil
+			if emptyIndex || utils.IsComment(row[0]) {
+				if emptyIndex {
+					log.Printf("[警告] 有空数据行 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
+				}
+				continue
+			}
+			filterRows = append(filterRows, row)
+		}
+
+		rows = append(rows, filterRows[4:]...)
 	}
 
 	table = new(model.DataTable)
-	table.DefinedTable = fmt.Sprintf("%s:%s", filename, sheet)
+	table.DefinedTable = fmt.Sprintf("%s:%s", files[0], files[1])
 	table.Headers = make([]*model.DataTableHeader, 0)
 	table.IsDataTable = true
 
@@ -244,11 +323,6 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		}
 	}
 
-	rows, err := f.GetRows(sheet)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
 	filterRows := make([][]string, 0)
 	for ri, row := range rows {
@@ -262,7 +336,6 @@ func ParseDataSheet(filename, sheet string) (table *model.DataTable) {
 		}
 		filterRows = append(filterRows, row)
 	}
-	rows = filterRows[4:]
 
 	// 预处理数据
 	// 1. 防止出现空数据

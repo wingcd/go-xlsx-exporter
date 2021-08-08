@@ -28,34 +28,6 @@ message SInfo
 	EDataType DataType = 6;
 }
 
-// Defined in table: data/define.xlsx:define
-message Settings
-{ 
-	string VERSION = 1; //版本号 
-	int32 MAX_CONNECT = 2; //最大连接数 
-	float UP_RATIO = 3; //概率 
-	repeated string VERSIONS = 4;
-	EDataType DataType = 5;
-	repeated EDataType DataTypes = 6;
-	repeated float Times = 7;
-	bool Open = 8;
-	repeated bool Opens = 9;
-}
-
-// Defined in table: data/define.xlsx:consts
-message CONSTS
-{ 
-	string VERSION = 1; //版本号 
-	int32 MAX_CONNECT = 2; //最大连接数 
-	float UP_RATIO = 3; //概率 
-	repeated string VERSIONS = 4;
-	EDataType DataType = 5;
-	repeated EDataType DataTypes = 6;
-	repeated float Times = 7;
-	bool Open = 8;
-	repeated bool Opens = 9;
-}
-
 // Defined in table: data/model.xlsx:user
 message User
 { 

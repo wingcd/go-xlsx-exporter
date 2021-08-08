@@ -18,9 +18,30 @@ func getErrStr(typeName string, ridx, cidx int, val, colName, rowId string) stri
 	return fmt.Sprintf("[错误] 值解析失败 类型:%s 列号：%v(Name:%s) 行号:%v(ID:%s) 值：%v \n", typeName, cidx, colName, ridx, rowId, val)
 }
 
-func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DataTable, lanTables []*model.DataTable) bool {
+func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DataTable) bool {
 	if fd == nil {
-		f, err := utils.BuildFileDesc(pbFilename)
+		f, err := utils.BuildFileDesc(pbFilename, settings.GenLanguageType)
+		if err != nil {
+			fmt.Printf("%v\n", err.Error())
+		}
+		fd = f
+	}
+
+	for _, table := range tables {
+		if table.IsLanguage {
+			continue
+		}
+		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func GenLanguageTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DataTable, lanTables []*model.DataTable) bool {
+	if fd == nil {
+		f, err := utils.BuildFileDesc(pbFilename, settings.GenLanguageType)
 		if err != nil {
 			fmt.Printf("%v\n", err.Error())
 		}
@@ -31,10 +52,7 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 	for _, table := range tables {
 		if table.IsLanguage {
 			langTable = table
-			continue
-		}
-		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
-			return false
+			break
 		}
 	}
 
@@ -74,7 +92,7 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 
 func GenDefineTables(pbFilename string, fd pref.FileDescriptor, dir string, tables []*model.DefineTableInfo) bool {
 	if fd == nil {
-		f, err := utils.BuildFileDesc(pbFilename)
+		f, err := utils.BuildFileDesc(pbFilename, settings.GenLanguageType)
 		if err != nil {
 			fmt.Printf("%v\n", err.Error())
 		}
@@ -99,11 +117,6 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 	utils.CheckPath(dir)
 
 	dtfileName := dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
-	fd, err := utils.BuildFileDesc("")
-	if err != nil {
-		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())
-		return false, dtfileName
-	}
 
 	// 表数据类型
 	typeMD := fd.Messages().ByName(pref.Name(table.TypeName))
@@ -178,12 +191,6 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 		dtfileName = dir + filename + settings.PbBytesFileExt
 	} else {
 		dtfileName = dir + strings.ToLower(table.TypeName) + settings.PbBytesFileExt
-	}
-
-	fd, err := utils.BuildFileDesc("")
-	if err != nil {
-		log.Printf("类型构建失败 类型:%s 详情:%s \n", table.TypeName, err.Error())
-		return false, dtfileName
 	}
 
 	// 表数据类型

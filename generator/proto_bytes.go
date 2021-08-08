@@ -15,8 +15,18 @@ type protoBytesGenerator struct {
 func (g *protoBytesGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	utils.CheckPath(output)
 
-	if !serialize.GenDataTables("", nil, output, settings.TABLES, settings.LANG_TABLES) {
-		fmt.Printf("[错误] protobuf序列化失败，路径：%s \n", output)
+	fd, _ := utils.BuildFileDesc("", true)
+
+	if !serialize.GenDataTables("", fd, output, settings.TABLES) {
+		fmt.Printf("[错误] protobuf数据序列化失败，路径：%s \n", output)
+	}
+
+	if !serialize.GenLanguageTables("", fd, output, settings.TABLES, settings.LANG_TABLES) {
+		fmt.Printf("[错误] protobuf多语言序列化失败，路径：%s \n", output)
+	}
+
+	if !serialize.GenDefineTables("", fd, output, settings.CONSTS) {
+		fmt.Printf("[错误] protobuf配置序列化失败，路径：%s \n", output)
 	}
 	return false, nil
 }

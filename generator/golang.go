@@ -162,7 +162,7 @@ type goGenerator struct {
 }
 
 func (f *goFileDesc) genProtoRawDesc() {
-	var fd, err = utils.BuildFileDesc(f.FileName)
+	var fd, err = utils.BuildFileDesc(f.FileName, settings.GenLanguageType)
 	if err != nil {
 		fmt.Errorf(err.Error())
 		return

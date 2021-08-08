@@ -24,7 +24,6 @@ var (
 	PackageName      = "PBGen"
 	PbBytesFileExt   = ".bytes"
 	COMMENT_SYMBOL   = "#"
-	WithLanaguge     = false
 	// just for debug
 	GenLanguageType = false
 

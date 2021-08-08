@@ -80,35 +80,48 @@ func TestGoLoadPBFile(t *testing.T) {
 	}
 }
 
-func TestGoLoadLanguage(t *testing.T) {
-	var lans_cn = Language_ARRAY{}
-	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
-	err := proto.Unmarshal(bytes, &lans_cn)
+func TestLoadConfigFile(t *testing.T) {
+	var settings = Settings{}
+	var bytes, _ = ioutil.ReadFile("./bytes/settings.bytes")
+	err := proto.Unmarshal(bytes, &settings)
 	if err != nil {
 		fmt.Printf(err.Error())
 		return
 	}
 
-	var lans_en = Language_ARRAY{}
-	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
-	err = proto.Unmarshal(bytes, &lans_en)
-	if err != nil {
-		fmt.Printf(err.Error())
-		return
-	}
-
-	var lans_jp = Language_ARRAY{}
-	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
-	err = proto.Unmarshal(bytes, &lans_jp)
-	if err != nil {
-		fmt.Printf(err.Error())
-		return
-	}
-
-	for i := 0; i < len(lans_cn.Items); i++ {
-		var cn = lans_cn.Items[i]
-		var en = lans_en.Items[i]
-		var jp = lans_jp.Items[i]
-		fmt.Printf("ID: %v\n Name: %v, %v, %v \n", cn.ID, cn.Text, en.Text, jp.Text)
-	}
+	fmt.Printf("DataType:%v \n", settings.DataType)
+	fmt.Printf("Version:%v \n", settings.VERSION)
 }
+
+// func TestGoLoadLanguage(t *testing.T) {
+// 	var lans_cn = Language_ARRAY{}
+// 	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
+// 	err := proto.Unmarshal(bytes, &lans_cn)
+// 	if err != nil {
+// 		fmt.Printf(err.Error())
+// 		return
+// 	}
+
+// 	var lans_en = Language_ARRAY{}
+// 	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
+// 	err = proto.Unmarshal(bytes, &lans_en)
+// 	if err != nil {
+// 		fmt.Printf(err.Error())
+// 		return
+// 	}
+
+// 	var lans_jp = Language_ARRAY{}
+// 	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
+// 	err = proto.Unmarshal(bytes, &lans_jp)
+// 	if err != nil {
+// 		fmt.Printf(err.Error())
+// 		return
+// 	}
+
+// 	for i := 0; i < len(lans_cn.Items); i++ {
+// 		var cn = lans_cn.Items[i]
+// 		var en = lans_en.Items[i]
+// 		var jp = lans_jp.Items[i]
+// 		fmt.Printf("ID: %v\n Name: %v, %v, %v \n", cn.ID, cn.Text, en.Text, jp.Text)
+// 	}
+// }

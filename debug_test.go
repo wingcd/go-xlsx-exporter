@@ -77,7 +77,7 @@ func TestPBSerialize(t *testing.T) {
 
 	settings.SetTables(class, user)
 
-	fd, _ := utils.BuildFileDesc("test")
+	fd, _ := utils.BuildFileDesc("test", settings.GenLanguageType)
 
 	fooMessageDescriptor := fd.Messages().ByName("User")
 	msg := dynamicpb.NewMessage(fooMessageDescriptor)
@@ -143,7 +143,7 @@ func TestSaveSerializeDefineData(t *testing.T) {
 	settings.SetDefines(xlsx.ParseDefineSheet("data/define.xlsx", "define"))
 
 	var pbname = ""
-	fd, _ := utils.BuildFileDesc(pbname)
+	fd, _ := utils.BuildFileDesc(pbname, settings.GenLanguageType)
 
 	serialize.GenDefineTables(pbname, fd, "./gen/bytes/", settings.CONSTS)
 }
@@ -160,9 +160,9 @@ func TestSaveSerializeData(t *testing.T) {
 	settings.SetTables(class, user)
 
 	var pbname = ""
-	fd, _ := utils.BuildFileDesc(pbname)
+	fd, _ := utils.BuildFileDesc(pbname, settings.GenLanguageType)
 
-	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES, nil)
+	serialize.GenDataTables(pbname, fd, "./gen/bytes/", settings.TABLES)
 
 	itemMD := fd.Messages().ByName("User")
 
@@ -206,31 +206,26 @@ func TestGenProtoBytesFile(t *testing.T) {
 	t_user.TypeName = "User"
 
 	// 表格拆分
-	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
+	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class", "data/model.xlsx", "class1")
 	t_class.TypeName = "PClass"
-	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
-	t_class1.TypeName = "PClass"
 
-	settings.SetTables(t_user, t_class, t_class1)
+	settings.SetTables(t_user, t_class)
 
 	generator.Build("proto_bytes", "./gen/bytes/")
 }
 
 func TestGenProtoFile(t *testing.T) {
-	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define")
-	consts := xlsx.ParseDefineSheet("data/define.xlsx", "consts")
-	settings.SetDefines(defines, consts)
+	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define", "data/define.xlsx", "consts")
+	settings.SetDefines(defines)
 
 	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	t_user.TypeName = "User"
 
 	// 表格拆分
-	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
+	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class", "data/model.xlsx", "class1")
 	t_class.TypeName = "PClass"
-	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
-	t_class1.TypeName = "PClass"
 
-	settings.SetTables(t_user, t_class, t_class1)
+	settings.SetTables(t_user, t_class)
 
 	generator.Build("proto", "./gen/all.proto")
 }
@@ -283,25 +278,20 @@ func TestGenGolangFileWithComment(t *testing.T) {
 }
 
 func TestGenLanguageProtoBytes(t *testing.T) {
-	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define")
+	defines := xlsx.ParseDefineSheet("data/define.xlsx", "define", "data/define.xlsx", "consts")
 	settings.SetDefines(defines)
 
 	t_user := xlsx.ParseDataSheet("data/model.xlsx", "user")
 	t_user.TypeName = "User"
 
 	// 表格拆分
-	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class")
+	t_class := xlsx.ParseDataSheet("data/model.xlsx", "class", "data/model.xlsx", "class1")
 	t_class.TypeName = "PClass"
-	t_class1 := xlsx.ParseDataSheet("data/model.xlsx", "class1")
-	t_class1.TypeName = "PClass"
 
-	t_location1 := xlsx.ParseDataSheet("data/i18n.xlsx", "location1")
-	t_location1.IsLanguage = true
+	t_location := xlsx.ParseDataSheet("data/i18n.xlsx", "location1", "data/i18n.xlsx", "location2")
+	t_location.IsLanguage = true
 
-	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
-	t_location2.IsLanguage = true
-
-	settings.SetTables(t_user, t_class, t_class1, t_location1, t_location2)
+	settings.SetTables(t_user, t_class, t_location)
 
 	generator.Build("proto_bytes", "./gen/bytes/")
 }

@@ -2,3 +2,5 @@
 /gen/proto
 /gen/all.proto
 /bin
+/gen/code
+/gen/data

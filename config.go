@@ -15,14 +15,6 @@ const (
 	SheetTypeTable  = "table"
 )
 
-var (
-	Config *YamlConf
-)
-
-func init() {
-	Config = NewYamlConf("conf.yaml")
-}
-
 type SheetInfo struct {
 	ID       int    `yaml:"id"`
 	Type     string `yaml:"type"`
@@ -50,10 +42,26 @@ type YamlConf struct {
 	Sheets  []SheetInfo  `yaml:"sheets"`
 }
 
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func NewYamlConf(filename string) *YamlConf {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	fn := dir + "/" + filename
+	if ok, _ := PathExists(fn); !ok {
+		log.Fatalf("配置文件不存在：%v", fn)
 	}
 
 	c := new(YamlConf)

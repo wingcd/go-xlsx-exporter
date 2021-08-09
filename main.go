@@ -14,25 +14,27 @@ import (
 )
 
 var (
-	config     *YamlConf
-	cfgPackage string
+	config *YamlConf
 
 	p_help              bool
 	p_version           bool
 	p_gen_language_code bool
 	p_exports           string
+
+	p_package           string
+	p_pb_bytes_file_ext string
+	p_comment_symbol    string
+	p_config            string
 )
 
 func init() {
-	config = Config
-
 	flag.BoolVar(&p_help, "h", false, "获取帮助")
 	flag.BoolVar(&p_version, "v", false, "获取工具当前版本号")
 
-	cfgPackage = config.Package
-	flag.StringVar(&config.Package, "pkg", config.Package, "设置导出包名")
-	flag.StringVar(&config.PBBytesFileExt, "ext", config.PBBytesFileExt, "设置二进制数据文件后缀(unity必须为.bytes)")
-	flag.StringVar(&config.CommentSymbol, "cmt", config.CommentSymbol, "设置表格注释符号")
+	flag.StringVar(&p_config, "cfg", "./conf.yaml", "设置配置文件")
+	flag.StringVar(&p_package, "pkg", "", "设置导出包名")
+	flag.StringVar(&p_pb_bytes_file_ext, "ext", ".bytes", "设置二进制数据文件后缀(unity必须为.bytes)")
+	flag.StringVar(&p_comment_symbol, "cmt", "#", "设置表格注释符号")
 	flag.StringVar(&p_exports, "exports", "", "设置需要导出的配置项，默认为空，全部导出, 参考：1,2,5-7")
 
 	flag.BoolVar(&p_gen_language_code, "lang", false, "是否生成语言类型到代码（仅测试用，默认为false）")
@@ -44,6 +46,10 @@ func main() {
 
 func parseParams() {
 	flag.Parse()
+
+	config = NewYamlConf(p_config)
+	config.PBBytesFileExt = p_pb_bytes_file_ext
+	config.CommentSymbol = p_comment_symbol
 
 	if p_help {
 		flag.Usage()
@@ -140,8 +146,10 @@ func doExport(exportInfo ExportInfo) {
 
 	settings.ExportType = exportInfo.ExportType
 	settings.PackageName = config.Package
-	// 当配置被覆盖时，统一使用外部参数，否则可以使用单项配置
-	if cfgPackage == config.Package && exportInfo.Package != "" {
+	if p_package != "" {
+		settings.PackageName = p_package
+	} else if p_package == "" && exportInfo.Package != "" {
+		// 当配置被覆盖时，统一使用外部参数，否则可以使用单项配置
 		settings.PackageName = exportInfo.Package
 	}
 

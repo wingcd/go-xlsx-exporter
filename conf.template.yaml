@@ -1,4 +1,4 @@
-package: "GameData"
+package: "Deploy"
 pb_bytes_file_ext: ".bytes" #unity must use .bytes extension
 comment_symbol: "#"
 
@@ -56,10 +56,4 @@ exports:
  type: "golang"
  path: "./gen/code/data_model.pb.go"
  sheets: "1,3-7"
- export_type: 0
- package: "game_data"
--
- id: 3
- type: "proto_bytes"
- path: "./gen/data/"
  export_type: 0

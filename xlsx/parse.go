@@ -82,7 +82,11 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		var info *model.DefineTableInfo
 		if info, ok := infos[typename]; !ok {
 			info = new(model.DefineTableInfo)
-			info.DefinedTable = fmt.Sprintf("%s:%s", files[0], files[1])
+			info.DefinedTable = ""
+			for i := 0; i < cnt; i++ {
+				info.DefinedTable += fmt.Sprintf("%s:%s;", files[i*2], files[i*2+1])
+			}
+
 			infos[typename] = info
 
 			info.Category = catgory
@@ -231,7 +235,11 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	}
 
 	table = new(model.DataTable)
-	table.DefinedTable = fmt.Sprintf("%s:%s", files[0], files[1])
+	table.DefinedTable = ""
+	for i := 0; i < cnt; i++ {
+		table.DefinedTable += fmt.Sprintf("%s:%s;", files[i*2], files[i*2+1])
+	}
+
 	table.Headers = make([]*model.DataTableHeader, 0)
 	table.IsDataTable = true
 
@@ -291,11 +299,11 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		header.Desc = col[model.DATA_ROW_DESC_INDEX]
 
 		ignore := false
-		if settings.EXPORT_TYPE != settings.EXPORT_TYPE_IGNORE {
-			if settings.EXPORT_TYPE_CLIENT == settings.EXPORT_TYPE && !header.ExportClient {
+		if settings.ExportType != settings.EXPORT_TYPE_IGNORE {
+			if settings.EXPORT_TYPE_CLIENT == settings.ExportType && !header.ExportClient {
 				// 当为客户端导出，但此列不支持客户端时，过滤掉
 				ignore = true
-			} else if settings.EXPORT_TYPE_SERVER == settings.EXPORT_TYPE && !header.ExportServer {
+			} else if settings.EXPORT_TYPE_SERVER == settings.ExportType && !header.ExportServer {
 				// 当为后端导出，但此列不支持后端时，过滤掉
 				ignore = true
 			}

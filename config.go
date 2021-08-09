@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -21,25 +24,40 @@ func init() {
 }
 
 type SheetInfo struct {
-	Type           string `yaml:"type"`
-	File           string `yaml:"xls_file"`
-	Sheet          string `yaml:"sheet"`
-	TargetCodeFile string `yaml:"target_code_file"`
-	TargetDataFile string `yaml:"target_data_file"`
-	GenCode        bool   `yaml:"gen_code"`
-	GenData        bool   `yaml:"gen_data"`
+	ID       int    `yaml:"id"`
+	Type     string `yaml:"type"`
+	File     string `yaml:"xls_file"`
+	Sheet    string `yaml:"sheet"`
+	TypeName string `yaml:"type_name"`
+	IsLang   bool   `yaml:"is_lang"`
+}
+
+type ExportInfo struct {
+	ID         int    `yaml:"id"`
+	Type       string `yaml:"type"`
+	Path       string `yaml:"path"`
+	Sheets     string `yaml:"sheets"`
+	ExportType int    `yaml:"export_type"`
+	Package    string `yaml:"package"`
 }
 
 type YamlConf struct {
-	Package       string
-	TargetCodeDir string
-	TargetDataDir string
-	Sheets        []SheetInfo `yaml:"sheets"`
+	Package        string `yaml:"package"`
+	PBBytesFileExt string `yaml:"pb_bytes_file_ext"`
+	CommentSymbol  string `yaml:"comment_symbol"`
+
+	Exports []ExportInfo `yaml:"exports"`
+	Sheets  []SheetInfo  `yaml:"sheets"`
 }
 
 func NewYamlConf(filename string) *YamlConf {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	c := new(YamlConf)
-	yamlFile, err := ioutil.ReadFile(filename)
+	yamlFile, err := ioutil.ReadFile(dir + "/" + filename)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

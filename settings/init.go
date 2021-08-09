@@ -10,20 +10,17 @@ const (
 	EXPORT_TYPE_IGNORE = 0
 	EXPORT_TYPE_CLIENT = 1
 	EXPORT_TYPE_SERVER = 2
-
-	EXPORT_DATA_TYPE_ALL  = 0
-	EXPORT_DATA_TYPE_CODE = 1
-	EXPORT_DATA_TYPE_DATA = 2
 )
 
 var (
 	GO_PROTO_VERTION = "v1.27.1"
 	TOOL_VERSION     = "1.0"
-	EXPORT_TYPE      = EXPORT_TYPE_IGNORE
-	EXPORT_DATA_TYPE = EXPORT_DATA_TYPE_ALL
-	PackageName      = "PBGen"
-	PbBytesFileExt   = ".bytes"
-	COMMENT_SYMBOL   = "#"
+
+	ExportType     = EXPORT_TYPE_IGNORE
+	PackageName    = "PBGen"
+	PbBytesFileExt = ".bytes"
+	CommentSymbol  = "#"
+
 	// just for debug
 	GenLanguageType = false
 
@@ -126,12 +123,10 @@ func AddLanguageTable() *model.DataTable {
 
 func SetTables(tables ...*model.DataTable) {
 	TABLES = make([]*model.DataTable, 0)
+	LANG_TABLES = make([]*model.DataTable, 0)
 
 	for _, table := range tables {
 		if table.IsLanguage {
-			if LANG_TABLES == nil {
-				LANG_TABLES = make([]*model.DataTable, 0)
-			}
 			table.TypeName = "Language"
 			LANG_TABLES = append(LANG_TABLES, table)
 		} else {
@@ -139,7 +134,7 @@ func SetTables(tables ...*model.DataTable) {
 		}
 	}
 
-	if LANG_TABLES != nil {
+	if LANG_TABLES != nil && len(LANG_TABLES) > 0 {
 		table := AddLanguageTable()
 		sourceFiles := make([]string, 0)
 		for _, t := range LANG_TABLES {

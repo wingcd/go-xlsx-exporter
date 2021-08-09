@@ -98,5 +98,8 @@ func PreProcessTable(tables []*model.DataTable) {
 }
 
 func IsComment(value string) bool {
-	return strings.Index(strings.Trim(value, " "), settings.COMMENT_SYMBOL) == 0
+	if settings.CommentSymbol == "" {
+		return false
+	}
+	return strings.Index(strings.Trim(value, " "), settings.CommentSymbol) == 0
 }

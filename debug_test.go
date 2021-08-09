@@ -268,7 +268,7 @@ func TestGenGolangFile(t *testing.T) {
 
 func TestGenGolangFileWithComment(t *testing.T) {
 	settings.PackageName = "gen"
-	settings.EXPORT_TYPE = settings.EXPORT_TYPE_SERVER
+	settings.ExportType = settings.EXPORT_TYPE_SERVER
 
 	t_comment := xlsx.ParseDataSheet("data/model.xlsx", "comment")
 	t_comment.TypeName = "Comment"

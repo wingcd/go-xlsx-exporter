@@ -51,6 +51,6 @@ public class I18N : DataContainer<string, Language>
             return lan.Text;
         }
 
-        return "";
+        return null;
     }
 }

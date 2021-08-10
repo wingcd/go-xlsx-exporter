@@ -163,33 +163,33 @@ exports: # 导出任务集合
 
     此表用于定义数据表可使用的枚举类型，以及结构体及全局配置（可不使用后两种类型）,表结构如下：
 
-    ![](https://secure.wostatic.cn/static/25PvyvjQWMYQFmv9gz3YTh/image.png)
+    ![](./doc/imgs/define-table.png)
 
     - 枚举类型
 
     > enum, 同一枚举类型名一样，类型为空，值为枚举索引值
 
-    ![](https://secure.wostatic.cn/static/2anyXcyw1svTvBn4ZP5xQa/image.png)
+    ![](./doc/imgs/define-enum.png)
 
     - 结构体类型
 
     > struct, 此项预留
 
-    ![](https://secure.wostatic.cn/static/5eF8denYuFU5wVJq8vFq7x/image.png)
+    ![](./doc/imgs/define-struct.png)
 
     - 常量类型
 
     > const, 用于定义游戏中的一些常量值，常量数据也会导出为二进制文件，与数据文件不同的是，导出的数据不是列表数据，仅为一个消息体（类）的数据
 
-    ![](https://secure.wostatic.cn/static/njpX7WE3M4Kh8PGg8ns4QV/image.png)
+    ![](./doc/imgs/define-const.png)
 
   - 数据表
 
     此类型用于定义数据表，前四行用于字段描述，支持使用定义表中定义的枚举类型，导出的二进制数据类型为“类型名_ARRAY”，并在此类型中定义了Items的数组作为此表数据集合，如图：
 
-    ![](https://secure.wostatic.cn/static/fw3ymmCuyBKLoUr4JQRW5L/image.png)
+    ![](./doc/imgs/data-table.png)
 
-    ![](https://secure.wostatic.cn/static/848YNy9F6fGNexsvxXszBt/image.png)
+    ![](./doc/imgs/data-code.png)
 
     1. 第一行为字段描述
 
@@ -203,7 +203,7 @@ exports: # 导出任务集合
 
     此表是数据表的一种特例，专门用来存放多语言数据，结构同数据表。但此表会固定生成language.xx.bytes类似的多个数据文件，xx表示字段名的小写，如：language.cn.bytes
 
-    ![](https://secure.wostatic.cn/static/4brnwD5Ri9oFYJkfdq9TQf/image.png)
+    ![](./doc/imgs/lang-table.png)
 
   - 其他
 

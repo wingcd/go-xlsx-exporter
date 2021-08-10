@@ -46,7 +46,7 @@ namespace {{.Namespace}}
     // Defined in table: {{.DefinedTable}}
     [Serializable]
     [ProtoContract]
-    public class {{.TypeName}}
+    public class {{.TypeName}} : PBDataModel
     { {{range .Items}}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]

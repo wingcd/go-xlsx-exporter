@@ -50,13 +50,13 @@ public class DataAccess
     }
 }
 
-public class DataContainer<TID, TItem>
-    where TID : IComparable
+public class DataContainer<TItem>
     where TItem : PBDataModel
 {
-
     protected LoadDataHandler localLoader;
     protected FileNameGenerateHandler localGenerator;
+
+    protected MemoryStream source;
 
     private string OnGenerateFilename(string typeName)
     {
@@ -73,7 +73,7 @@ public class DataContainer<TID, TItem>
         return Path.Combine(DataAccess.DataDir, typeName.ToLower());
     }
 
-    private byte[] OnLoadData(string typeName)
+    protected byte[] OnLoadData(string typeName)
     {
         if (source != null)
         {
@@ -110,13 +110,95 @@ public class DataContainer<TID, TItem>
 #endif
     }
 
+
+    protected void SetSource(MemoryStream source)
+    {
+        this.source = source;
+    }
+
     public void Initial(LoadDataHandler loadHandle = null, FileNameGenerateHandler fileNameGenerateHandle = null)
     {
         localLoader = loadHandle;
         localGenerator = fileNameGenerateHandle;
     }
 
-    public List<TItem> Load()
+    static DataContainer<TItem> _instance;
+    public static DataContainer<TItem> Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = new DataContainer<TItem>();
+            }
+            return _instance;
+        }
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static DataContainer<TItem> CreateInstace(MemoryStream source)
+    {
+        var instance = new DataContainer<TItem>();
+        instance.SetSource(source);
+        return instance;
+    }
+
+    public virtual void Clear()
+    {
+        if (source != null)
+        {
+            source.Close();
+            source = null;
+        }
+    }
+
+    private TItem Load()
+    {
+        var type = typeof(TItem);
+        var bytes = OnLoadData(type.Name);
+
+        using (var stream = new MemoryStream(bytes))
+        {
+            object data = Serializer.NonGeneric.Deserialize(type, stream);
+            return data as TItem;
+        }
+    }
+
+    TItem _item;
+    public TItem Data
+    {
+        get
+        {
+            if (_item == null)
+            {
+                try
+                {
+                    _item = Load();
+                }
+                catch (Exception e)
+                {
+                    T_LOG.Log(typeof(TItem).Name + e);
+                    return null;
+                }
+            }
+            return _item;
+        }
+        set
+        {
+            _item = value;
+        }
+    }
+}
+
+public class DataContainer<TID, TItem> : DataContainer<TItem>
+    where TID : IComparable
+    where TItem : PBDataModel
+{
+
+    private List<TItem> Load()
     {
         var type = typeof(TItem);
         var arrTypeName = type.FullName + "_ARRAY";
@@ -137,7 +219,7 @@ public class DataContainer<TID, TItem>
     }
 
     static DataContainer<TID, TItem> _instance;
-    public static DataContainer<TID, TItem> Instance
+    public new static DataContainer<TID, TItem> Instance
     {
         get
         {
@@ -157,8 +239,8 @@ public class DataContainer<TID, TItem>
         }
         return _instance;
     }
+
     /// <summary>
-    ///eg: var errDefines = DataContainer<uint, VCity.Deploy.ErrorDefine>.CreateInstace(new MemoryStream(txt.bytes), "tid").Items;
     /// </summary>
     /// <param name="source"></param>
     /// <param name="keyName"></param>
@@ -170,7 +252,6 @@ public class DataContainer<TID, TItem>
         return instance;
     }
 
-    MemoryStream source;
     string keyName;
     Dictionary<TID, TItem> _itemMap;
     public Dictionary<TID, TItem> ItemMap
@@ -183,7 +264,7 @@ public class DataContainer<TID, TItem>
             }
             return _itemMap;
         }
-        set
+        private set
         {
             _itemMap = value;
         }
@@ -200,7 +281,7 @@ public class DataContainer<TID, TItem>
             }
             return _items;
         }
-        set
+        private set
         {
             _items = value;
         }
@@ -239,11 +320,6 @@ public class DataContainer<TID, TItem>
     public DataContainer(string keyName = "ID")
     {
         this.keyName = keyName;
-    }
-
-    void SetSource(MemoryStream source)
-    {
-        this.source = source;
     }
 
     protected Dictionary<TID, TItem> InitDataAsDict()
@@ -295,8 +371,10 @@ public class DataContainer<TID, TItem>
         return false;
     }
 
-    public void Clear()
+    public override void Clear()
     {
+        base.Clear();
+
         if (_itemMap != null)
         {
             _itemMap.Clear();
@@ -307,12 +385,6 @@ public class DataContainer<TID, TItem>
         {
             _items.Clear();
             _items = null;
-        }
-
-        if (source != null)
-        {
-            source.Close();
-            source = null;
         }
     }
 }

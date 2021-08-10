@@ -36,6 +36,9 @@ class Program
         I18N.SetLanguage("en");
         Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 
+        var settings = DataContainer<Settings>.Instance.Data;
+        Console.WriteLine($"配置：maxconn={settings.MAX_CONNECT}, version={settings.VERSION}");
+
         ConsoleKey key;
         do { key = Console.ReadKey().Key; }
         while (key != ConsoleKey.Q);

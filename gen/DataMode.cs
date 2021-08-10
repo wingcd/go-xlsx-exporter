@@ -9,7 +9,7 @@ using ProtoBuf;
 
 namespace PBGen
 {
-    // Defined in table: data/define.xlsx:define
+    // Defined in table: data/define.xlsx:define;
     [Serializable]
     [ProtoContract]
     public enum EDataType
@@ -35,7 +35,7 @@ namespace PBGen
         GOLANG = 6, 
     }
     
-    // Defined in table: data/define.xlsx:define
+    // Defined in table: data/define.xlsx:define;
     [Serializable]
     [ProtoContract]
     public struct SInfo
@@ -64,10 +64,10 @@ namespace PBGen
         
     }
     
-    // Defined in table: data/define.xlsx:define
+    // Defined in table: data/define.xlsx:define;
     [Serializable]
     [ProtoContract]
-    public class Settings
+    public class Settings : PBDataModel
     { 
          //版本号 
         [ProtoMember(1)]
@@ -103,7 +103,7 @@ namespace PBGen
         public List<bool> Opens { get; set; }
     }
     
-    // Defined in table: data/model.xlsx:user
+    // Defined in table: data/model.xlsx:user;
     [Serializable]
     [ProtoContract]
     public class User : PBDataModel
@@ -134,7 +134,7 @@ namespace PBGen
         
     }
     
-    // Defined in table: data/model.xlsx:user
+    // Defined in table: data/model.xlsx:user;
     [Serializable]
     [ProtoContract]
     public class User_ARRAY : PBDataModels
@@ -144,7 +144,7 @@ namespace PBGen
         public List<User> Items { get; set; }
     }
     
-    // Defined in table: data/model.xlsx:class
+    // Defined in table: data/model.xlsx:class;
     [Serializable]
     [ProtoContract]
     public class PClass : PBDataModel
@@ -170,7 +170,7 @@ namespace PBGen
         
     }
     
-    // Defined in table: data/model.xlsx:class
+    // Defined in table: data/model.xlsx:class;
     [Serializable]
     [ProtoContract]
     public class PClass_ARRAY : PBDataModels

@@ -145,12 +145,22 @@ func doExport(exportInfo ExportInfo) {
 		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, exportInfo.ExportType)
 
 	settings.ExportType = exportInfo.ExportType
+	if exportInfo.ExportType != 0 {
+		settings.ExportType = exportInfo.ExportType
+	}
+	if settings.ExportType <= 0 {
+		settings.ExportType = 1
+	}
+
 	settings.PackageName = config.Package
 	if p_package != "" {
 		settings.PackageName = p_package
 	} else if p_package == "" && exportInfo.Package != "" {
 		// 当配置被覆盖时，统一使用外部参数，否则可以使用单项配置
 		settings.PackageName = exportInfo.Package
+	}
+	if settings.PackageName == "" {
+		settings.PackageName = "Deploy"
 	}
 
 	sheetsIds := getIds(exportInfo.Sheets)

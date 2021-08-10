@@ -1,6 +1,7 @@
 package: "GameData"
 pb_bytes_file_ext: ".bytes" #unity must use .bytes extension
 comment_symbol: "#"
+export_type: 1 #全局导出类型设置，1-ignore,2-client,3-server
 
 sheets:
  -
@@ -50,16 +51,14 @@ exports:
  type: "proto"
  path: "./gen/code/all_proto.proto"
  sheets: "" #导出表id集合，不设置为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
- export_type: 0 #0-ignore,1-client,2-server
+ export_type: 1 #单项导出类型设置，1-ignore,2-client,3-server
 -
  id: 2
  type: "golang"
  path: "./gen/code/data_model.pb.go"
  sheets: "1,3-7"
- export_type: 0
  package: "game_data"
 -
  id: 3
  type: "proto_bytes"
  path: "./gen/data/"
- export_type: 0

@@ -203,7 +203,7 @@ exports: # 导出任务集合
 
     此表是数据表的一种特例，专门用来存放多语言数据，结构同数据表。但此表会固定生成language.xx.bytes类似的多个数据文件，xx表示字段名的小写，如：language.cn.bytes
 
-    ![](./doc/imgs/lang-table.png)
+    ![](./doc/imgs/define-table.png)
 
   - 其他
 
@@ -221,7 +221,7 @@ exports: # 导出任务集合
 
   将reader/csharp下的DataAccess.cs及I18N.cs拷贝至项目中
 
-  1. 初始化
+1. 初始化
 
 ```C#
 // 配置二进制数据目录
@@ -232,7 +232,7 @@ DataAccess.Initial("./data/", LoadDataHandler, FileNameGenerateHandler);
 
 ```
 
-  2. 表数据
+2. 表数据
 
 ```C#
 var userdata = DataContainer<uint, User>.Instance.Items;
@@ -242,7 +242,7 @@ foreach (var item in userdata)
 }
 ```
 
-  3. 多语言
+3. 多语言
 
   如果使用此工具配置的多语言，则需要I18N.cs文件，否则可不拷贝此文件
 
@@ -254,14 +254,14 @@ I18N.SetLanguage("en");
 Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 ```
 
-  4. 配置
+4. 配置
 
 ```C#
 var settings = DataContainer<Settings>.Instance.Data;
 Console.WriteLine($"\n配置：maxconn={settings.MAX_CONNECT}, version={settings.VERSION}");
 ```
 
-   5. 读取哈希表
+5. 读取哈希表
 
 ```C#
 var userHT = DataContainer<uint, User>.Instance.GetHashtable(1);

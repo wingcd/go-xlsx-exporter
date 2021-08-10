@@ -11,7 +11,7 @@ echo Target Dir:%binPath%
 
 set GOARCH=amd64
 set GOOS=windows
-set GOPATH=%currentPath%../../
+set GOPATH=%prjPath%../../
 
 go build -o %binPath%gxe.exe
 xcopy /y %prjPath%conf.yaml %binPath%

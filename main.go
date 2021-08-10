@@ -141,9 +141,6 @@ func doExport(exportInfo ExportInfo) {
 		log.Fatalln("导出路径不能为空")
 	}
 
-	fmt.Printf("执行导出任务，id:%v, 类型：%v, 表：%v, 导出路径：%v, 导出类型：%v \n",
-		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, exportInfo.ExportType)
-
 	settings.ExportType = exportInfo.ExportType
 	if exportInfo.ExportType != 0 {
 		settings.ExportType = exportInfo.ExportType
@@ -162,6 +159,9 @@ func doExport(exportInfo ExportInfo) {
 	if settings.PackageName == "" {
 		settings.PackageName = "Deploy"
 	}
+
+	fmt.Printf("执行导出任务，id:%v, 类型：%v, 表：%v, 导出路径：%v, 导出类型：%v \n",
+		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, []string{"忽略前后端配置", "仅客户端", "仅服务器"}[settings.ExportType-1])
 
 	sheetsIds := getIds(exportInfo.Sheets)
 	var sheets []SheetInfo

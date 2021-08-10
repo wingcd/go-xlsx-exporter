@@ -14,9 +14,9 @@ class Program
     static void Main(string[] args)
     {
         DataAccess.Initial("./data/");
-
+        
         Console.WriteLine("class table:");
-        var classData = DataContainer<int, PClass>.Instance.Items;
+        var classData = DataContainer<uint, PClass>.Instance.Items;
         foreach (var item in classData)
         {
             Console.WriteLine($"{item.ID}, {item.Name}, {item.Level}, {item.Type}");
@@ -24,7 +24,7 @@ class Program
 
         Console.WriteLine();
         Console.WriteLine("user table:");
-        var userdata = DataContainer<int, User>.Instance.Items;
+        var userdata = DataContainer<uint, User>.Instance.Items;
         foreach (var item in userdata)
         {
             Console.WriteLine($"{item.ID}, {item.Name}, {item.Age}, {item.Head}");
@@ -32,12 +32,16 @@ class Program
 
         var lanKey = "1";
         I18N.SetLanguage("cn");
-        Console.WriteLine($"中文：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
+        Console.WriteLine($"\n中文：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
         I18N.SetLanguage("en");
         Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 
         var settings = DataContainer<Settings>.Instance.Data;
-        Console.WriteLine($"配置：maxconn={settings.MAX_CONNECT}, version={settings.VERSION}");
+        Console.WriteLine($"\n配置：maxconn={settings.MAX_CONNECT}, version={settings.VERSION}");
+
+        Console.WriteLine($"\n转哈希表：");
+        var userHT = DataContainer<uint, User>.Instance.GetHashtable(1);
+        Console.WriteLine($"用户哈希值：{userHT["ID"]}, {userHT["Name"]}, {userHT["Age"]}, {userHT["Head"]}");
 
         ConsoleKey key;
         do { key = Console.ReadKey().Key; }

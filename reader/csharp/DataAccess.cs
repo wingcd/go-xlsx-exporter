@@ -1,5 +1,6 @@
 using ProtoBuf;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 #if UNITY_ENGINE
@@ -20,12 +21,43 @@ internal class T_LOG
 
 public class PBDataModel
 {
+    public virtual Hashtable ToHashtable()
+    {
+        var hashtable = new Hashtable();
+        var type = GetType();
+        var props = type.GetProperties();
+        for(var i=0;i<props.Length;i++)
+        {
+            var prop = props[i];
+            var attris = prop.GetCustomAttributes(false);
+            for(var ai = 0; ai < attris.Length; ai++)
+            {
+                var attri = attris[ai];
+                if(attri is ProtoMemberAttribute)
+                {
+                    if(DataAccess.UseProtoMemberTagAsHashtableKey)
+                    {
+                        hashtable[(attri as ProtoMemberAttribute).Tag] = prop.GetValue(this);
+                    }
+                    else
+                    {
+                        hashtable[prop.Name] = prop.GetValue(this);
+                    }
 
+                    break;
+                }
+            }
+        }
+        return hashtable;
+    }
 }
 
 public class PBDataModels : PBDataModel
 {
-
+    public override Hashtable ToHashtable()
+    {
+        return null;
+    }
 }
 
 public delegate string FileNameGenerateHandler(string typeName);
@@ -33,6 +65,11 @@ public delegate byte[] LoadDataHandler(string datafile);
 
 public class DataAccess
 {
+    /// <summary>
+    /// 是否使用ProtoMember的tag作为hashtable的key
+    /// </summary>
+    public static bool UseProtoMemberTagAsHashtableKey = false;
+    public static bool CacheHashValue = true;
     public static string DataExt = ".bytes";
 
     /// <summary>
@@ -316,6 +353,29 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
     }
 
+    Dictionary<TID, Hashtable> hashtables = null;
+    public Hashtable GetHashtable(TID ID)
+    {
+        if(DataAccess.CacheHashValue && hashtables == null)
+        {
+            hashtables = new Dictionary<TID, Hashtable>();
+        }
+
+        if (hashtables != null && hashtables.ContainsKey(ID))
+        {
+            return hashtables[ID];
+        }
+        else if(Contains(ID))
+        {
+            var ht = this[ID].ToHashtable();
+            if (hashtables != null)
+            {
+                hashtables[ID] = ht;
+            }
+            return ht;
+        }
+        return null;
+    }
 
     public DataContainer(string keyName = "ID")
     {

@@ -39,10 +39,14 @@ func DataDir() string {
 	return dataDir
 }
 
-func Initial(dir string) {
+func Initial(dir, defaultKeyName string) {
 	dataDir = strings.ReplaceAll(dir, "\\", "/")
 	if strings.LastIndex(dataDir, "/") != len(dataDir)-1 {
 		dataDir = dataDir + "/"
+	}
+
+	if defaultKeyName != "" {
+		DefaultIndexKey = defaultKeyName
 	}
 }
 

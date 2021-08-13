@@ -128,7 +128,10 @@ func TestGoLoadLanguage(t *testing.T) {
 	}
 }
 func TestReader(t *testing.T) {
-	gxe.Initial("./bytes")
+	gxe.Initial("./bytes", "ID")
+
+	// set data table key name, can different from default key name(just same with xlsx config)
+	gxe.RegistDataTable("ID", reflect.TypeOf(User{}))
 
 	// settings
 	var dt = gxe.GetDataItem(reflect.TypeOf(Settings{}))
@@ -146,9 +149,9 @@ func TestReader(t *testing.T) {
 	fmt.Printf("\nByMap ID=1 Name:%s, Age:%v, Sex: %v \n\n", user.Name, user.Age, user.Sex)
 
 	// language
-	gxe.SetLanguage("ID", "cn")
+	gxe.SetLanguage(gxe.DefaultIndexKey, "cn")
 	fmt.Printf("中文 cn id=1, text=%v \n", gxe.Translate("1"))
 
-	gxe.SetLanguage("ID", "en")
+	gxe.SetLanguage(gxe.DefaultIndexKey, "en")
 	fmt.Printf("English en id=1, text=%v \n", gxe.Translate("1"))
 }

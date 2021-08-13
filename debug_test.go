@@ -266,6 +266,14 @@ func TestGenGolangFile(t *testing.T) {
 	generator.Build("golang", "./gen/DataMode.pb.go")
 }
 
+func TestGenLangFile(t *testing.T) {
+	settings.GenLanguageType = true
+	settings.AddLanguageTable()
+
+	settings.PackageName = "go_xlsx_exporter"
+	generator.Build("golang", "./gen/__inner_language__.pb.go")
+}
+
 func TestGenGolangFileWithComment(t *testing.T) {
 	settings.PackageName = "gen"
 	settings.ExportType = settings.EXPORT_TYPE_SERVER

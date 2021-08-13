@@ -19,7 +19,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Defined in table: data/define.xlsx:define
+// Defined in table: data/define.xlsx:define;
 type EDataType int32
 const ( 
     EDataType_UNKNOWN EDataType = 0 
@@ -74,7 +74,7 @@ func (EDataType) EnumDescriptor() ([]byte, []int) {
 	return file_DataMode_proto_rawDescGZIP(), []int{0}
 }
 
-// Defined in table: data/define.xlsx:define
+// Defined in table: data/define.xlsx:define;
 type SInfo struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -163,7 +163,7 @@ func (x *SInfo) GetDataType() EDataType {
 }
 
 
-// Defined in table: data/define.xlsx:define
+// Defined in table: data/define.xlsx:define;
 type Settings struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -276,7 +276,7 @@ func (x *Settings) GetOpens() []bool {
 }
 
 
-// Defined in table: data/model.xlsx:user
+// Defined in table: data/model.xlsx:user;
 type User struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -365,7 +365,7 @@ func (x *User) GetPClass() uint32 {
 }
 
 
-// Defined in table: data/model.xlsx:user
+// Defined in table: data/model.xlsx:user;
 type User_ARRAY struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -414,7 +414,7 @@ func (x *User_ARRAY) GetItems() []*User {
 }
 
 
-// Defined in table: data/model.xlsx:class
+// Defined in table: data/model.xlsx:class;
 type PClass struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -495,7 +495,7 @@ func (x *PClass) GetType() EDataType {
 }
 
 
-// Defined in table: data/model.xlsx:class
+// Defined in table: data/model.xlsx:class;
 type PClass_ARRAY struct { 
     state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

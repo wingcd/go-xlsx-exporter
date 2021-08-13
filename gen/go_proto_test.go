@@ -3,8 +3,10 @@ package gen
 import (
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"testing"
 
+	gxe "github.com/wingcd/go-xlsx-exporter/reader/golang/go_xlsx_exporter"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -93,35 +95,43 @@ func TestLoadConfigFile(t *testing.T) {
 	fmt.Printf("Version:%v \n", settings.VERSION)
 }
 
-// func TestGoLoadLanguage(t *testing.T) {
-// 	var lans_cn = Language_ARRAY{}
-// 	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
-// 	err := proto.Unmarshal(bytes, &lans_cn)
-// 	if err != nil {
-// 		fmt.Printf(err.Error())
-// 		return
-// 	}
+func TestGoLoadLanguage(t *testing.T) {
+	var lans_cn = gxe.Language_ARRAY{}
+	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
+	err := proto.Unmarshal(bytes, &lans_cn)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
 
-// 	var lans_en = Language_ARRAY{}
-// 	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
-// 	err = proto.Unmarshal(bytes, &lans_en)
-// 	if err != nil {
-// 		fmt.Printf(err.Error())
-// 		return
-// 	}
+	var lans_en = gxe.Language_ARRAY{}
+	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
+	err = proto.Unmarshal(bytes, &lans_en)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
 
-// 	var lans_jp = Language_ARRAY{}
-// 	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
-// 	err = proto.Unmarshal(bytes, &lans_jp)
-// 	if err != nil {
-// 		fmt.Printf(err.Error())
-// 		return
-// 	}
+	var lans_jp = gxe.Language_ARRAY{}
+	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
+	err = proto.Unmarshal(bytes, &lans_jp)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
 
-// 	for i := 0; i < len(lans_cn.Items); i++ {
-// 		var cn = lans_cn.Items[i]
-// 		var en = lans_en.Items[i]
-// 		var jp = lans_jp.Items[i]
-// 		fmt.Printf("ID: %v\n Name: %v, %v, %v \n", cn.ID, cn.Text, en.Text, jp.Text)
-// 	}
-// }
+	for i := 0; i < len(lans_cn.Items); i++ {
+		var cn = lans_cn.Items[i]
+		var en = lans_en.Items[i]
+		var jp = lans_jp.Items[i]
+		fmt.Printf("ID: %v\n Name: %v, %v, %v \n", cn.ID, cn.Text, en.Text, jp.Text)
+	}
+}
+func TestReader(t *testing.T) {
+	gxe.DataDir = "./bytes"
+	gxe.Regist(File_DataMode_proto)
+
+	var dt = gxe.GetDataItem(reflect.TypeOf(Settings{}))
+	var settings = dt.Item().(*Settings)
+	fmt.Printf("version=%v,maxconn=%v\n", settings.VERSION, settings.MAX_CONNECT)
+}

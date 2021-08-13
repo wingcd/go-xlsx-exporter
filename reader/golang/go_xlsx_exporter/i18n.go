@@ -6,49 +6,47 @@ import (
 	"strings"
 )
 
-var I18NIndexKey = "ID"
+var i18nInst *i18n
 
-func init() {
-	Regist(File___inner_language___proto)
-}
-
-type I18N struct {
+type i18n struct {
 	DataTable
 
-	instance *I18N
 	language string
 }
 
-func (t *I18N) Instance() *I18N {
-	if t.instance == nil {
-		t.instance = new(I18N)
-		t.indexKey = I18NIndexKey
-		t.dataType = reflect.TypeOf(Language{})
-		RegistDataTableExt(t)
+func newI18NInstance() *i18n {
+	var t = new(i18n)
+	t.dataType = reflect.TypeOf(Language{})
+	RegistDataTableExt(t)
+	return t
+}
+
+func SetLanguage(indexKey, lang string) {
+	if i18nInst == nil || i18nInst.language != lang {
+		i18nInst = newI18NInstance()
+		i18nInst.indexKey = indexKey
+		i18nInst.language = lang
+		i18nInst.fileGen = new(i18nFileGenerator)
+		i18nInst.Clear()
 	}
-	return t.instance
 }
 
-func (t *I18N) SetLanguage(lang string) {
-	if t.language != lang {
-		t.language = lang
-		t.Clear()
-	}
+type i18nFileGenerator struct {
 }
 
-func (t *I18N) Language() string {
-	return t.language
+func (t *i18nFileGenerator) GetFilename(typeName string) string {
+	return fmt.Sprintf("%s%s.%s%s", dataDir, strings.ToLower(typeName), strings.ToLower(i18nInst.language), BytesFileExt)
 }
 
-func (t *I18N) GetFilename(typeName string) string {
-	return fmt.Sprintf("%s%s.%s%s", DataDir, strings.ToLower(typeName), strings.ToLower(t.language), BytesFileExt)
+func GetLanguage() string {
+	return i18nInst.language
 }
 
-func (t *I18N) Translate(id string) string {
-	var itemsMap = t.ItemsMap()
+func Translate(id string) string {
+	var itemsMap = i18nInst.ItemsMap()
 	if text, ok := itemsMap[id]; ok {
 		return text.(*Language).Text
 	}
-	fmt.Printf("no %s language item id=%s", t.language, id)
+	fmt.Printf("no %s language item id=%s", i18nInst.language, id)
 	return ""
 }

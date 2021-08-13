@@ -128,10 +128,27 @@ func TestGoLoadLanguage(t *testing.T) {
 	}
 }
 func TestReader(t *testing.T) {
-	gxe.DataDir = "./bytes"
-	gxe.Regist(File_DataMode_proto)
+	gxe.Initial("./bytes")
 
+	// settings
 	var dt = gxe.GetDataItem(reflect.TypeOf(Settings{}))
 	var settings = dt.Item().(*Settings)
-	fmt.Printf("version=%v,maxconn=%v\n", settings.VERSION, settings.MAX_CONNECT)
+	fmt.Printf("settings version=%v,maxconn=%v\n\n", settings.VERSION, settings.MAX_CONNECT)
+
+	// table
+	var userTable = gxe.GetDataTable(reflect.TypeOf(User{}))
+	var users = userTable.Items()
+	for _, dt := range users {
+		var user = dt.(*User)
+		fmt.Printf("Name:%s, Age:%v, Sex: %v \n", user.Name, user.Age, user.Sex)
+	}
+	var user = userTable.GetItem("1").(*User)
+	fmt.Printf("\nByMap ID=1 Name:%s, Age:%v, Sex: %v \n\n", user.Name, user.Age, user.Sex)
+
+	// language
+	gxe.SetLanguage("ID", "cn")
+	fmt.Printf("中文 cn id=1, text=%v \n", gxe.Translate("1"))
+
+	gxe.SetLanguage("ID", "en")
+	fmt.Printf("English en id=1, text=%v \n", gxe.Translate("1"))
 }

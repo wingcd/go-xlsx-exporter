@@ -219,7 +219,7 @@ exports: # 导出任务集合
 
 - csharp
 
-  将reader/csharp下的DataAccess.cs及I18N.cs拷贝至项目中,unity环境中使用是，请在DataAccess.cs首行加上#define UNITY_ENGINE, 使用protobuf-net读取protobuf数据
+  将reader/csharp下的DataAccess.cs及I18N.cs拷贝至项目中,unity环境中使用时，请在DataAccess.cs首行加上#define UNITY_ENGINE, 使用protobuf-net读取protobuf数据
 
 1. 初始化
    
@@ -236,7 +236,7 @@ DataAccess.Initial("./data/", LoadDataHandler, FileNameGenerateHandler);
 
 ```
 
-1. 表数据
+2. 表数据
 
 ```C#
 var userdata = DataContainer<uint, User>.Instance.Items;
@@ -258,7 +258,7 @@ I18N.SetLanguage("en");
 Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 ```
 
-1. 配置
+4. 配置
 
 ```C#
 var settings = DataContainer<Settings>.Instance.Data;

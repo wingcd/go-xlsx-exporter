@@ -246,9 +246,9 @@ foreach (var item in userdata)
 }
 ```
 
-3. 多语言
+3. 多语言（可选）
 
-  如果使用此工具配置的多语言，则需要I18N.cs文件，否则可不拷贝此文件
+  不需要多语言时，无需拷贝I18N.cs文件
 
 ```C#
 var lanKey = "1";
@@ -258,7 +258,7 @@ I18N.SetLanguage("en");
 Console.WriteLine($"english：tanslate key={lanKey}, text={I18N.Translate(lanKey)}");
 ```
 
-4. 配置
+1. 配置
 
 ```C#
 var settings = DataContainer<Settings>.Instance.Data;
@@ -309,7 +309,9 @@ Console.WriteLine($"用户哈希值：{userHT["ID"]}, {userHT["Name"]}, {userHT[
     var user = userTable.GetItem("1").(*User)
     fmt.Printf("\nByMap ID=1 Name:%s, Age:%v, Sex: %v \n\n", user.Name, user.Age, user.Sex)
    ```
-3. 多语言
+3. 多语言(可选)
+  
+  不需要多语言时，无需拷贝语言相关代码文件
    ``` golang
     // 设置当前语言为中文
     gxe.SetLanguage(gxe.DefaultIndexKey, "cn") 

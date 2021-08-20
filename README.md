@@ -62,21 +62,21 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - [x] csharp读取支持：
 
-  - [x] 支持自定义数据读取
-
   - [x] 支持设置读取
 
   - [x] 支持表格数据读取
 
   - [x] 支持转哈希表
+  
+  - [x] 多语言读取 
 
-- [ ] golang读取支持
+- [x] golang读取支持
 
-  - [ ] 自定义数据读取
+  - [x] 设置读取
 
-  - [ ] 设置读取
-
-  - [ ] 表格数据读取
+  - [x] 表格数据读取
+  
+  - [x] 多语言读取 
 
 ### 快速开始
 
@@ -219,13 +219,13 @@ exports: # 导出任务集合
 
 - csharp
 
-  将reader/csharp下的DataAccess.cs及I18N.cs拷贝至项目中,unity环境中使用时，请在DataAccess.cs首行加上#define UNITY_ENGINE, 使用protobuf-net读取protobuf数据
-
-1. 初始化
+  将reader/csharp下的DataAccess.cs及I18N.cs拷贝至项目中,unity环境中使用时，请在DataAccess.cs首行加上#define UNITY_ENGINE, 使用protobuf-net读取protobuf数据  
    
   导出数据模型参考：[csharp demo](./gen/DataMode.cs)
 
   测试参考：[csharp test](./reader/csharp/test.cs)
+
+1. 初始化
 
 ```C#
 // 配置二进制数据目录
@@ -274,19 +274,20 @@ Console.WriteLine($"用户哈希值：{userHT["ID"]}, {userHT["Name"]}, {userHT[
 
 - go
 
-  拷贝reader/golang目录reader.go即可开始使用
+  拷贝reader/golang目录reader.go即可开始使用  
+   
+  导出数据模型参考：[golang demo](./gen/DataMode.pb.go)
+
+  测试参考：[golang test](./gen/go_proto_test.go)
+  
   ``` golang
-  // 项目中倒入模块
+  // 项目中导入模块
   import (
     gxe "xxx/go_xlsx_exporter"
   )
   ```
 
 1. 初始化
-   
-  导出数据模型参考：[golang demo](./gen/DataMode.pb.go)
-
-  测试参考：[golang test](./gen/go_proto_test.go)
 
    ``` golang
    // 配置二进制数据目录，以及默认表索引名

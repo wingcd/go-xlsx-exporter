@@ -302,4 +302,5 @@ func TestGenLanguageProtoBytes(t *testing.T) {
 	settings.SetTables(t_user, t_class, t_location)
 
 	generator.Build("proto_bytes", "./gen/bytes/")
+	
 }

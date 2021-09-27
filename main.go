@@ -33,7 +33,7 @@ func init() {
 
 	flag.StringVar(&p_config, "cfg", "./conf.yaml", "设置配置文件")
 	flag.StringVar(&p_package, "pkg", "", "设置导出包名")
-	flag.StringVar(&p_pb_bytes_file_ext, "ext", ".bytes", "设置二进制数据文件后缀(unity必须为.bytes)")
+	flag.StringVar(&p_pb_bytes_file_ext, "ext", "", "设置二进制数据文件后缀(unity必须为.bytes)")
 	flag.StringVar(&p_comment_symbol, "cmt", "#", "设置表格注释符号")
 	flag.StringVar(&p_exports, "exports", "", "设置需要导出的配置项，默认为空，全部导出, 参考：1,2,5-7")
 
@@ -48,7 +48,12 @@ func parseParams() {
 	flag.Parse()
 
 	config = NewYamlConf(p_config)
-	config.PBBytesFileExt = p_pb_bytes_file_ext
+	if p_pb_bytes_file_ext != "" {
+		config.PBBytesFileExt = p_pb_bytes_file_ext
+	}
+	if config.PBBytesFileExt == "" {
+		config.PBBytesFileExt = ".bytes"
+	}
 	config.CommentSymbol = p_comment_symbol
 
 	if p_help {

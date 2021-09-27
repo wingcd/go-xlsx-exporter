@@ -48,10 +48,10 @@ var pbFieldEncodeTypes = map[string]string{
 	"uint32":  "varint",
 	"int64":   "varint",
 	"uint64":  "varint",
-	"float":   "fixed32",
-	"float32": "fixed32",
-	"double":  "fixed64",
-	"float64": "fixed64",
+	"float":   "float",
+	"float32": "float",
+	"double":  "double",
+	"float64": "double",
 	"string":  "bytes",
 }
 

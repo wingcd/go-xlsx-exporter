@@ -229,8 +229,10 @@ func doExport(exportInfo ExportInfo) {
 				defines = append(defines, info.File, info.Sheet)
 			}
 			var table = xlsx.ParseDataSheet(defines...)
-			table.TypeName = infos[0].TypeName
-			tables = append(tables, table)
+			if table != nil {
+				table.TypeName = infos[0].TypeName
+				tables = append(tables, table)
+			}
 		}
 	}
 

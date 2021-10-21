@@ -199,7 +199,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			for ci, col := range cls {
 				// 索引列不能为空，否则过滤掉
 				var emptyIndex = col == nil
-				if emptyIndex || utils.IsComment(col[0]) {
+				if emptyIndex {
 					if emptyIndex {
 						log.Printf("[警告] 有空数据列 表：%v-%v 第%v行 \n", filename, sheet, ci+1)
 					}

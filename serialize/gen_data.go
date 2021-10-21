@@ -57,7 +57,7 @@ func GenLanguageTables(pbFilename string, fd pref.FileDescriptor, dir string, ta
 	}
 
 	// 生成多语言文件
-	if lanTables != nil {
+	if lanTables != nil && langTable != nil {
 		// 所有语言表组合
 		datas := make([][]string, 0)
 		// 所有语言类型

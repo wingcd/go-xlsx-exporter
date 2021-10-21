@@ -69,9 +69,9 @@ namespace {{.Namespace}}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
-        public List<{{.ValueType}}> {{.FieldName}} { get; set; }
+        public List<{{.ValueType}}> {{camel_case .FieldName}} { get; set; }
         {{- else}}
-        public {{.ValueType}} {{.FieldName}} { get; set; }
+        public {{.ValueType}} {{camel_case .FieldName}} { get; set; }
         {{end -}}
     {{end}}
     }

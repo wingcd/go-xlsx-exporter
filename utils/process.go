@@ -59,11 +59,8 @@ var pbFieldEncodeTypes = map[string]string{
 // 返回值： 编码类型，是否枚举, 是否结构体
 func GetEncodeType(valueType string) (string, bool, bool) {
 	valueType = strings.Replace(valueType, " ", "", -1)
-	repeated := false
-	if strings.Contains(valueType, "[]") {
-		repeated = true
-	}
-	var rawType = strings.Replace(valueType, "[]", "", -1)
+	_, rawType, repeated, _, _ := CompileValueType(valueType)
+
 	var isEnum = IsEnum(rawType)
 	var isStruct = IsStruct(rawType) || IsTable(rawType)
 	if repeated {

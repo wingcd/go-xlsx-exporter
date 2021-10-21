@@ -21,6 +21,28 @@ internal class T_LOG
 
 public class PBDataModel
 {
+    public delegate object ConvertHandler(object item, string field, object data);
+    public static ConvertHandler dataConvert;
+
+    private Dictionary<string,object> _converted = new Dictionary<string, object>();
+
+    private object GetConvertData(string fieldName, object value)
+    {
+        if(_converted.ContainsKey(fieldName))
+        {
+            return _converted[fieldName];
+        }
+
+        if(dataConvert != null)
+        {
+            throw new Exception($"convert field value need a convetor");
+        }
+
+        var data = dataConvert(this, fieldName, value);
+        _converted[fieldName] = data;
+        return data;
+    }    
+
     public virtual Hashtable ToHashtable()
     {
         var hashtable = new Hashtable();
@@ -52,12 +74,9 @@ public class PBDataModel
     }
 }
 
-public class PBDataModels : PBDataModel
+public class PBDataModels
 {
-    public override Hashtable ToHashtable()
-    {
-        return null;
-    }
+    
 }
 
 public delegate string FileNameGenerateHandler(string typeName);

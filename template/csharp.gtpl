@@ -55,6 +55,12 @@ namespace {{.Namespace}}
         {{- else}}
         public {{.ValueType}} {{.FieldName}} { get; set; }
         {{end -}}
+        {{- if .Convertable}}
+        public object Get{{camel_case .FieldName}}()
+        {
+            return GetConvertData("{{.FieldName}}", {{.FieldName}});
+        }
+        {{- end}}
     {{end}}
     }
     {{end}}
@@ -73,6 +79,12 @@ namespace {{.Namespace}}
         {{- else}}
         public {{.ValueType}} {{camel_case .FieldName}} { get; set; }
         {{end -}}
+        {{- if .Convertable}}
+        public object Get{{camel_case .FieldName}}()
+        {
+            return GetConvertData("{{.FieldName}}", {{.FieldName}});
+        }
+        {{- end}}
     {{end}}
     }
     {{end}}

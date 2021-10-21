@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -16,18 +17,29 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func IsArray(valueType string) bool {
-	valueType = strings.Replace(valueType, " ", "", -1)
-	repeated := false
-	if strings.Contains(valueType, "[]") {
-		repeated = true
-	}
-	return repeated
+var (
+	valueTypeRegx *regexp.Regexp
+)
+
+func init() {
+	valueTypeRegx, _ = regexp.Compile(`^(?P<name>\w+)(?P<array>\[(?P<split>.?)\])?(?P<conv>\??)$`)
 }
 
-func GetBaseType(valueType string) string {
+func CompileValueType(valueType string) (valiable bool, baseValue string, isArray bool, splitChar string, converable bool) {
 	valueType = strings.Replace(valueType, " ", "", -1)
-	return strings.Replace(valueType, "[]", "", -1)
+	var match = valueTypeRegx.FindStringSubmatch(valueType)
+	valiable = len(match) == 5
+	if !valiable {
+		return
+	}
+	baseValue = match[1]
+	isArray = match[2] != ""
+	splitChar = match[3]
+	if splitChar == "" {
+		splitChar = settings.ArraySplitChar
+	}
+	converable = match[4] != ""
+	return
 }
 
 func Split(s, sep string) []string {
@@ -134,8 +146,7 @@ func ConvertEnumValue(info *model.DefineTableInfo, valueType, value string) (err
 
 // 获取枚举类型的值
 func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (success bool, ret interface{}, isArray bool) {
-	repeated := IsArray(valueType)
-	valueType = GetBaseType(valueType)
+	_, valueType, repeated, splitChar, _ := CompileValueType(valueType)
 
 	var err error
 
@@ -148,7 +159,7 @@ func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (succe
 	} else {
 		ret = make([]interface{}, 0)
 
-		rstrs := Split(value, "|")
+		rstrs := Split(value, splitChar)
 
 		for _, vstr := range rstrs {
 			err, rvalue := ConvertEnumValue(info, valueType, vstr)
@@ -179,12 +190,7 @@ func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{
 
 // 将表格中支持的类型转换为protobuf支持的类型
 func ParseType(vtype string) (bool, string) {
-	vtype = strings.Replace(vtype, " ", "", -1)
-	repeated := false
-	if strings.Contains(vtype, "[]") {
-		repeated = true
-	}
-	vtype = strings.Replace(vtype, "[]", "", -1)
+	_, vtype, repeated, _, _ := CompileValueType(vtype)
 
 	if tp, ok := supportProtoTypes[vtype]; !ok {
 		return false, ""
@@ -247,12 +253,7 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 
 // 通过原始类型对值进行转换
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
-	rawType = strings.Replace(rawType, " ", "", -1)
-	repeated := false
-	if strings.Contains(rawType, "[]") {
-		repeated = true
-	}
-	rawType = strings.Replace(rawType, "[]", "", -1)
+	_, rawType, repeated, _, _ := CompileValueType(rawType)
 
 	var err error
 

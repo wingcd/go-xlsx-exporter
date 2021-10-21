@@ -106,8 +106,11 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		item.Value = row[model.DEFINE_COLUMN_VALUE_INDEX]
 		item.Desc = row[model.DEFINE_COLUMN_COMMENT_INDEX]
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
-		item.IsArray = utils.IsArray(item.RawValueType)
-		item.ValueType = utils.GetBaseType(item.RawValueType)
+		_, valueType, repeated, splitChar, convertable := utils.CompileValueType(item.RawValueType)
+		item.IsArray = repeated
+		item.ValueType = valueType
+		item.ArraySplitChar = splitChar
+		item.Convertable = convertable
 		info.Items = append(info.Items, item)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
@@ -316,8 +319,11 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
 			header.TitleFieldName = strings.Title(header.FieldName)
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
-			header.IsArray = utils.IsArray(header.RawValueType)
-			header.ValueType = utils.GetBaseType(header.RawValueType)
+			_, valueType, repeated, splitChar, convertable := utils.CompileValueType(header.RawValueType)
+			header.IsArray = repeated
+			header.ValueType = valueType
+			header.ArraySplitChar = splitChar
+			header.Convertable = convertable
 			header.Index = len(table.Headers) + 1
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)

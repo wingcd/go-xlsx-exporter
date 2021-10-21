@@ -69,6 +69,11 @@ func parseParams() {
 	settings.PbBytesFileExt = config.PBBytesFileExt
 	settings.CommentSymbol = config.CommentSymbol
 	settings.GenLanguageType = p_gen_language_code
+	settings.ArraySplitChar = config.ArraySplitChar
+
+	if settings.ArraySplitChar == "" {
+		settings.ArraySplitChar = "|"
+	}
 
 	if settings.CommentSymbol == "" {
 		log.Fatalln("注释符号不能为空")

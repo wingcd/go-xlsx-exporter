@@ -38,6 +38,7 @@ type YamlConf struct {
 	PBBytesFileExt string `yaml:"pb_bytes_file_ext"`
 	CommentSymbol  string `yaml:"comment_symbol"`
 	ExportType     int    `yaml:"export_type"`
+	ArraySplitChar string `yaml:"array_split_char"`
 
 	Exports []ExportInfo `yaml:"exports"`
 	Sheets  []SheetInfo  `yaml:"sheets"`

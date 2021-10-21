@@ -21,6 +21,10 @@ type StructInfo struct {
 	IsArray bool
 	// 编号（1开始）
 	Index int
+	// 数组分隔符，默认为全局配置符号
+	ArraySplitChar string
+	// 此字段是否可转换对象
+	Convertable bool
 }
 
 // 定义表数据项（按行）

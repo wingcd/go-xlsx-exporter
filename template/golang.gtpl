@@ -77,6 +77,17 @@ func ({{$item.TypeName}}) EnumDescriptor() ([]byte, []int) {
 {{- /*生成枚举类型结束*/}}
 {{end}}
 
+{{- /*基类*/}}
+/* type ConvertHandler func (field string, value interface{}) interface{}
+
+type MessageBase struct {
+	
+}
+
+func (item *MessageBase) GetConvertData(field string, value interface{}) {
+
+} */
+
 {{- /*生成类类型*/}}
 {{- range $index,$item := .Tables}}
 // Defined in table: {{.DefinedTable}}

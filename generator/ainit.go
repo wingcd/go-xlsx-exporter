@@ -67,7 +67,7 @@ func init() {
 			}
 		}
 
-		s = uncommonInitialismsReplacer.Replace(s)
+		// s = uncommonInitialismsReplacer.Replace(s)
 		//smap.Set(name, s)
 		return s
 	}
@@ -84,7 +84,7 @@ func init() {
 		}
 
 		var (
-			value                                    = commonInitialismsReplacer.Replace(name)
+			value                                    = name // commonInitialismsReplacer.Replace(name)
 			buf                                      = bytes.NewBufferString("")
 			lastCase, currCase, nextCase, nextNumber bool
 		)

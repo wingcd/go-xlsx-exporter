@@ -63,6 +63,12 @@ public class PBDataModel
         }
         return hashtable;
     }
+    
+    public object GetPropValue(string name)
+    {
+        var tp = GetType();
+        return tp.GetProperty(name).GetValue(this);
+    }
 }
 
 public class PBDataModels
@@ -81,6 +87,7 @@ public class DataAccess
     public static bool UseProtoMemberTagAsHashtableKey = false;
     public static bool CacheHashValue = true;
     public static string DataExt = ".bytes";
+    public const string DefaultIDName = "Id";
 
     /// <summary>
     /// 数据文件以assets为根目录的路径
@@ -295,7 +302,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
     /// <param name="source"></param>
     /// <param name="keyName"></param>
     /// <returns></returns>
-    public static DataContainer<TID, TItem> CreateInstace(MemoryStream source, string keyName = "ID")
+    public static DataContainer<TID, TItem> CreateInstace(MemoryStream source, string keyName = DataAccess.DefaultIDName)
     {
         var instance = new DataContainer<TID, TItem>(keyName);
         instance.SetSource(source);
@@ -360,6 +367,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         {
             if (!ItemMap.ContainsKey(ID))
             {
+                T_LOG.Log($"can not find id={ID} in {typeof(TItem).Name}");
                 return default(TItem);
             }
             return ItemMap[ID];
@@ -390,7 +398,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         return null;
     }
 
-    public DataContainer(string keyName = "ID")
+    public DataContainer(string keyName = DataAccess.DefaultIDName)
     {
         this.keyName = keyName;
     }

@@ -257,7 +257,7 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 
 // 通过原始类型对值进行转换
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
-	_, rawType, repeated, _, _, _ := CompileValueType(rawType)
+	_, rawType, repeated, splitChar, _, _ := CompileValueType(rawType)
 
 	var err error
 
@@ -270,7 +270,7 @@ func ParseValue(rawType, value string) (success bool, ret interface{}, isArray b
 	} else {
 		ret = make([]interface{}, 0)
 
-		rstrs := Split(value, "|")
+		rstrs := Split(value, splitChar)
 
 		for _, vstr := range rstrs {
 			err, rvalue := ConvertValue(rawType, vstr)

@@ -106,11 +106,12 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		item.Value = row[model.DEFINE_COLUMN_VALUE_INDEX]
 		item.Desc = row[model.DEFINE_COLUMN_COMMENT_INDEX]
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
-		_, valueType, repeated, splitChar, convertable := utils.CompileValueType(item.RawValueType)
+		_, valueType, repeated, splitChar, convertable, isVoid := utils.CompileValueType(item.RawValueType)
 		item.IsArray = repeated
 		item.ValueType = valueType
 		item.ArraySplitChar = splitChar
 		item.Convertable = convertable
+		item.IsVoid = isVoid
 		info.Items = append(info.Items, item)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
@@ -152,12 +153,20 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 
 			sort.Sort(model.DefineTableItems(info.Items))
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
-			for i, item := range info.Items {
-				item.Index = i + 1
+			var idx = 0
+			for _, item := range info.Items {
+				if !item.IsVoid {
+					idx++
+				}
+				item.Index = idx
 			}
 		} else if info.Category == model.DEFINE_TYPE_CONST {
-			for i, item := range info.Items {
-				item.Index = i + 1
+			var idx = 0
+			for _, item := range info.Items {
+				if !item.IsVoid {
+					idx++
+				}
+				item.Index = idx
 			}
 		}
 	}
@@ -280,6 +289,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	cols = filterCols
 
 	var firstColIndex = -1
+	var idx = 0
 	for ci, col := range cols {
 		if _, ignore := ignoreCols[ci]; ignore {
 			continue
@@ -316,15 +326,23 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		}
 
 		if !ignore {
+			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
+			_, valueType, repeated, splitChar, convertable, isVoid := utils.CompileValueType(header.RawValueType)
+			if !isVoid {
+				idx++
+			} else {
+				// 数据需要过滤此列
+				ignoreCols[ci] = true
+			}
+
 			header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
 			header.TitleFieldName = strings.Title(header.FieldName)
-			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
-			_, valueType, repeated, splitChar, convertable := utils.CompileValueType(header.RawValueType)
 			header.IsArray = repeated
 			header.ValueType = valueType
 			header.ArraySplitChar = splitChar
 			header.Convertable = convertable
-			header.Index = len(table.Headers) + 1
+			header.IsVoid = isVoid
+			header.Index = idx
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
 			table.Headers = append(table.Headers, header)

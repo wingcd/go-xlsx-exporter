@@ -68,6 +68,10 @@ func GenLanguageTables(pbFilename string, fd pref.FileDescriptor, dir string, ta
 			if i == 0 {
 				for hi := 1; hi < len(table.Headers); hi++ {
 					var header = table.Headers[hi]
+					if header.IsVoid {
+						continue
+					}
+
 					langs = append(langs, strings.ToLower(header.FieldName))
 				}
 			}
@@ -205,8 +209,15 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 	for ridx, row := range table.Data {
 		// 单行数据实例
 		item := dynamicpb.NewMessage(typeMD)
+		var idx = 0
 		for cidx, header := range table.Headers {
-			cellValue := row[cidx]
+			if header.IsVoid {
+				continue
+			}
+
+			cellValue := row[idx]
+			idx++
+
 			ok, value, _ := utils.ParseValue(header.RawValueType, cellValue)
 			if !ok {
 				panic(getErrStr(table.TypeName, ridx, cidx, cellValue, header.Desc, row[0]))

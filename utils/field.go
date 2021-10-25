@@ -25,7 +25,7 @@ func init() {
 	valueTypeRegx, _ = regexp.Compile(`^(?P<name>\w+)(?P<array>\[(?P<split>.?)\])?(?P<conv>\??)$`)
 }
 
-func CompileValueType(valueType string) (valiable bool, baseValue string, isArray bool, splitChar string, converable bool) {
+func CompileValueType(valueType string) (valiable bool, baseValue string, isArray bool, splitChar string, converable, isVoid bool) {
 	valueType = strings.Replace(valueType, " ", "", -1)
 	var match = valueTypeRegx.FindStringSubmatch(valueType)
 	valiable = len(match) == 5
@@ -39,6 +39,10 @@ func CompileValueType(valueType string) (valiable bool, baseValue string, isArra
 		splitChar = settings.ArraySplitChar
 	}
 	converable = match[4] != ""
+	isVoid = IsVoid(baseValue)
+	if isVoid {
+		converable = true
+	}
 	return
 }
 
@@ -146,7 +150,7 @@ func ConvertEnumValue(info *model.DefineTableInfo, valueType, value string) (err
 
 // 获取枚举类型的值
 func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (success bool, ret interface{}, isArray bool) {
-	_, valueType, repeated, splitChar, _ := CompileValueType(valueType)
+	_, valueType, repeated, splitChar, _, _ := CompileValueType(valueType)
 
 	var err error
 
@@ -190,7 +194,7 @@ func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{
 
 // 将表格中支持的类型转换为protobuf支持的类型
 func ParseType(vtype string) (bool, string) {
-	_, vtype, repeated, _, _ := CompileValueType(vtype)
+	_, vtype, repeated, _, _, _ := CompileValueType(vtype)
 
 	if tp, ok := supportProtoTypes[vtype]; !ok {
 		return false, ""
@@ -253,7 +257,7 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 
 // 通过原始类型对值进行转换
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
-	_, rawType, repeated, _, _ := CompileValueType(rawType)
+	_, rawType, repeated, _, _, _ := CompileValueType(rawType)
 
 	var err error
 
@@ -368,11 +372,17 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		} else if item.Category == model.DEFINE_TYPE_STRUCT {
 			var desc descriptorpb.DescriptorProto
 			desc.Name = proto.String(item.TypeName)
-			for index, field := range item.Items {
+			var idx = 0
+			for _, field := range item.Items {
+				if field.IsVoid {
+					continue
+				}
+				idx++
+
 				var fd descriptorpb.FieldDescriptorProto
 				fd.Name = proto.String(field.FieldName)
 				fd.JsonName = proto.String(field.FieldName)
-				fd.Number = proto.Int32(int32(index + 1))
+				fd.Number = proto.Int32(int32(idx))
 				TableType2PbType(field.ValueType, &fd, false)
 				if field.IsArray {
 					fd.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
@@ -391,6 +401,10 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		var desc descriptorpb.DescriptorProto
 		desc.Name = proto.String(tab.TypeName)
 		for _, field := range tab.Headers {
+			if field.IsVoid {
+				continue
+			}
+
 			var fd descriptorpb.FieldDescriptorProto
 			fd.Name = proto.String(field.FieldName)
 			fd.JsonName = proto.String(field.FieldName)
@@ -462,6 +476,10 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 		var desc descriptorpb.DescriptorProto
 		desc.Name = proto.String(tab.TypeName)
 		for _, field := range tab.Headers {
+			if field.IsVoid {
+				continue
+			}
+
 			var fd descriptorpb.FieldDescriptorProto
 			fd.Name = proto.String(field.FieldName)
 			fd.JsonName = proto.String(field.FieldName)

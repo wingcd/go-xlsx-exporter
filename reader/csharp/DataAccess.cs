@@ -3,19 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-#if UNITY_ENGINE
 using UnityEngine;
-#endif
 
 internal class T_LOG
 {
     public static void Log(string info)
     {
-#if UNITY_ENGINE
         Debug.Log(info);
-#else
-        Console.WriteLine(info);
-#endif
     }
 }
 
@@ -26,16 +20,16 @@ public class PBDataModel
 
     private Dictionary<string,object> _converted = new Dictionary<string, object>();
 
-    private object GetConvertData(string fieldName, object value)
+    protected object GetConvertData(string fieldName, object value)
     {
         if(_converted.ContainsKey(fieldName))
         {
             return _converted[fieldName];
         }
 
-        if(dataConvert != null)
+        if(dataConvert == null)
         {
-            throw new Exception($"convert field value need a convetor");
+            throw new Exception($"convert field {fieldName} value need a convetor");
         }
 
         var data = dataConvert(this, fieldName, value);

@@ -25,6 +25,7 @@ type StructInfo struct {
 	ArraySplitChar string
 	// 此字段是否可转换对象
 	Convertable bool
+	IsVoid      bool
 }
 
 // 定义表数据项（按行）

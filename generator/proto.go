@@ -26,6 +26,7 @@ var supportProtoTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+	"void":    "",
 }
 
 type protoFileDesc struct {

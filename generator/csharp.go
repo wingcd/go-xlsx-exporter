@@ -89,6 +89,7 @@ var supportCSharpTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+	"void":    "object",
 }
 
 type csharpFileDesc struct {

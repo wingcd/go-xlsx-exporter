@@ -48,6 +48,7 @@ namespace {{.Namespace}}
     [ProtoContract]
     public class {{.TypeName}} : PBDataModel
     { {{range .Items}}
+    {{- if not .IsVoid }}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
@@ -55,6 +56,7 @@ namespace {{.Namespace}}
         {{- else}}
         public {{.ValueType}} {{.FieldName}} { get; set; }
         {{end -}}
+    {{- end}}
         {{- if .Convertable}}
         public object Get{{camel_case .FieldName}}()
         {
@@ -72,19 +74,29 @@ namespace {{.Namespace}}
     [ProtoContract]
     public class {{.TypeName}} : {{if .IsArray}}PBDataModels{{else}}PBDataModel{{end}}
     { {{range .Headers}}
+        {{- $fieldName := camel_case .FieldName -}}
+    {{- if not .IsVoid }}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
-        public List<{{.ValueType}}> {{camel_case .FieldName}} { get; set; }
+        public List<{{.ValueType}}> {{$fieldName}} { get; set; }
         {{- else}}
-        public {{.ValueType}} {{camel_case .FieldName}} { get; set; }
+        public {{.ValueType}} {{$fieldName}} { get; set; }
         {{end -}}
         {{- if .Convertable}}
-        public object Get{{camel_case .FieldName}}()
+        public object Get{{$fieldName}}()
         {
-            return GetConvertData("{{.FieldName}}", {{.FieldName}});
+            return GetConvertData("{{$fieldName}}", {{$fieldName}});
         }
         {{- end}}
+    {{else}}    
+        {{- if .Convertable}}
+        public object Get{{$fieldName}}()
+        {
+            return GetConvertData("{{$fieldName}}", null);
+        }
+        {{- end}}
+    {{end -}}
     {{end}}
     }
     {{end}}

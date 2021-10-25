@@ -108,8 +108,10 @@ type {{.TypeName}} struct {
 			{{- $arratDesc = "[]"}} 
 		{{- end}} 
 	{{- end}}
+	{{- if not .IsVoid}}
     {{.TitleFieldName}} {{$arratDesc}}{{.ValueType}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} //{{.Desc}} {{end}}
-    {{- space -}}
+    {{end -}}
+	{{- space -}}
 {{end}}
 }
 
@@ -153,12 +155,14 @@ func (*{{.TypeName}}) Descriptor() ([]byte, []int) {
  	{{- if .IsArray}} {{if .IsStruct}} {{$arratDesc = "[]*"}} {{else}} {{$arratDesc = "[]"}} {{end}} {{end}}
 	{{- $returnType = join $arratDesc $returnType}} 
 {{- end}}
+{{- if not .IsVoid}}
 func (x *{{$item.TypeName}}) Get{{.TitleFieldName}}() {{$returnType}} {
 	if x != nil {
 		return x.{{.TitleFieldName}}
 	}
 	return {{default .}}
 }
+{{end -}}
 {{end}}
 
 {{- /*生成类类型结束*/}}

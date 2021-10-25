@@ -22,9 +22,11 @@ enum {{.TypeName}}
 // Defined in table: {{.DefinedTable}}
 message {{.TypeName}}
 { {{range .Headers}}
+{{if not .IsVoid}}
 	{{if .IsArray }}repeated {{end -}} 
         {{- .ValueType}} {{.FieldName}} = {{.Index}}; 
         {{- if ne .Desc ""}} //{{.Desc}} {{end -}}
+{{end -}}
 {{end}}
 }
 {{end}}

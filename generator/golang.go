@@ -31,21 +31,23 @@ var supportGoTypes = map[string]string{
 	"double":  "float64",
 	"float64": "float64",
 	"string":  "string",
+	"void":    "interface{}",
 }
 
 var defaultGoValues = map[string]string{
-	"bool":    "false",
-	"int":     "0",
-	"int32":   "0",
-	"uint":    "0",
-	"uint32":  "0",
-	"int64":   "0",
-	"uint64":  "0",
-	"float":   "0",
-	"float32": "0",
-	"double":  "0",
-	"float64": "0",
-	"string":  "\"\"",
+	"bool":        "false",
+	"int":         "0",
+	"int32":       "0",
+	"uint":        "0",
+	"uint32":      "0",
+	"int64":       "0",
+	"uint64":      "0",
+	"float":       "0",
+	"float32":     "0",
+	"double":      "0",
+	"float64":     "0",
+	"string":      "\"\"",
+	"interface{}": "nil",
 }
 
 func goFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {

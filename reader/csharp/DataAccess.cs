@@ -15,9 +15,6 @@ internal class T_LOG
 
 public class PBDataModel
 {
-    public delegate object ConvertHandler(object item, string field, object data);
-    public static ConvertHandler dataConvert;
-
     private Dictionary<string,object> _converted = new Dictionary<string, object>();
 
     protected object GetConvertData(string fieldName, object value)
@@ -27,12 +24,12 @@ public class PBDataModel
             return _converted[fieldName];
         }
 
-        if(dataConvert == null)
+        if(DataAccess.DataConvertHandler == null)
         {
             throw new Exception($"convert field {fieldName} value need a convetor");
         }
 
-        var data = dataConvert(this, fieldName, value);
+        var data = DataAccess.DataConvertHandler(this, fieldName, value);
         _converted[fieldName] = data;
         return data;
     }    
@@ -91,6 +88,9 @@ public class DataAccess
     public static string DataDir { get; private set; }
     public static LoadDataHandler Loader { get; private set; }
     public static FileNameGenerateHandler Generator { get; private set; }
+
+    public delegate object ConvertHandler(object item, string field, object data);
+    public static ConvertHandler DataConvertHandler;
 
     public static void Initial(string dataDir, LoadDataHandler loadHandle = null, FileNameGenerateHandler fileNameGenerateHandle = null)
     {

@@ -182,9 +182,13 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 }
 
 func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, filename string) (bool, string) {
+	var rowData []string
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println(err)
+			if rowData != nil {
+				log.Println(rowData)
+			}
 		}
 	}()
 
@@ -207,6 +211,8 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 	list := listItem.NewField(lf).List()
 
 	for ridx, row := range table.Data {
+		rowData = row
+
 		// 单行数据实例
 		item := dynamicpb.NewMessage(typeMD)
 		var idx = 0
@@ -215,7 +221,10 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 				continue
 			}
 
-			cellValue := row[idx]
+			var cellValue string
+			if len(row) > idx {
+				cellValue = row[idx]
+			}
 			idx++
 
 			ok, value, _ := utils.ParseValue(header.RawValueType, cellValue)

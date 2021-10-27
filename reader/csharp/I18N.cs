@@ -43,12 +43,19 @@ public class I18N : DataContainer<string, Language>
         return $"{datafile}.{CurrentLanguage}";
     }
 
-    public static string Translate(string key)
+    public static string Translate(string key, params object[] args)
     {
         Language lan;
         if (Instance.ItemMap.TryGetValue(key, out lan))
         {
-            return lan.Text;
+            if (args == null || args.Length == 0)
+            {
+                return lan.Text;
+            }
+            else
+            {
+                return string.Format(lan.Text, args);
+            }
         }
 
         return null;

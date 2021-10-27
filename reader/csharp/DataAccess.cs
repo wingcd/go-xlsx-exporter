@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+#if LUA_SUPPORT
+using LuaInterface;
+#endif
+
 internal class T_LOG
 {
     public static void Log(string info)
@@ -33,10 +37,39 @@ public class PBDataModel
         _converted[fieldName] = data;
         return data;
     }    
-
-    public virtual Hashtable ToHashtable()
+    
+    public object Clone()
     {
-        var hashtable = new Hashtable();
+        var type = GetType();
+        var clone = Activator.CreateInstance(type);
+        var props = type.GetProperties();
+        for(var i=0;i<props.Length;i++)
+        {
+            var prop = props[i];
+            var attris = prop.GetCustomAttributes(false);
+            for(var ai = 0; ai < attris.Length; ai++)
+            {
+                var attri = attris[ai];
+                if(attri is ProtoMemberAttribute)
+                {
+                    prop.SetValue(clone, prop.GetValue(this));
+
+                    break;
+                }
+            }
+        }
+        return clone;
+    }
+
+    #if LUA_SUPPORT
+    public virtual LuaTable ToLuaTable()
+    {
+        if (DataAccess.luaState == null)
+        {
+            Debug.LogError("must set luastate first!");
+        }
+        
+        var table = DataAccess.luaState.NewTable();
         var type = GetType();
         var props = type.GetProperties();
         for(var i=0;i<props.Length;i++)
@@ -50,19 +83,20 @@ public class PBDataModel
                 {
                     if(DataAccess.UseProtoMemberTagAsHashtableKey)
                     {
-                        hashtable[(attri as ProtoMemberAttribute).Tag] = prop.GetValue(this);
+                        table[(attri as ProtoMemberAttribute).Tag] = prop.GetValue(this);
                     }
                     else
                     {
-                        hashtable[prop.Name] = prop.GetValue(this);
+                        table[prop.Name] = prop.GetValue(this);
                     }
 
                     break;
                 }
             }
         }
-        return hashtable;
+        return table;
     }
+    #endif
     
     public object GetPropValue(string name)
     {
@@ -81,6 +115,10 @@ public delegate byte[] LoadDataHandler(string datafile);
 
 public class DataAccess
 {
+    #if LUA_SUPPORT
+    public static LuaState luaState;
+    #endif
+    
     /// <summary>
     /// 是否使用ProtoMember的tag作为hashtable的key
     /// </summary>
@@ -212,6 +250,16 @@ public class DataContainer<TItem>
         }
     }
 
+    public DataContainer<TItem> Preload()
+    {
+        if (_item == null)
+        {
+            _item = Load();
+        }
+
+        return this;
+    }
+
     private TItem Load()
     {
         var type = typeof(TItem);
@@ -250,7 +298,20 @@ public class DataContainer<TItem>
     }
 }
 
+#if LUA_SUPPORT
+public interface ILuaDataContainer<TID> where TID : IComparable
+{
+    int Count { get; }
+    List<TID> IDs { get; }
+    LuaTable GetTableByIndex(int index);
+    LuaTable GetTable(TID ID);
+}
+#endif
+
 public class DataContainer<TID, TItem> : DataContainer<TItem>
+#if LUA_SUPPORT
+    , ILuaDataContainer<TID>
+#endif
     where TID : IComparable
     where TItem : PBDataModel
 {
@@ -326,6 +387,16 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
             _itemMap = value;
         }
     }
+    
+    public new DataContainer<TID, TItem> Preload()
+    {
+        if (_items == null)
+        {
+            _items = InitDataAsList();
+        }
+
+        return this;
+    }
 
     List<TItem> _items;
     public List<TItem> Items
@@ -341,6 +412,19 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         private set
         {
             _items = value;
+        }
+    }
+
+    public int Count
+    {
+        get
+        {
+            if (Items == null)
+            {
+                return 0;
+            }
+
+            return Items.Count;
         }
     }
 
@@ -374,29 +458,43 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
     }
 
-    Dictionary<TID, Hashtable> hashtables = null;
-    public Hashtable GetHashtable(TID ID)
+    #if LUA_SUPPORT
+    Dictionary<TID, LuaTable> luaTables = null;
+
+    public LuaTable GetTableByIndex(int index)
     {
-        if(DataAccess.CacheHashValue && hashtables == null)
+        if (index >= this.IDs.Count)
         {
-            hashtables = new Dictionary<TID, Hashtable>();
+            return null;
         }
 
-        if (hashtables != null && hashtables.ContainsKey(ID))
+        var id = this.IDs[index];
+        return GetTable(id);
+    }
+
+    public LuaTable GetTable(TID ID)
+    {
+        if(DataAccess.CacheHashValue && luaTables == null)
         {
-            return hashtables[ID];
+            luaTables = new Dictionary<TID, LuaTable>();
+        }
+
+        if (luaTables != null && luaTables.ContainsKey(ID))
+        {
+            return luaTables[ID];
         }
         else if(Contains(ID))
         {
-            var ht = this[ID].ToHashtable();
-            if (hashtables != null)
+            var ht = this[ID].ToLuaTable();
+            if (luaTables != null)
             {
-                hashtables[ID] = ht;
+                luaTables[ID] = ht;
             }
             return ht;
         }
         return null;
     }
+    #endif
 
     public DataContainer(string keyName = DataAccess.DefaultIDName)
     {

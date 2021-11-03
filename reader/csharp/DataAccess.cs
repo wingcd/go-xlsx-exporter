@@ -15,6 +15,11 @@ internal class T_LOG
     {
         Debug.Log(info);
     }
+    
+    public static void LogError(string info)
+    {
+        Debug.LogError(info);
+    }
 }
 
 public class PBDataModel
@@ -285,7 +290,7 @@ public class DataContainer<TItem>
                 }
                 catch (Exception e)
                 {
-                    T_LOG.Log(typeof(TItem).Name + e);
+                    T_LOG.LogError(typeof(TItem).Name + e);
                     return null;
                 }
             }
@@ -522,7 +527,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
         catch (Exception e)
         {
-            T_LOG.Log(typeof(TItem).Name + e);
+            T_LOG.LogError(typeof(TItem).Name + e);
             return itemMap;
         }
     }
@@ -536,7 +541,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
         catch (Exception e)
         {
-            T_LOG.Log(typeof(TItem).Name + e);
+            T_LOG.LogError(typeof(TItem).Name + e);
             return list;
         }
     }

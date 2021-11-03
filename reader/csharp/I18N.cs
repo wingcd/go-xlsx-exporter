@@ -8,7 +8,7 @@ using System.IO;
 public class Language : PBDataModel
 {
     [ProtoMember(1)]
-    public string ID { get; set; }
+    public string Id { get; set; }
 
     [ProtoMember(2)]
     public string Text { get; set; }
@@ -22,7 +22,7 @@ public class Language_ARRAY : PBDataModels
     public List<Language> Items { get; set; }
 }
 
-public class I18N : DataContainer<string, Language>
+public class I18N : DataContainer<string, Language> 
 {
     public static string CurrentLanguage { get; private set; }
     public static void SetLanguage(string lan = "cn")
@@ -41,6 +41,11 @@ public class I18N : DataContainer<string, Language>
     {
         var datafile = Path.Combine(DataAccess.DataDir, typeName.ToLower());
         return $"{datafile}.{CurrentLanguage}";
+    }
+    
+    public static string Translate(int key, params object[] args)
+    {
+        return Translate(key.ToString(), args);
     }
 
     public static string Translate(string key, params object[] args)

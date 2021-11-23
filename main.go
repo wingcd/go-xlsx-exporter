@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -235,6 +236,7 @@ func doExport(exportInfo ExportInfo) {
 			}
 			var table = xlsx.ParseDataSheet(defines...)
 			if table != nil {
+				table.Id = infos[0].ID
 				table.TypeName = infos[0].TypeName
 				tables = append(tables, table)
 			}
@@ -249,9 +251,12 @@ func doExport(exportInfo ExportInfo) {
 		}
 
 		table := xlsx.ParseDataSheet(defines...)
+		table.Id = langSheets[0].ID
 		table.IsLanguage = true
 		tables = append(tables, table)
 	}
+
+	sort.Sort(model.DataTables(tables))
 
 	settings.SetTables(tables...)
 

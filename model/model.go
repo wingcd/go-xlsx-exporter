@@ -75,6 +75,7 @@ type DataTableHeader struct {
 
 // 数据表
 type DataTable struct {
+	Id int
 	// 类型名
 	TypeName string
 	// 表头
@@ -90,6 +91,12 @@ type DataTable struct {
 	// 是否数组
 	IsArray bool
 }
+
+type DataTables []*DataTable
+
+func (a DataTables) Len() int           { return len(a) }
+func (a DataTables) Less(i, j int) bool { return a[i].Id < a[j].Id }
+func (a DataTables) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // 定义的结构体转表类型
 func Struct2Table(info *DefineTableInfo) *DataTable {

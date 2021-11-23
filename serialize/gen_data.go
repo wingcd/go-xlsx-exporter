@@ -164,7 +164,10 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 		}
 	}
 
-	bytes, err := gproto.Marshal(item)
+	bytes, err := gproto.MarshalOptions{
+		Deterministic: true,
+	}.Marshal(item)
+
 	if err != nil {
 		panic(fmt.Sprintf("[错误] 序列化失败：%s \n", err.Error()))
 	}
@@ -265,7 +268,10 @@ func GenDataTable(fd pref.FileDescriptor, dir string, table *model.DataTable, fi
 	}
 	listItem.Set(lf, pref.ValueOf(list))
 
-	bytes, err := gproto.Marshal(listItem)
+	bytes, err := gproto.MarshalOptions{
+		Deterministic: true,
+	}.Marshal(listItem)
+
 	if err != nil {
 		panic(fmt.Sprintf("[错误] 序列化失败：%s \n", err.Error()))
 	}

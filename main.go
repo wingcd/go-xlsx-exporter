@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -75,12 +76,23 @@ func parseParams() {
 	if settings.ArraySplitChar == "" {
 		settings.ArraySplitChar = "|"
 	}
+	settings.StrictMode = config.StrictMode
 
 	if settings.CommentSymbol == "" {
 		log.Fatalln("注释符号不能为空")
 	}
 
 	process()
+
+	if config.PauseOnEnd {
+		pause()
+	}
+}
+
+func pause() {
+	fmt.Printf("Press any key to exit...")
+	b := make([]byte, 1)
+	os.Stdin.Read(b)
 }
 
 // val sample: 1,2-4,6-7

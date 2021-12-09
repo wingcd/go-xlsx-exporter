@@ -39,6 +39,8 @@ type YamlConf struct {
 	CommentSymbol  string `yaml:"comment_symbol"`
 	ExportType     int    `yaml:"export_type"`
 	ArraySplitChar string `yaml:"array_split_char"`
+	PauseOnEnd     bool   `yaml:"pause_on_end"`
+	StrictMode     bool   `yaml:"strict_mode"`
 
 	Exports []ExportInfo `yaml:"exports"`
 	Sheets  []SheetInfo  `yaml:"sheets"`

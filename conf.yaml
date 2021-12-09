@@ -3,6 +3,8 @@ pb_bytes_file_ext: ".bytes" #unity must use .bytes extension
 comment_symbol: "#"
 export_type: 1 #全局导出类型设置，1-ignore,2-client,3-server
 array_split_char: "|" #默认数组分割符号
+pause_on_end: false # 运行完毕后是否暂停
+strict_mode: true # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
 
 sheets:
  -

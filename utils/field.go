@@ -83,6 +83,21 @@ var standardTypes = map[string]string{
 	"string":  "string",
 }
 
+var standardDefaultValue = map[string]interface{}{
+	"bool":    false,
+	"int":     0,
+	"int32":   0,
+	"uint":    0,
+	"uint32":  0,
+	"int64":   0,
+	"uint64":  0,
+	"float":   0,
+	"float32": 0,
+	"double":  0,
+	"float64": 0,
+	"string":  "",
+}
+
 var supportProtoTypes = map[string]string{
 	"bool":    "bool",
 	"int":     "int32",
@@ -226,29 +241,33 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 	if IsEnum(vtype) {
 		_, ret, _ = ResolveEnumValue(vtype, value)
 	} else {
-		switch vtype {
-		case "bool":
-			ret, err = ParseBool(value)
-		case "int", "int32":
-			v, e := strconv.ParseInt(value, 10, 32)
-			ret = int32(v)
-			err = e
-		case "uint", "uint32":
-			v, e := strconv.ParseUint(value, 10, 32)
-			ret = uint32(v)
-			err = e
-		case "int64":
-			ret, err = strconv.ParseInt(value, 10, 64)
-		case "uint64":
-			ret, err = strconv.ParseUint(value, 10, 64)
-		case "float":
-			v, e := strconv.ParseFloat(value, 32)
-			ret = float32(v)
-			err = e
-		case "double":
-			ret, err = strconv.ParseFloat(value, 64)
-		case "string":
-			ret = value
+		if value == "" && !settings.StrictMode {
+			ret = standardDefaultValue[vtype]
+		} else {
+			switch vtype {
+			case "bool":
+				ret, err = ParseBool(value)
+			case "int", "int32":
+				v, e := strconv.ParseInt(value, 10, 32)
+				ret = int32(v)
+				err = e
+			case "uint", "uint32":
+				v, e := strconv.ParseUint(value, 10, 32)
+				ret = uint32(v)
+				err = e
+			case "int64":
+				ret, err = strconv.ParseInt(value, 10, 64)
+			case "uint64":
+				ret, err = strconv.ParseUint(value, 10, 64)
+			case "float":
+				v, e := strconv.ParseFloat(value, 32)
+				ret = float32(v)
+				err = e
+			case "double":
+				ret, err = strconv.ParseFloat(value, 64)
+			case "string":
+				ret = value
+			}
 		}
 	}
 

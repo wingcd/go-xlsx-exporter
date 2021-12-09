@@ -21,6 +21,7 @@ var (
 	PbBytesFileExt = ".bytes"
 	CommentSymbol  = "#"
 	ArraySplitChar = "|"
+	StrictMode     = false
 
 	// just for debug
 	GenLanguageType = false

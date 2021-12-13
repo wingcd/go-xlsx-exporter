@@ -85,16 +85,16 @@ var standardTypes = map[string]string{
 
 var standardDefaultValue = map[string]interface{}{
 	"bool":    false,
-	"int":     0,
-	"int32":   0,
-	"uint":    0,
-	"uint32":  0,
-	"int64":   0,
-	"uint64":  0,
-	"float":   0,
-	"float32": 0,
-	"double":  0,
-	"float64": 0,
+	"int":     int32(0),
+	"int32":   int32(0),
+	"uint":    uint32(0),
+	"uint32":  uint32(0),
+	"int64":   int64(0),
+	"uint64":  uint64(0),
+	"float":   float32(0),
+	"float32": float32(0),
+	"double":  float64(0),
+	"float64": float64(0),
 	"string":  "",
 }
 

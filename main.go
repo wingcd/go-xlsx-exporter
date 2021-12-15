@@ -27,7 +27,7 @@ var (
 	p_pb_bytes_file_ext string
 	p_comment_symbol    string
 	p_config            string
-	p_silent            bool
+	p_silence           bool
 )
 
 func init() {
@@ -41,7 +41,7 @@ func init() {
 	flag.StringVar(&p_exports, "exports", "", "设置需要导出的配置项，默认为空，全部导出, 参考：1,2,5-7")
 
 	flag.BoolVar(&p_gen_language_code, "lang", false, "是否生成语言类型到代码（仅测试用，默认为false）")
-	flag.BoolVar(&p_silent, "silent", false, "是否静默执行（默认为false）")
+	flag.BoolVar(&p_silence, "silence", false, "是否静默执行（默认为false）")
 }
 
 func main() {
@@ -79,7 +79,7 @@ func parseParams() {
 		settings.ArraySplitChar = "|"
 	}
 	settings.StrictMode = config.StrictMode
-	if p_silent {
+	if p_silence {
 		config.PauseOnEnd = false
 	}
 
@@ -89,7 +89,7 @@ func parseParams() {
 
 	process()
 
-	if !p_silent && config.PauseOnEnd {
+	if !p_silence && config.PauseOnEnd {
 		pause()
 	}
 }

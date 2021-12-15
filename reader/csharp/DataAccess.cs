@@ -150,13 +150,11 @@ public class DataAccess
     }
 }
 
-public class DataContainer<TItem>
+public class DataContainer<TItem> : DataContainer
     where TItem : PBDataModel
 {
     protected LoadDataHandler localLoader;
     protected FileNameGenerateHandler localGenerator;
-
-    protected MemoryStream source;
 
     private string OnGenerateFilename(string typeName)
     {
@@ -175,11 +173,6 @@ public class DataContainer<TItem>
 
     protected byte[] OnLoadData(string typeName)
     {
-        if (source != null)
-        {
-            return source.ToArray();
-        }
-
         var datafile = OnGenerateFilename(typeName);
 
         if (localLoader != null)
@@ -210,12 +203,6 @@ public class DataContainer<TItem>
 #endif
     }
 
-
-    protected void SetSource(MemoryStream source)
-    {
-        this.source = source;
-    }
-
     public void Initial(LoadDataHandler loadHandle = null, FileNameGenerateHandler fileNameGenerateHandle = null)
     {
         localLoader = loadHandle;
@@ -235,24 +222,9 @@ public class DataContainer<TItem>
         }
     }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
-    public static DataContainer<TItem> CreateInstace(MemoryStream source)
+    public override void Clear()
     {
-        var instance = new DataContainer<TItem>();
-        instance.SetSource(source);
-        return instance;
-    }
-
-    public virtual void Clear()
-    {
-        if (source != null)
-        {
-            source.Close();
-            source = null;
-        }
+        _item = null;
     }
 
     public DataContainer<TItem> Preload()
@@ -313,6 +285,14 @@ public interface ILuaDataContainer<TID> where TID : IComparable
 }
 #endif
 
+public class DataContainer
+{
+    public virtual void Clear()
+    {
+        
+    }
+}
+
 public class DataContainer<TID, TItem> : DataContainer<TItem>
 #if LUA_SUPPORT
     , ILuaDataContainer<TID>
@@ -361,18 +341,6 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
             _instance = new DataContainer<TID, TItem>(keyName);
         }
         return _instance;
-    }
-
-    /// <summary>
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="keyName"></param>
-    /// <returns></returns>
-    public static DataContainer<TID, TItem> CreateInstace(MemoryStream source, string keyName = DataAccess.DefaultIDName)
-    {
-        var instance = new DataContainer<TID, TItem>(keyName);
-        instance.SetSource(source);
-        return instance;
     }
 
     string keyName;
@@ -570,5 +538,17 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
             _items.Clear();
             _items = null;
         }
+        
+        #if LUA_SUPPORT
+        if (luaTables != null)
+        {
+            foreach (var table in luaTables)
+            {
+                table.Value.Dispose();
+            }
+
+            luaTables = null;
+        }
+        #endif
     }
 }

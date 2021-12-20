@@ -72,9 +72,13 @@ golang编写的将xlsx表文件数据及结构导出工具
 
   - [x] 支持表格数据读取
 
-  - [x] 支持转哈希表
+  - [x] 支持转Lua表
   
   - [x] 多语言读取 
+
+  - [x] 空类型(void)配置与读取
+
+  - [x] 计算类型(?)配置与读取
 
 - [x] golang读取支持
 
@@ -92,7 +96,7 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - 复制conf.template.yaml，并改名为conf.yaml
 
-- 命令行运行gxe.exe
+- 命令行运行gxe
 
 - 在gen目录下查看生成数据
 
@@ -105,6 +109,9 @@ package: "GameData" # 导出代码的包名（命名空间）
 pb_bytes_file_ext: ".bytes" # 二进制数据文件后缀名，unity中请使用.bytes
 comment_symbol: "#" # 定义表格中的注释符
 export_type: 1 # 全局导出类型设置，1-忽略前后端配置,2-仅导出客户端代码/数据,3-仅导出服务端代码/数据
+array_split_char: "|" #默认数组分割符号
+pause_on_end: false # 运行完毕后是否暂停
+strict_mode: true # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
 sheets: # 所有表格数据
  -
   id: 1 # 表格编号，用于生成时过滤
@@ -147,20 +154,22 @@ exports: # 导出任务集合
 - 命令参数
 
 ```text
- -cfg string
+  -cfg string
         设置配置文件 (default "./conf.yaml")
- -cmt string
+  -cmt string
         设置表格注释符号 (default "#")
- -exports string
+  -exports string
         设置需要导出的配置项，默认为空，全部导出, 参考：1,2,5-7
- -ext string
-        设置二进制数据文件后缀(unity必须为.bytes) (default ".bytes")
- -h    获取帮助
- -lang
+  -ext string
+        设置二进制数据文件后缀(unity必须为.bytes)
+  -h    获取帮助
+  -lang
         是否生成语言类型到代码（仅测试用，默认为false）
- -pkg string
+  -pkg string
         设置导出包名
- -v    获取工具当前版本号
+  -silence
+        是否静默执行（默认为false）
+  -v    获取工具当前版本号
 ```
 
 - 表格定义
@@ -271,11 +280,46 @@ var settings = DataContainer<Settings>.Instance.Data;
 Console.WriteLine($"\n配置：maxconn={settings.MAX_CONNECT}, version={settings.VERSION}");
 ```
 
-5. 读取哈希表
+5. 读取LuaTable
 
 ```C#
-var userHT = DataContainer<uint, User>.Instance.GetHashtable(1);
-Console.WriteLine($"用户哈希值：{userHT["ID"]}, {userHT["Name"]}, {userHT["Age"]}, {userHT["Head"]}");
+var userData = DataContainer<uint, User>.Instance.GetTable(1);
+Console.WriteLine($"用户数据：{userData["ID"]}, {userData["Name"]}, {userData["Age"]}, {userData["Head"]}");
+```
+
+6. 计算数据类型
+
+注册计算类型转换，通过表类型与字段名，计算并缓存此值，可用来配置复杂结构类型。
+
+```C#
+DataAccess.DataConvertHandler = (item, field, data) =>
+  {
+      if (item is XXX1Cfg)
+      {
+          var dt = item as XXX1Cfg;
+          switch (field)
+          {
+              case "Merge":
+                  return MultipleWeightCalculator.Parse(data?.ToString());
+              case "Size":
+                  return new Vector2Int(dt.Width, dt.Height);
+          }
+      }
+      else if(item is XXX2Cfg)
+      {
+          var dt = item as XXX2Cfg;
+          switch (field)
+          {
+              case "ClickProduce":
+              case "ClickKindProduct":
+              case "ClickLimit":
+                  return WeightCalculator.Parse(data?.ToString());
+          
+          }
+      }
+
+      return data;
+  };
 ```
 
 - go

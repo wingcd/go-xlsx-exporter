@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -58,18 +57,19 @@ func PathExists(path string) (bool, error) {
 }
 
 func NewYamlConf(filename string) *YamlConf {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	fn := dir + "/" + filename
+	// fn := dir + "/" + filename
+	fn := filename
 	if ok, _ := PathExists(fn); !ok {
 		log.Fatalf("配置文件不存在：%v", fn)
 	}
 
 	c := new(YamlConf)
-	yamlFile, err := ioutil.ReadFile(dir + "/" + filename)
+	yamlFile, err := ioutil.ReadFile(fn)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

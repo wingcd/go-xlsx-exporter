@@ -71,3 +71,7 @@ exports:
  id: 4
  type: "proto_bytes"
  path: "./gen/data/"
+-
+ id: 5
+ type: "lang_text"
+ path: "./gen/data/lang.txt"

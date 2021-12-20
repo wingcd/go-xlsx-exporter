@@ -13,35 +13,35 @@ import (
 	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
-var langTextTemplate = ""
+var charsetTemplate = ""
 
-type langTextFileDesc struct {
+type charsetFileDesc struct {
 	commonFileDesc
 	Words []string
 }
 
-type langTextGenerator struct {
+type charsetGenerator struct {
 }
 
-func (g *langTextGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *charsetGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	utils.CheckPath(output)
 
-	if csharpTemplate == "" {
+	if charsetTemplate == "" {
 		data, err := ioutil.ReadFile("./template/charset.gtpl")
 		if err != nil {
 			log.Println(err)
 			return false, nil
 		}
-		csharpTemplate = string(data)
+		charsetTemplate = string(data)
 	}
 
-	tpl, err := template.New("charset").Funcs(funcs).Parse(csharpTemplate)
+	tpl, err := template.New("charset").Funcs(funcs).Parse(charsetTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return false, nil
 	}
 
-	var fd = langTextFileDesc{}
+	var fd = charsetFileDesc{}
 	fd.Version = settings.TOOL_VERSION
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
@@ -107,5 +107,5 @@ func (g *langTextGenerator) Generate(output string) (save bool, data *bytes.Buff
 }
 
 func init() {
-	Regist("charset", &langTextGenerator{})
+	Regist("charset", &charsetGenerator{})
 }

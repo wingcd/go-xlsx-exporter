@@ -23,6 +23,7 @@ var commonInitialismsReplacer *strings.Replacer
 var uncommonInitialismsReplacer *strings.Replacer
 
 type commonFileDesc struct {
+	Version        string
 	GoProtoVersion string
 }
 
@@ -152,6 +153,22 @@ func init() {
 			return false
 		}
 		return true
+	}
+
+	funcs["get_range"] = func(a, b int) []int {
+		ret := make([]int, 0)
+		for i := a; i <= b; i++ {
+			ret = append(ret, i)
+		}
+		return ret
+	}
+
+	funcs["get_char_range"] = func(a, b byte) []string {
+		ret := make([]string, 0)
+		for i := a; i <= b; i++ {
+			ret = append(ret, string(i))
+		}
+		return ret
 	}
 }
 

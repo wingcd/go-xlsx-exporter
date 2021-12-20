@@ -149,7 +149,6 @@ func registGoFuncs() {
 type goFileDesc struct {
 	commonFileDesc
 
-	Version string
 	Package string
 	Enums   []*model.DefineTableInfo
 	Consts  []*model.DefineTableInfo
@@ -244,13 +243,13 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 
 	var filename = strings.Split(filepath.Base(output), ".")[0]
 	var fd = goFileDesc{
-		Version:  settings.TOOL_VERSION,
 		Package:  settings.PackageName,
 		Enums:    settings.ENUMS[:],
 		Consts:   settings.CONSTS[:],
 		Tables:   make([]*model.DataTable, 0),
 		FileName: filename,
 	}
+	fd.Version = settings.TOOL_VERSION
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 	utils.PreProcessDefine(fd.Consts)
 

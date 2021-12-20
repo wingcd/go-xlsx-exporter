@@ -95,7 +95,6 @@ var supportCSharpTypes = map[string]string{
 type csharpFileDesc struct {
 	commonFileDesc
 
-	Version   string
 	Namespace string
 	Enums     []*model.DefineTableInfo
 	Structs   []*model.DefineTableInfo
@@ -125,13 +124,13 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 	}
 
 	var fd = csharpFileDesc{
-		Version:   settings.TOOL_VERSION,
 		Namespace: settings.PackageName,
 		Enums:     settings.ENUMS[:],
 		Structs:   settings.STRUCTS[:],
 		Consts:    settings.CONSTS[:],
 		Tables:    make([]*model.DataTable, 0),
 	}
+	fd.Version = settings.TOOL_VERSION
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	utils.PreProcessDefine(fd.Structs)

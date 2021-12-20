@@ -58,6 +58,8 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - [x] 支持多语言导出
 
+- [x] 支持多语言表使用的文字导出为文本文件，用于生成字符集
+
 - [ ] 支持json结构及数据导出
 
 - [ ] 支持lua结构及数据导出
@@ -146,8 +148,18 @@ exports: # 导出任务集合
  package: "game_data" # 可单独设置包名，覆盖全局设置，但是会被参数设置的包名覆盖
 -
  id: 3
+ type: "csharp"
+ path: "./gen/code/DataModel.cs"
+ sheets: ""
+ package: "Cfg"
+-
+ id: 4
  type: "proto_bytes"
  path: "./gen/data/"
+-
+ id: 5
+ type: "charset"
+ path: "./gen/data/lang.txt"
 
 ```
 

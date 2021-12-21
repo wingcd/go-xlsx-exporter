@@ -158,6 +158,12 @@ public class DataContainer<TItem> : DataContainer
 
     private string OnGenerateFilename(string typeName)
     {
+        if (DataAccess.DataDir == null)
+        {
+            Debug.LogError("you need initial data access first!");
+            return typeName.ToLower();
+        }
+        
         if (localGenerator != null)
         {
             return localGenerator(typeName);

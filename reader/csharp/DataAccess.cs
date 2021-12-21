@@ -495,6 +495,11 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
             while (itr.MoveNext())
             {
                 TID ID = (TID)propID.GetValue(itr.Current);
+                if (ID == null || ID is string && ID as string == "")
+                {
+                    Debug.LogWarning("id can not be null or empty value!");
+                    continue;
+                }
                 itemMap[ID] = itr.Current;
             }
             return itemMap;

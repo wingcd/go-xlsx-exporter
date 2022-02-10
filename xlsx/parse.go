@@ -384,13 +384,15 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 				}
 			}
 
-			// 补齐空数据
-			if len(newRow) < realHeadSize {
-				for i := 0; i < realHeadSize-len(newRow); i++ {
-					newRow = append(newRow, "")
-				}
-			}
+			rows[ri] = newRow
+		}
 
+		// 补齐空数据
+		newRow := rows[ri]
+		if len(newRow) < realHeadSize {
+			for realHeadSize-len(newRow) > 0 {
+				newRow = append(newRow, "")
+			}
 			rows[ri] = newRow
 		}
 

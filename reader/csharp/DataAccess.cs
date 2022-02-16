@@ -118,7 +118,7 @@ public class PBDataModels
 public delegate string FileNameGenerateHandler(string typeName);
 public delegate byte[] LoadDataHandler(string datafile);
 
-public class DataAccess
+public partial class DataAccess
 {
     #if LUA_SUPPORT
     public static LuaState luaState;
@@ -150,7 +150,7 @@ public class DataAccess
     }
 }
 
-public class DataContainer<TItem> : DataContainer
+public partial class DataContainer<TItem> : DataContainer
     where TItem : PBDataModel
 {
     protected LoadDataHandler localLoader;
@@ -233,20 +233,20 @@ public class DataContainer<TItem> : DataContainer
         _item = null;
     }
 
-    public DataContainer<TItem> Preload()
+    public DataContainer<TItem> Preload(byte[] bytes = null)
     {
         if (_item == null)
         {
-            _item = Load();
+            _item = Load(bytes);
         }
 
         return this;
     }
 
-    private TItem Load()
+    private TItem Load(byte[] bytes = null)
     {
         var type = typeof(TItem);
-        var bytes = OnLoadData(type.Name);
+        bytes = bytes ?? OnLoadData(type.Name);
 
         using (var stream = new MemoryStream(bytes))
         {
@@ -299,7 +299,7 @@ public class DataContainer
     }
 }
 
-public class DataContainer<TID, TItem> : DataContainer<TItem>
+public partial class DataContainer<TID, TItem> : DataContainer<TItem>
 #if LUA_SUPPORT
     , ILuaDataContainer<TID>
 #endif
@@ -307,7 +307,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
     where TItem : PBDataModel
 {
 
-    private List<TItem> Load()
+    private List<TItem> Load(byte[] bytes = null)
     {
         var type = typeof(TItem);
         var arrTypeName = type.FullName + "_ARRAY";
@@ -317,7 +317,7 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
             throw new Exception($"can not find data type:{arrTypeName}");
         }
 
-        var bytes = OnLoadData(type.Name);
+        bytes = bytes ?? OnLoadData(type.Name);
 
         using (var stream = new MemoryStream(bytes))
         {
@@ -367,11 +367,11 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
     }
     
-    public new DataContainer<TID, TItem> Preload()
+    public new DataContainer<TID, TItem> Preload(byte[] bytes = null)
     {
         if (_items == null)
         {
-            _items = InitDataAsList();
+            _items = InitDataAsList(bytes);
         }
 
         return this;
@@ -511,12 +511,12 @@ public class DataContainer<TID, TItem> : DataContainer<TItem>
         }
     }
 
-    protected List<TItem> InitDataAsList()
+    protected List<TItem> InitDataAsList(byte[] bytes = null)
     {
         List<TItem> list = null;
         try
         {
-            return Load();
+            return Load(bytes);
         }
         catch (Exception e)
         {

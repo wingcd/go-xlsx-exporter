@@ -165,6 +165,17 @@ func doExport(exportInfo ExportInfo) {
 		log.Fatalln("导出类型不能为空")
 	}
 
+	if !generator.HasGenerator(exportInfo.Type) {
+		gens := ""
+		for key, _ := range generator.GetAllGenerators() {
+			if gens != "" {
+				gens += ", "
+			}
+			gens += key
+		}
+		log.Fatalln("未知导出类型:", exportInfo.Type, "\n\t\t\t合法类型有：", gens)
+	}
+
 	if exportInfo.Path == "" {
 		log.Fatalln("导出路径不能为空")
 	}
@@ -218,6 +229,8 @@ func doExport(exportInfo ExportInfo) {
 			} else {
 				langSheets = append(langSheets, info)
 			}
+		} else {
+			log.Fatalf("配置错误：未知表类型[%v], 只支持[define/table]\n", tp)
 		}
 	}
 

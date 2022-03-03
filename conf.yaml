@@ -4,7 +4,7 @@ comment_symbol: "#"
 export_type: 1 #全局导出类型设置，1-ignore,2-client,3-server
 array_split_char: "|" #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
-strict_mode: true # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
+strict_mode: false # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
 
 sheets:
  -
@@ -12,66 +12,72 @@ sheets:
   type: define #type: define/table/language
   xls_file: 'data/define.xlsx'
   sheet: 'define'
- -
-  id: 2
-  type: define
-  xls_file: 'data/define.xlsx'
-  sheet: 'consts'
+#  -
+#   id: 2
+#   type: define
+#   xls_file: 'data/define.xlsx'
+#   sheet: 'consts'
+#  - 
+#   id: 3
+#   type: table
+#   xls_file: 'data/model.xlsx'
+#   sheet: 'class'
+#   type_name: 'PClass'
+#  - 
+#   id: 4
+#   type: table
+#   xls_file: 'data/model.xlsx'
+#   sheet: 'class1'
+#   type_name: 'PClass'
+#  - 
+#   id: 5
+#   type: table
+#   xls_file: 'data/model.xlsx'
+#   sheet: 'user'
+#   type_name: 'User'
+#  - 
+#   id: 6
+#   type: table
+#   xls_file: 'data/i18n.xlsx'
+#   sheet: 'location1'
+#   is_lang: true
+#  - 
+#   id: 7
+#   type: table
+#   xls_file: 'data/i18n.xlsx'
+#   sheet: 'location2'
+#   is_lang: true
  - 
-  id: 3
-  type: table
-  xls_file: 'data/model.xlsx'
-  sheet: 'class'
-  type_name: 'PClass'
- - 
-  id: 4
-  type: table
-  xls_file: 'data/model.xlsx'
-  sheet: 'class1'
-  type_name: 'PClass'
- - 
-  id: 5
-  type: table
-  xls_file: 'data/model.xlsx'
-  sheet: 'user'
-  type_name: 'User'
- - 
-  id: 6
-  type: table
-  xls_file: 'data/i18n.xlsx'
-  sheet: 'location1'
-  is_lang: true
- - 
-  id: 7
-  type: table
-  xls_file: 'data/i18n.xlsx'
-  sheet: 'location2'
-  is_lang: true
+  id: 1
+  type: data
+  xls_file: 'data/data.xlsx'
+  sheet: 'chain'
+  type_name: 'Chain'
 
 exports:
 -
  id: 1
- type: "proto"
+ type: "proto1"
  path: "./gen/code/all_proto.proto"
  sheets: "" #导出表id集合，不设置为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
  export_type: 1 #单项导出类型设置，1-ignore,2-client,3-server
--
- id: 2
- type: "golang"
- path: "./gen/code/data_model.pb.go"
- sheets: ""
- package: "game_data"
--
- id: 3
- type: "csharp"
- path: "./gen/code/DataModel.cs"
- sheets: ""
- package: "Cfg"
+# -
+#  id: 2
+#  type: "golang"
+#  path: "./gen/code/data_model.pb.go"
+#  sheets: ""
+#  package: "game_data"
+# -
+#  id: 3
+#  type: "csharp"
+#  path: "./gen/code/DataModel.cs"
+#  sheets: ""
+#  package: "Cfg"
 -
  id: 4
  type: "proto_bytes"
  path: "./gen/data/"
-# -
+-
 #  id: 5
 #  type: "charset"
 #  path: "./gen/data/lang.txt"

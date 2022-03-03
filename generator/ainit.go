@@ -176,8 +176,17 @@ type Generator interface {
 	Generate(output string) (save bool, data *bytes.Buffer)
 }
 
+func GetAllGenerators() map[string]Generator {
+	return generators
+}
+
 func Regist(name string, g Generator) {
 	generators[name] = g
+}
+
+func HasGenerator(name string) bool {
+	_, ok := generators[name]
+	return ok
 }
 
 func Build(typeName, outfile string) bool {

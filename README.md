@@ -110,7 +110,7 @@ golang编写的将xlsx表文件数据及结构导出工具
 package: "GameData" # 导出代码的包名（命名空间）
 pb_bytes_file_ext: ".bytes" # 二进制数据文件后缀名，unity中请使用.bytes
 comment_symbol: "#" # 定义表格中的注释符
-export_type: 1 # 全局导出类型设置，1-忽略前后端配置,2-仅导出客户端代码/数据,3-仅导出服务端代码/数据
+export_type: 1 # 全局导出类型设置，1-导出前后端代码/数据,2-仅导出客户端代码/数据,3-仅导出服务端代码/数据,4-忽略(表格式无需添加此行)
 array_split_char: "|" #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
 strict_mode: true # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0

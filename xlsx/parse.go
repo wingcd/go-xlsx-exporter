@@ -243,7 +243,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			filterRows = append(filterRows, row)
 		}
 
-		rows = append(rows, filterRows[4:]...)
+		rows = append(rows, filterRows[model.FixedRowCount:]...)
 	}
 
 	table = new(model.DataTable)
@@ -280,7 +280,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			}
 
 			// 找到前4个非注释行就退出
-			if len(newCol) == 4 {
+			if len(newCol) == model.FixedRowCount {
 				break
 			}
 		}
@@ -302,9 +302,12 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		}
 
 		header := new(model.DataTableHeader)
-		cs := strings.ToLower(col[model.DATA_ROW_CS_INDEX])
-		header.ExportClient = strings.Contains(cs, "c")
-		header.ExportServer = strings.Contains(cs, "s")
+		cs := ""
+		if settings.ExportType != settings.EXPORT_TYPE_ALL {
+			cs = strings.ToLower(col[model.DATA_ROW_CS_INDEX])
+			header.ExportClient = strings.Contains(cs, "c")
+			header.ExportServer = strings.Contains(cs, "s")
+		}
 		if cs == "" {
 			header.ExportClient = true
 			header.ExportServer = true
@@ -312,7 +315,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		header.Desc = col[model.DATA_ROW_DESC_INDEX]
 
 		ignore := false
-		if settings.ExportType != settings.EXPORT_TYPE_IGNORE {
+		if settings.ExportType != settings.EXPORT_TYPE_ALL {
 			if settings.EXPORT_TYPE_CLIENT == settings.ExportType && !header.ExportClient {
 				// 当为客户端导出，但此列不支持客户端时，过滤掉
 				ignore = true

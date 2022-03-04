@@ -139,3 +139,8 @@ func Const2Table(info *DefineTableInfo) *DataTable {
 
 	return &table
 }
+
+func SetNotSupportExportType() {
+	DATA_ROW_FIELD_INDEX = 2
+	FixedRowCount = 3
+}

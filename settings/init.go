@@ -7,16 +7,17 @@ import (
 )
 
 const (
-	EXPORT_TYPE_IGNORE = 1
+	EXPORT_TYPE_ALL    = 1
 	EXPORT_TYPE_CLIENT = 2
 	EXPORT_TYPE_SERVER = 3
+	EXPORT_TYPE_IGNORE = 4
 )
 
 var (
 	GO_PROTO_VERTION = "v1.27.1"
 	TOOL_VERSION     = "1.1"
 
-	ExportType     = EXPORT_TYPE_IGNORE
+	ExportType     = EXPORT_TYPE_ALL
 	PackageName    = "PBGen"
 	PbBytesFileExt = ".bytes"
 	CommentSymbol  = "#"

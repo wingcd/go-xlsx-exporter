@@ -173,19 +173,26 @@ func doExport(exportInfo ExportInfo) {
 			}
 			gens += key
 		}
-		log.Fatalln("未知导出类型:", exportInfo.Type, "\n\t\t\t合法类型有：", gens)
+		log.Fatalf("未知导出类型:%v, id:%v, 路径：%v \n\t\t\t合法类型有： %v\n", exportInfo.Type, exportInfo.ID, exportInfo.Path, gens)
 	}
 
 	if exportInfo.Path == "" {
 		log.Fatalln("导出路径不能为空")
 	}
 
-	settings.ExportType = exportInfo.ExportType
-	if exportInfo.ExportType != 0 {
+	if config.ExportType != settings.EXPORT_TYPE_IGNORE {
 		settings.ExportType = exportInfo.ExportType
+		if exportInfo.ExportType != 0 {
+			settings.ExportType = exportInfo.ExportType
+		}
+		if settings.ExportType < settings.EXPORT_TYPE_ALL || settings.ExportType >= settings.EXPORT_TYPE_IGNORE {
+			settings.ExportType = 1
+		}
+	} else {
+		settings.ExportType = config.ExportType
 	}
-	if settings.ExportType <= 0 {
-		settings.ExportType = 1
+	if settings.ExportType == settings.EXPORT_TYPE_IGNORE {
+		model.SetNotSupportExportType()
 	}
 
 	settings.PackageName = config.Package
@@ -200,7 +207,7 @@ func doExport(exportInfo ExportInfo) {
 	}
 
 	fmt.Printf("执行导出任务，id:%v, 类型：%v, 表：%v, 导出路径：%v, 导出类型：%v \n",
-		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, []string{"忽略前后端配置", "仅客户端", "仅服务器"}[settings.ExportType-1])
+		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1])
 
 	sheetsIds := getIds(exportInfo.Sheets)
 	var sheets []SheetInfo
@@ -230,7 +237,7 @@ func doExport(exportInfo ExportInfo) {
 				langSheets = append(langSheets, info)
 			}
 		} else {
-			log.Fatalf("配置错误：未知表类型[%v], 只支持[define/table]\n", tp)
+			log.Fatalf("配置错误：未知表类型[%v],id:%v 文件:%v, 表:%v, 只支持[define/table]\n", tp, info.ID, info.File, info.Sheet)
 		}
 	}
 

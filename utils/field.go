@@ -172,7 +172,7 @@ func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (succe
 	if !repeated {
 		err, ret = ConvertEnumValue(info, valueType, value)
 		if err != nil {
-			fmt.Printf("[错误] 值类型转换失败:%v [类型:%s 值：%v] \n", err, valueType, value)
+			fmt.Printf("[错误] 值类型转换失败:%v [表：%s, 类型:%s 值：%v] \n", err, info.DefinedTable, valueType, value)
 			return false, value, repeated
 		}
 	} else {
@@ -184,7 +184,7 @@ func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (succe
 			err, rvalue := ConvertEnumValue(info, valueType, vstr)
 
 			if err != nil {
-				fmt.Printf("[错误] 数组类型转换失败:%s [类型:%s 值：%s 子项：%s] \n", err, valueType, value, vstr)
+				fmt.Printf("[错误] 数组类型转换失败:%s [表：%s, 类型:%s 值：%s 子项：%s] \n", err, info.DefinedTable, valueType, value, vstr)
 				return false, value, repeated
 			}
 

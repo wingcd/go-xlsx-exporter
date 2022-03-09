@@ -124,6 +124,7 @@ func GenDefineTable(fd pref.FileDescriptor, dir string, table *model.DefineTable
 
 	// 表数据类型
 	typeMD := fd.Messages().ByName(pref.Name(table.TypeName))
+	fmt.Printf("开始序列化表：%v\n", table.DefinedTable)
 
 	// 单行数据实例
 	item := dynamicpb.NewMessage(typeMD)

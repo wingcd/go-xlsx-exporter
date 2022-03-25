@@ -220,6 +220,14 @@ func ParseType(vtype string) (bool, string) {
 	}
 }
 
+func ToPBType(valueType string) (bool, string) {
+	if tp, ok := supportProtoTypes[valueType]; !ok {
+		return false, ""
+	} else {
+		return true, tp
+	}
+}
+
 func ParseBool(s string) (bool, error) {
 	s = strings.ToUpper(s)
 	switch s {

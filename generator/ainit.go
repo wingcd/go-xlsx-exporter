@@ -39,6 +39,11 @@ func init() {
 
 	funcs = make(template.FuncMap)
 
+	funcs["getPBType"] = func(valueType string) string {
+		_, val := utils.ToPBType(valueType);
+		return val
+	}
+
 	funcs["upperF"] = func(str string) string {
 		if len(str) < 1 {
 			return ""

@@ -27,6 +27,11 @@ type commonFileDesc struct {
 	GoProtoVersion string
 }
 
+var getPBType = func(valueType string) string {
+	_, val := utils.ToPBType(valueType)
+	return val
+}
+
 func init() {
 	var commonInitialismsForReplacer []string
 	var uncommonInitialismsForReplacer []string
@@ -39,10 +44,7 @@ func init() {
 
 	funcs = make(template.FuncMap)
 
-	funcs["getPBType"] = func(valueType string) string {
-		_, val := utils.ToPBType(valueType);
-		return val
-	}
+	funcs["getPBType"] = getPBType
 
 	funcs["upperF"] = func(str string) string {
 		if len(str) < 1 {

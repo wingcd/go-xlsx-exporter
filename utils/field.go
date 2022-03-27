@@ -222,6 +222,9 @@ func ParseType(vtype string) (bool, string) {
 
 func ToPBType(valueType string) (bool, string) {
 	if tp, ok := supportProtoTypes[valueType]; !ok {
+		if IsEnum(valueType) {
+			return true, "uint32"
+		}
 		return false, ""
 	} else {
 		return true, tp

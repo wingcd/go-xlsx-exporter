@@ -95,55 +95,31 @@ $root.{{$NS}} = (function() {
             writer = $Writer.create();
 
         {{range .Headers}}        
-            {{$wireType := wireType .}}
-            {{$count := calcOffset .}}
+            {{- $wireType := wireType .}}
+            {{- $count := calcOffset .}}
 
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
         if (message.{{.FieldName}} != null && message.{{.FieldName}}.length) {
-            writer.uint32(/* id {{add .Index 1}}, wireType {{$wireType}} =*/{{$count}}).fork();
+            writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork();
             for (var i = 0; i < message.TaskItem.length; ++i)
                 writer.uint32(message.TaskItem[i]);
             writer.ldelim();
         }
                 {{- else}}
-                {{$pbType := getPBType .ValueType}}
-            if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
-                writer.uint32(/* id {{add .Index 1}}, wireType {{$wireType}} =*/{{$count}}).{{$pbType}}(message.{{.FieldName}});
+                {{- $pbType := getPBType .ValueType}}
+        if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
+            writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).{{$pbType}}(message.{{.FieldName}});
                 {{- end -}}   
             {{end -}} 
         {{end -}} 
 
-        if (message.ID != null && Object.hasOwnProperty.call(message, "ID"))
-            writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.ID);
-        if (message.TaskItem != null && message.TaskItem.length) {
-            writer.uint32(/* id 2, wireType 2 =*/18).fork();
-            for (var i = 0; i < message.TaskItem.length; ++i)
-                writer.uint32(message.TaskItem[i]);
-            writer.ldelim();
-        }
-        if (message.Type != null && Object.hasOwnProperty.call(message, "Type"))
-            writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.Type);
-        if (message.VecDrop != null && message.VecDrop.length) {
-            writer.uint32(/* id 4, wireType 2 =*/34).fork();
-            for (var i = 0; i < message.VecDrop.length; ++i)
-                writer.uint32(message.VecDrop[i]);
-            writer.ldelim();
-        }
-        if (message.VecGain != null && message.VecGain.length) {
-            writer.uint32(/* id 5, wireType 2 =*/42).fork();
-            for (var i = 0; i < message.VecGain.length; ++i)
-                writer.uint32(message.VecGain[i]);
-            writer.ldelim();
-        }
-        if (message.VecIds != null && message.VecIds.length) {
-            writer.uint32(/* id 6, wireType 2 =*/50).fork();
-            for (var i = 0; i < message.VecIds.length; ++i)
-                writer.uint32(message.VecIds[i]);
-            writer.ldelim();
-        }
         return writer;
+    };
+
+    {{$TypeName}}.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
     };
 
     {{end}}

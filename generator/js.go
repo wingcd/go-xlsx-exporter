@@ -149,9 +149,9 @@ func registJSFuncs() {
 		wire := wireType(item)
 		switch inst := item.(type) {
 		case *model.DefineTableItem:
-			return (inst.Index+1) * 8 + wire
+			return inst.Index*8 + wire
 		case *model.DataTableHeader:
-			return (inst.Index+1) * 8 + wire
+			return inst.Index*8 + wire
 		}
 		return 0
 	}
@@ -197,10 +197,10 @@ var jsWireType = map[string]int{
 	"uint32":  0,
 	"int64":   0,
 	"uint64":  0,
-	"float":   0,
-	"float32": 0,
-	"double":  0,
-	"float64": 0,
+	"float":   5,
+	"float32": 5,
+	"double":  1,
+	"float64": 1,
 	"string":  2,
 	"void":    0,
 }

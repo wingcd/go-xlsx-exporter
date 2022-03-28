@@ -122,6 +122,38 @@ $root.{{$NS}} = (function() {
         return this.encode(message, writer).ldelim();
     };
 
+    {{$TypeName}}.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.{{$TypeName}}.Chain();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                {{- range .Headers}}                
+                {{- $pbType := getPBType .ValueType}}
+                case {{.Index}}:
+                    {{- if .IsArray}}
+                    if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
+                        message.{{.FieldName}} = [];
+                    if ((tag & 7) === 2) {
+                        var end2 = reader.uint32() + reader.pos;
+                        while (reader.pos < end2)
+                            message.{{.FieldName}}.push(reader.{{$pbType}}());
+                    } else
+                        message.{{.FieldName}}.push(reader.{{$pbType}}());
+                    {{- else}}
+                    message.{{.FieldName}} = reader.{{$pbType}}();
+                    {{- end}} 
+                    break;
+                {{- end}}
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
     {{end}}
 })();
 

@@ -109,44 +109,10 @@ func registJSFuncs() {
 		}
 		return ""
 	}
-
-	wireType := func(item interface{}) int {
-		switch inst := item.(type) {
-		case *model.DataTableHeader:
-			if inst.IsArray {
-				return 2
-			} else if inst.IsEnum {
-				var enumInfo = settings.GetEnum(inst.ValueType)
-				if enumInfo != nil {
-					return 0
-				}
-			} else if inst.IsStruct {
-				return 0
-			} else if val, ok := jsWireType[inst.ValueType]; ok {
-				return val
-			}
-		case *model.DataTable:
-			return 0
-		case *model.DefineTableInfo:
-			return 0
-		case string:
-			if val, ok := jsWireType[inst]; ok {
-				return val
-			} else if utils.IsEnum(inst) {
-				var enumInfo = settings.GetEnum(inst)
-				if enumInfo != nil {
-					return 0
-				}
-			} else if utils.IsTable(inst) || utils.IsStruct(inst) {
-				return 0
-			}
-		}
-		return 0
-	}
-	funcs["wireType"] = wireType
+	funcs["wireType"] = utils.GetWireType
 
 	funcs["calcOffset"] = func(item interface{}) int {
-		wire := wireType(item)
+		wire := utils.GetWireType(item)
 		switch inst := item.(type) {
 		case *model.DefineTableItem:
 			return inst.Index*8 + wire
@@ -187,22 +153,6 @@ var defaultJsValue = map[string]string{
 	"float64": "0",
 	"string":  "\"\"",
 	"void":    "",
-}
-
-var jsWireType = map[string]int{
-	"bool":    0,
-	"int":     0,
-	"int32":   0,
-	"uint":    0,
-	"uint32":  0,
-	"int64":   0,
-	"uint64":  0,
-	"float":   5,
-	"float32": 5,
-	"double":  1,
-	"float64": 1,
-	"string":  2,
-	"void":    0,
 }
 
 type jsFileDesc struct {

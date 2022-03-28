@@ -113,6 +113,63 @@ var supportProtoTypes = map[string]string{
 	"string":  "string",
 }
 
+/**
+	see: https://developers.google.cn/protocol-buffers/docs/reference/csharp/class/google/protobuf/wire-format?hl=en
+*/
+var wireType = map[string]int{	
+	"bool":    	0,
+	"int32":   	0,
+	"uint32":  	0,
+	"sint32":  	0,
+	"int64":   	0,
+	"uint64":  	0,
+	"sint64":  	0,
+	"float":   	5,
+	"fix32": 	5,
+	"sfix32": 	5,
+	"double":  	1,
+	"fixed64": 	1,
+	"sfixed64": 1,
+	"string":  	2,
+	"bytes":    2,
+}
+
+func GetWireType (item interface{}) int {
+	switch inst := item.(type) {
+	case *model.DataTableHeader:
+		_, valType  := ToPBType(inst.ValueType)
+		if inst.IsArray {
+			return 2
+		} else if inst.IsEnum {
+			var enumInfo = settings.GetEnum(inst.ValueType)
+			if enumInfo != nil {
+				return 0
+			}
+		} else if inst.IsStruct {
+			return 2
+		} else if val, ok := wireType[valType]; ok {
+			return val
+		}
+	case *model.DataTable:
+		return 2
+	case *model.DefineTableInfo:
+		return 2
+	case string:		
+		_, valType  := ToPBType(inst)
+		if val, ok := wireType[valType]; ok {
+			return val
+		} else if IsEnum(inst) {
+			var enumInfo = settings.GetEnum(inst)
+			if enumInfo != nil {
+				return 0
+			}
+		} else if IsTable(inst) || IsStruct(inst) {
+			return 2
+		}
+	}
+	return 0
+}
+
 func ConvertToStandardType(valueType string) string {
 	if tp, ok := standardTypes[valueType]; ok {
 		return tp
@@ -207,7 +264,7 @@ func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{
 	return false, nil, false
 }
 
-// 将表格中支持的类型转换为protobuf支持的类型
+// 将表格中支持的类型转换为protobuf支持的类型（包含数组）
 func ParseType(vtype string) (bool, string) {
 	_, vtype, repeated, _, _, _ := CompileValueType(vtype)
 
@@ -220,12 +277,13 @@ func ParseType(vtype string) (bool, string) {
 	}
 }
 
+// 基本类型转换为pb类型
 func ToPBType(valueType string) (bool, string) {
 	if tp, ok := supportProtoTypes[valueType]; !ok {
 		if IsEnum(valueType) {
 			return true, "uint32"
 		}
-		return false, ""
+		return false, valueType
 	} else {
 		return true, tp
 	}

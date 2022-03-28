@@ -120,8 +120,14 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 	// 预处理
 	preValue := -1
 	for _, info := range infos {
-		if info.Category == model.DEFINE_TYPE_ENUM {
+		if info.Category == model.DEFINE_TYPE_ENUM {			
+			names := make(map[string]int)
 			for _, item := range info.Items {
+				if _, ok := names[item.FieldName]; ok {
+					log.Fatalf("[错误] 重复定义属性 表：%s 类型：%s 列：%s 描述：%s\n", info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+				}
+				names[item.FieldName] = 0
+
 				value := -1
 				if item.Value == "" {
 					value = preValue + 1
@@ -153,8 +159,14 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 
 			sort.Sort(model.DefineTableItems(info.Items))
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
-			var idx = 0
+			var idx = 0						
+			names := make(map[string]int)
 			for _, item := range info.Items {
+				if _, ok := names[item.FieldName]; ok {
+					log.Fatalf("[错误] 重复定义属性 表：%s 类型：%s 列：%s 描述：%s\n", info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+				}
+				names[item.FieldName] = 0
+
 				if !item.IsVoid {
 					idx++
 				}
@@ -162,7 +174,13 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 			}
 		} else if info.Category == model.DEFINE_TYPE_CONST {
 			var idx = 0
+			names := make(map[string]int)
 			for _, item := range info.Items {
+				if _, ok := names[item.FieldName]; ok {
+					log.Fatalf("[错误] 重复定义属性 表：%s 类型：%s 列：%s 描述：%s\n", info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+				}
+				names[item.FieldName] = 0
+
 				if !item.IsVoid {
 					idx++
 				}
@@ -289,7 +307,8 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	cols = filterCols
 
 	var firstColIndex = -1
-	var idx = 0
+	var idx = 0	
+	names := make(map[string]int)
 	for ci, col := range cols {
 		if _, ignore := ignoreCols[ci]; ignore {
 			continue
@@ -339,6 +358,11 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			}
 
 			header.FieldName = col[model.DATA_ROW_FIELD_INDEX]
+			if _, ok := names[header.FieldName]; ok {
+				log.Fatalf("[错误] 重复定义属性 表：%s 类型：%s 列：%s 描述：%s\n", table.DefinedTable, table.TypeName, header.FieldName, header.Desc)
+			}
+			names[header.FieldName] = 0
+
 			header.TitleFieldName = strings.Title(header.FieldName)
 			header.IsArray = repeated
 			header.ValueType = valueType
@@ -348,7 +372,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			header.Index = idx
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
-			table.Headers = append(table.Headers, header)
+			table.Headers = append(table.Headers, header)			
 
 			if firstColIndex < 0 {
 				firstColIndex = ci

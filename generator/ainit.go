@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
@@ -21,6 +22,12 @@ var (
 var commonInitialisms = []string{"ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS"}
 var commonInitialismsReplacer *strings.Replacer
 var uncommonInitialismsReplacer *strings.Replacer
+
+var intList = []string{"short", "int", "uint", "int32", "uint32", "int64", "uint64", "long"}
+var floatList = []string{"float", "float32", "float64", "double"}
+var numbersList = []string{"short", "int", "uint", "int32", "uint32", "int64", "uint64", "long", "float", "float32", "float64", "double"}
+var boolsList = []string{"bool", "boolean"}
+var stringList = []string{"string"}
 
 type commonFileDesc struct {
 	Version        string
@@ -176,6 +183,72 @@ func init() {
 			ret = append(ret, string(i))
 		}
 		return ret
+	}
+
+	funcs["get_wire_type"] = utils.GetWireType
+
+	funcs["calc_wire_offset"] = func(item interface{}) int {
+		wire := utils.GetWireType(item)
+		switch inst := item.(type) {
+		case *model.DefineTableItem:
+			return inst.Index*8 + wire
+		case *model.DataTableHeader:
+			return inst.Index*8 + wire
+		}
+		return 0
+	}
+
+	funcs["is_interger"] = func(valueType string) bool {
+		for _, v := range intList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["is_float"] = func(valueType string) bool {
+		for _, v := range floatList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["is_number"] = func(valueType string) bool {
+		for _, v := range numbersList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["is_bool"] = func(valueType string) bool {
+		for _, v := range boolsList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["is_string"] = func(valueType string) bool {
+		for _, v := range stringList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["get_enum_values"] = func(pbType string) []int {
+		return utils.GetEnumValues(pbType)
+	}
+
+	funcs["is_message"] = func(pbType string) bool {
+		return utils.IsStruct(pbType) || utils.IsTable(pbType)
 	}
 }
 

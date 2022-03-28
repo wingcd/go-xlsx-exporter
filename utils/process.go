@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/wingcd/go-xlsx-exporter/model"
@@ -15,6 +16,23 @@ func IsEnum(pbType string) bool {
 		return val.Category == model.DEFINE_TYPE_ENUM && ok
 	}
 	return false
+}
+
+func GetEnumValues(pbType string) []int {
+	if settings.DEFINES == nil {
+		return []int{}
+	}
+	if val, ok := settings.DEFINES[pbType]; ok {
+		if ok {
+			values := make([]int, 0)
+			for _, item := range val.Items {
+				val, _ := strconv.Atoi(item.Value)
+				values = append(values, val)
+			}
+			return values
+		}
+	}
+	return []int{}
 }
 
 func IsStruct(pbType string) bool {

@@ -109,18 +109,6 @@ func registJSFuncs() {
 		}
 		return ""
 	}
-	funcs["wireType"] = utils.GetWireType
-
-	funcs["calcOffset"] = func(item interface{}) int {
-		wire := utils.GetWireType(item)
-		switch inst := item.(type) {
-		case *model.DefineTableItem:
-			return inst.Index*8 + wire
-		case *model.DataTableHeader:
-			return inst.Index*8 + wire
-		}
-		return 0
-	}
 }
 
 var supportJSharpTypes = map[string]string{
@@ -209,6 +197,11 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	for _, t := range tables {
 		// 排除语言类型
 		if t.IsLanguage && !settings.GenLanguageType {
+			continue
+		}
+
+		// 排除配置
+		if !t.IsDataTable {
 			continue
 		}
 

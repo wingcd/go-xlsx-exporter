@@ -84,7 +84,7 @@ $root.{{$NS}} = (function() {
     {{$TypeName}}.prototype.{{.FieldName}} =  {{default .}};
             {{end -}}   
         {{end -}} 
-    {{end -}} 
+    {{end}} 
 
     {{$TypeName}}.create = function create(properties) {
         return new {{$TypeName}}(properties);
@@ -93,26 +93,36 @@ $root.{{$NS}} = (function() {
     {{$TypeName}}.encode = function encode(message, writer) {
         if (!writer)
             writer = $Writer.create();
-
+            
         {{range .Headers}}        
-            {{- $wireType := wireType .}}
-            {{- $count := calcOffset .}}
-
+            {{- $wireType := get_wire_type .}}
+            {{- $count := calc_wire_offset .}}           
+            
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+                        {{- if is_message .ValueType}}
+        if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
+            for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                {{$TypeName}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
+                        {{- else}}
         if (message.{{.FieldName}} != null && message.{{.FieldName}}.length) {
             writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork();
             for (var i = 0; i < message.TaskItem.length; ++i)
                 writer.uint32(message.TaskItem[i]);
             writer.ldelim();
         }
+                        {{- end}}{{/*end message*/}}
                 {{- else}}
-                {{- $pbType := getPBType .ValueType}}
         if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
+                        {{- if is_message .ValueType}}
+            {{$TypeName}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
+                        {{- else}}
+                {{- $pbType := getPBType .ValueType}}
             writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).{{$pbType}}(message.{{.FieldName}});
-                {{- end -}}   
-            {{end -}} 
+                        {{- end}}{{/*end message*/}}
+                {{- end -}} {{/*end if*/}}   
+            {{- end}} 
         {{end -}} 
 
         return writer;
@@ -132,17 +142,26 @@ $root.{{$NS}} = (function() {
                 {{- range .Headers}}                
                 {{- $pbType := getPBType .ValueType}}
                 case {{.Index}}:
-                    {{- if .IsArray}}
+                    {{- if .IsArray}}                    
                     if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
                         message.{{.FieldName}} = [];
+
+                        {{- if is_message .ValueType}}
+                    message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
+                        {{- else}}
                     if ((tag & 7) === 2) {
                         var end2 = reader.uint32() + reader.pos;
                         while (reader.pos < end2)
                             message.{{.FieldName}}.push(reader.{{$pbType}}());
                     } else
                         message.{{.FieldName}}.push(reader.{{$pbType}}());
+                        {{- end}}
                     {{- else}}
+                        {{- if is_message .ValueType}}
+                    {{.ValueType}}.decode(reader, reader.uint32());
+                        {{- else}}
                     message.{{.FieldName}} = reader.{{$pbType}}();
+                        {{- end}} {{/*end message*/}}
                     {{- end}} 
                     break;
                 {{- end}}
@@ -153,6 +172,89 @@ $root.{{$NS}} = (function() {
             }
             return message;
         };
+
+    {{$TypeName}}.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    {{$TypeName}}.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        {{- range .Headers}}        
+            if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}"))
+            {{- if .IsArray}}
+                if (!Array.isArray(message.{{.FieldName}}))
+                    return "{{.FieldName}}: array expected";
+                {{- if .IsEnum}}                
+                {{- $enums := get_enum_values .ValueType}}
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                    switch (message.{{.FieldName}}[i]) {
+                        default:
+                            return "{{.FieldName}}: enum value[] expected";
+                        {{- range $enums}}
+                        case {{.}}:
+                        {{- end}}
+                            break;
+                    }
+                {{- else if is_interger .ValueType}}
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                    if (!$util.isInteger(message.{{.FieldName}}[i]))
+                        return "{{.FieldName}}: integer[] expected";
+                {{- else if is_float .ValueType}}
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                    if (typeof message.{{.FieldName}}[i] !== "number")
+                        return "{{.FieldName}}: number[] expected";
+                {{- else if is_bool .ValueType}}
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                    if (typeof message.{{.FieldName}}[i] !== "boolean")
+                        return "{{.FieldName}}: boolean[] expected";
+                {{- else if is_string .ValueType}}
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                    if (!$util.isString(message.{{.FieldName}}[i]))
+                        return "{{.FieldName}}: string[] expected";    
+                {{- else if is_message .ValueType}}     
+                for (var i = 0; i < message.{{.FieldName}}.length; ++i) {
+                    var error = {{.ValueType}}.verify(message.{{.FieldName}}[i]);
+                    if (error)
+                        return "{{.FieldName}}." + error;
+                }       
+                {{- else}}
+                    "error type {{.ValueType}} {{.FieldName}}";
+                {{- end}}
+            {{- else}}
+                {{- if .IsEnum}}
+                {{- $enums := get_enum_values .ValueType}}
+                switch (message.{{.FieldName}}) {
+                    default:
+                        return "{{.FieldName}}: enum value expected";
+                    {{- range $enums}}
+                    case {{.}}:
+                    {{- end}}
+                        break;
+                }
+                {{- else if is_interger .ValueType}}
+                if (!$util.isInteger(message.{{.FieldName}}))
+                    return "{{.FieldName}}: integer expected";
+                {{- else if is_float .ValueType}}
+                if (typeof message.{{.FieldName}} !== "number")
+                    return "{{.FieldName}}: number expected";
+                {{- else if is_bool .ValueType}}
+                if (typeof message.{{.FieldName}} !== "boolean")
+                    return "{{.FieldName}}: boolean expected";
+                {{- else if is_string .ValueType}}
+                if (!$util.isString(message.{{.FieldName}}))
+                    return "{{.FieldName}}: string expected";
+                {{- else if is_message .ValueType}}
+                    return {{.ValueType}}.verify(message.{{.FieldName}});
+                {{- else}}
+                    "error type {{.ValueType}} {{.FieldName}}";
+                {{- end}}
+            {{- end}}
+        {{- end}}
+        return null;
+    };
 
     {{end}}
 })();

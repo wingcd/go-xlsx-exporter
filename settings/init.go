@@ -103,6 +103,7 @@ func AddLanguageTable() *model.DataTable {
 	hId.FieldName = "ID"
 	hId.RawValueType = "string"
 	hId.ValueType = "string"
+	hId.StandardValueType = hId.ValueType
 	hId.Index = 1
 	hId.TitleFieldName = "ID"
 	hId.ExportClient = true
@@ -113,6 +114,7 @@ func AddLanguageTable() *model.DataTable {
 	hVal.FieldName = "Text"
 	hVal.RawValueType = "string"
 	hVal.ValueType = "string"
+	hVal.StandardValueType = hVal.ValueType
 	hVal.Index = 2
 	hVal.TitleFieldName = "Text"
 	hVal.ExportClient = true

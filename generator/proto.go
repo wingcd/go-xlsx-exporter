@@ -98,7 +98,9 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 			header.TitleFieldName = header.FieldName
 			header.IsArray = true
 			header.ValueType = t.TypeName
+			header.StandardValueType = t.TypeName
 			header.RawValueType = t.TypeName + "[]"
+			header.IsMessage = true
 			table.Headers = []*model.DataTableHeader{&header}
 
 			fd.Tables = append(fd.Tables, &table)

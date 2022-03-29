@@ -115,12 +115,13 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		info.Items = append(info.Items, item)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
+		item.StandardValueType = item.ValueType
 	}
 
 	// 预处理
 	preValue := -1
 	for _, info := range infos {
-		if info.Category == model.DEFINE_TYPE_ENUM {			
+		if info.Category == model.DEFINE_TYPE_ENUM {
 			names := make(map[string]int)
 			for _, item := range info.Items {
 				if _, ok := names[item.FieldName]; ok {
@@ -149,6 +150,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 				item.FieldName = "UNKNOWN"
 				item.TitleFieldName = item.FieldName
 				item.ValueType = ""
+				item.StandardValueType = ""
 				item.Value = "0"
 				item.Desc = ""
 				item.IsArray = false
@@ -159,7 +161,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 
 			sort.Sort(model.DefineTableItems(info.Items))
 		} else if info.Category == model.DEFINE_TYPE_STRUCT {
-			var idx = 0						
+			var idx = 0
 			names := make(map[string]int)
 			for _, item := range info.Items {
 				if _, ok := names[item.FieldName]; ok {
@@ -307,7 +309,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	cols = filterCols
 
 	var firstColIndex = -1
-	var idx = 0	
+	var idx = 0
 	names := make(map[string]int)
 	for ci, col := range cols {
 		if _, ignore := ignoreCols[ci]; ignore {
@@ -372,7 +374,8 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			header.Index = idx
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
-			table.Headers = append(table.Headers, header)			
+			header.StandardValueType = header.ValueType
+			table.Headers = append(table.Headers, header)
 
 			if firstColIndex < 0 {
 				firstColIndex = ci

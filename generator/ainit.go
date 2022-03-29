@@ -23,10 +23,11 @@ var commonInitialisms = []string{"ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EO
 var commonInitialismsReplacer *strings.Replacer
 var uncommonInitialismsReplacer *strings.Replacer
 
-var intList = []string{"short", "int", "uint", "int32", "uint32", "int64", "uint64", "long"}
-var floatList = []string{"float", "float32", "float64", "double"}
-var numbersList = []string{"short", "int", "uint", "int32", "uint32", "int64", "uint64", "long", "float", "float32", "float64", "double"}
-var boolsList = []string{"bool", "boolean"}
+var longList = []string{"int64", "uint64"}
+var intList = []string{"int", "uint", "int64", "uint64"}
+var floatList = []string{"float", "double"}
+var numbersList = []string{"int", "uint", "int64", "uint64", "float", "double"}
+var boolsList = []string{"bool"}
 var stringList = []string{"string"}
 
 type commonFileDesc struct {
@@ -207,6 +208,15 @@ func init() {
 		return false
 	}
 
+	funcs["is_long"] = func(valueType string) bool {
+		for _, v := range longList {
+			if v == valueType {
+				return true
+			}
+		}
+		return false
+	}
+
 	funcs["is_float"] = func(valueType string) bool {
 		for _, v := range floatList {
 			if v == valueType {
@@ -243,8 +253,20 @@ func init() {
 		return false
 	}
 
+	funcs["get_enum"] = func(pbType string) *model.DefineTableInfo {
+		return utils.GetEnum(pbType)
+	}
+
+	funcs["get_enum_default"] = func(pbType string) *model.DefineTableItem {
+		return utils.GetEnumDefault(pbType)
+	}
+
 	funcs["get_enum_values"] = func(pbType string) []int {
 		return utils.GetEnumValues(pbType)
+	}
+
+	funcs["get_enum_names"] = func(pbType string) []string {
+		return utils.GetEnumNames(pbType)
 	}
 
 	funcs["is_message"] = func(pbType string) bool {

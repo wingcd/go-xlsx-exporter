@@ -101,7 +101,7 @@ $root.{{$NS}} = (function() {
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
-                        {{- if is_message .ValueType}}
+                        {{- if .IsMessage}}
         if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
             for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                 {{$TypeName}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
@@ -115,7 +115,7 @@ $root.{{$NS}} = (function() {
                         {{- end}}{{/*end message*/}}
                 {{- else}}
         if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
-                        {{- if is_message .ValueType}}
+                        {{- if .IsMessage}}
             {{$TypeName}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
                         {{- else}}
                 {{- $pbType := getPBType .ValueType}}
@@ -133,45 +133,45 @@ $root.{{$NS}} = (function() {
     };
 
     {{$TypeName}}.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.{{$TypeName}}.Chain();
-            while (reader.pos < end) {
-                var tag = reader.uint32();
-                switch (tag >>> 3) {
-                {{- range .Headers}}                
-                {{- $pbType := getPBType .ValueType}}
-                case {{.Index}}:
-                    {{- if .IsArray}}                    
-                    if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
-                        message.{{.FieldName}} = [];
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.{{$TypeName}}.Chain();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            {{- range .Headers}}                
+            {{- $pbType := getPBType .ValueType}}
+            case {{.Index}}:
+                {{- if .IsArray}}                    
+                if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
+                    message.{{.FieldName}} = [];
 
-                        {{- if is_message .ValueType}}
-                    message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
-                        {{- else}}
-                    if ((tag & 7) === 2) {
-                        var end2 = reader.uint32() + reader.pos;
-                        while (reader.pos < end2)
-                            message.{{.FieldName}}.push(reader.{{$pbType}}());
-                    } else
-                        message.{{.FieldName}}.push(reader.{{$pbType}}());
-                        {{- end}}
+                    {{- if .IsMessage}}
+                message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
                     {{- else}}
-                        {{- if is_message .ValueType}}
-                    {{.ValueType}}.decode(reader, reader.uint32());
-                        {{- else}}
-                    message.{{.FieldName}} = reader.{{$pbType}}();
-                        {{- end}} {{/*end message*/}}
-                    {{- end}} 
-                    break;
-                {{- end}}
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
+                if ((tag & 7) === 2) {
+                    var end2 = reader.uint32() + reader.pos;
+                    while (reader.pos < end2)
+                        message.{{.FieldName}}.push(reader.{{$pbType}}());
+                } else
+                    message.{{.FieldName}}.push(reader.{{$pbType}}());
+                    {{- end}}
+                {{- else}}
+                    {{- if .IsMessage}}
+                {{.ValueType}}.decode(reader, reader.uint32());
+                    {{- else}}
+                message.{{.FieldName}} = reader.{{$pbType}}();
+                    {{- end}} {{/*end message*/}}
+                {{- end}} 
+                break;
+            {{- end}}
+            default:
+                reader.skipType(tag & 7);
+                break;
             }
-            return message;
-        };
+        }
+        return message;
+    };
 
     {{$TypeName}}.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader))
@@ -214,7 +214,7 @@ $root.{{$NS}} = (function() {
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                     if (!$util.isString(message.{{.FieldName}}[i]))
                         return "{{.FieldName}}: string[] expected";    
-                {{- else if is_message .ValueType}}     
+                {{- else if .IsMessage}}     
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i) {
                     var error = {{.ValueType}}.verify(message.{{.FieldName}}[i]);
                     if (error)
@@ -246,7 +246,7 @@ $root.{{$NS}} = (function() {
                 {{- else if is_string .ValueType}}
                 if (!$util.isString(message.{{.FieldName}}))
                     return "{{.FieldName}}: string expected";
-                {{- else if is_message .ValueType}}
+                {{- else if .IsMessage}}
                     return {{.ValueType}}.verify(message.{{.FieldName}});
                 {{- else}}
                     "error type {{.ValueType}} {{.FieldName}}";
@@ -256,7 +256,169 @@ $root.{{$NS}} = (function() {
         return null;
     };
 
-    {{end}}
+    {{$TypeName}}.fromObject = function fromObject(object) {
+        if (object instanceof {{$TypeName}})
+            return object;
+        var message = new {{$TypeName}}();
+        {{- range .Headers}}  
+            {{- if .IsArray}}
+            if (!Array.isArray(object.{{.FieldName}}))
+                throw TypeError("{{$TypeName}}.{{.FieldName}}: array expected");
+            
+            message.{{.FieldName}} = [];
+            for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                {{- if .IsEnum}} 
+                    {{- $enum := get_enum .ValueType}}
+                switch (object.{{.FieldName}}[i]) {
+                default:
+                    {{- range $enum.Items}}
+                case "{{.FieldName}}":
+                case {{.Value}}:
+                    message.{{.FieldName}}[i] = {{.Value}};
+                    break;
+                    {{- end}}    
+                }                
+                {{- else if is_long .ValueType}}
+                if ($util.Long)
+                    (message.{{.FieldName}}[i] = $util.Long.fromValue(object.{{.FieldName}})).unsigned = {{if eq .ValueType "uint64"}}true{{else}}false{{end}};
+                else if (typeof object.{{.FieldName}} === "string")
+                    message.{{.FieldName}}[i] = parseInt(object.{{.FieldName}}, 10);
+                else if (typeof object.{{.FieldName}} === "number")
+                    message.{{.FieldName}}[i] = object.{{.FieldName}};
+                else if (typeof object.{{.FieldName}} === "object")
+                    message.{{.FieldName}}[i] = new $util.LongBits(object.{{.FieldName}}.low >>> 0, object.{{.FieldName}}.high >>> 0).toNumber();
+                {{- else if or (eq .ValueType "int") (eq .ValueType "uint")}}
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                    message.{{.FieldName}}[i] = object.{{.FieldName}}[i] | 0;
+                {{- else if eq .ValueType "bool"}}
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                    message.{{.FieldName}}[i] = Boolean(object.{{.FieldName}}[i]);
+                {{- else if is_float .ValueType}}
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                    message.{{.FieldName}}[i] = Number(object.{{.FieldName}}[i]);
+                {{- else if .IsMessage}}
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i) {
+                    if (typeof object.{{.FieldName}}[i] !== "object")
+                        throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
+                    message.{{.FieldName}}[i] = {{$TypeName}}.fromObject(object.{{.FieldName}}[i]);
+            }
+                {{- end}}
+            {{- else}}
+                {{- if .IsEnum}} 
+                {{- $enum := get_enum .ValueType}}
+            switch (object.{{.FieldName}}) {
+                default:
+                    {{- range $enum.Items}}
+                case "{{.FieldName}}":
+                case {{.Value}}:
+                    message.{{.FieldName}} = {{.Value}};
+                    break;
+                    {{- end}}    
+                }               
+                {{- else if is_long .ValueType}}
+            if ($util.Long)
+                (message.{{.FieldName}} = $util.Long.fromValue(object.{{.FieldName}})).unsigned = {{if eq .ValueType "uint64"}}true{{else}}false{{end}};
+            else if (typeof object.{{.FieldName}} === "string")
+                message.{{.FieldName}} = parseInt(object.{{.FieldName}}, 10);
+            else if (typeof object.{{.FieldName}} === "number")
+                message.{{.FieldName}} = object.{{.FieldName}};
+            else if (typeof object.{{.FieldName}} === "object")
+                message.{{.FieldName}} = new $util.LongBits(object.{{.FieldName}}.low >>> 0, object.{{.FieldName}}.high >>> 0).toNumber();
+                {{- else if or (eq .ValueType "int") (eq .ValueType "uint")}}
+            if (object.{{.FieldName}} != null)
+                message.{{.FieldName}} = object.{{.FieldName}} | 0;
+                {{- else if eq .ValueType "bool"}}
+            if (object.{{.FieldName}} != null)
+                message.{{.FieldName}} = Boolean(object.{{.FieldName}});
+                {{- else if is_float .ValueType}}
+            if (object.{{.FieldName}} != null)
+                message.{{.FieldName}} = Number(object.{{.FieldName}});
+                {{- else if .IsMessage}}
+            if (typeof object.{{.FieldName}} !== "object")
+                throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
+            message.{{.FieldName}} = {{$TypeName}}.fromObject(object.{{.FieldName}});
+                {{- end}}
+            {{- end}}
+        {{- end}}
+        return message;
+    };
+
+    {{$TypeName}}.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults) {
+        {{- range .Headers}}  
+            {{- if .IsArray}}
+            object.{{.FieldName}} = [];
+            {{- end}}
+        {{- end}}
+        }
+
+        if (options.defaults) {
+        {{- range .Headers}}  
+            {{- if is_long .ValueType}}
+            if ($util.Long) {
+                var long = new $util.Long(0, 0, false);
+                object.{{.FieldName}} = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+            } else
+                object.{{.FieldName}} = options.longs === String ? "0" : 0;
+            {{- else if .IsEnum}}
+            {{$enumDefault := get_enum_default .ValueType}}
+            object.{{.FieldName}} = options.enums === String ? "{{$enumDefault.FieldName}}" : {{$enumDefault.Value}};
+            {{- else}}
+            object.{{.FieldName}} = {{default .}};
+            {{- end}}
+        {{- end}}
+        }
+
+        {{- range .Headers}}  
+            {{- if .IsArray}}
+            
+        if (message.{{.FieldName}} && message.{{.FieldName}}.length) {
+            object.{{.FieldName}} = [];
+            for (var j = 0; j < message.{{.FieldName}}.length; ++j)
+                {{- if is_float .ValueType}}
+                object.{{.FieldName}}[j] = options.json && !isFinite(message.{{.FieldName}}[j]) ? String(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
+                {{- else if is_long .ValueType}}
+                if (typeof message.{{.FieldName}}[j] === "number")
+                    object.{{.FieldName}}[j] = options.longs === String ? String(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
+                else
+                    object.{{.FieldName}}[j] = options.longs === String ? $util.Long.prototype.toString.call(message.{{.FieldName}}[j]) : options.longs === Number ? new $util.LongBits(message.{{.FieldName}}[j].low >>> 0, message.{{.FieldName}}[j].high >>> 0).toNumber() : message.{{.FieldName}}[j];
+                {{- else if .IsEnum}}
+                object.{{.FieldName}}[j] = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}[j]] : message.{{.FieldName}}[j];
+                {{- else if .IsMessage}}
+                object.{{.FieldName}}[j] = {{.ValueType}}.toObject(message.{{.FieldName}}[j], options);
+                {{- else}}
+                object.{{.FieldName}}[j] = message.{{.FieldName}}[j];
+                {{- end}}
+        }
+            {{- else}}
+        if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}"))
+                {{- if is_float .ValueType}}
+            object.{{.FieldName}} = options.json && !isFinite(message.{{.FieldName}}) ? String(message.{{.FieldName}}) : message.{{.FieldName}};
+                {{- else if is_long .ValueType}}
+            if (typeof message.{{.FieldName}} === "number")
+                object.{{.FieldName}} = options.longs === String ? String(message.{{.FieldName}}) : message.{{.FieldName}};
+            else
+                object.{{.FieldName}} = options.longs === String ? $util.Long.prototype.toString.call(message.{{.FieldName}}) : options.longs === Number ? new $util.LongBits(message.{{.FieldName}}.low >>> 0, message.{{.FieldName}}.high >>> 0).toNumber() : message.{{.FieldName}};
+                {{- else if .IsEnum}}
+                object.{{.FieldName}} = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}] : message.{{.FieldName}};
+                {{- else if .IsMessage}}
+            object.{{.FieldName}} = {{.ValueType}}.toObject(message.{{.FieldName}}, options);
+                {{- else}}
+            object.{{.FieldName}} = message.{{.FieldName}};
+                {{- end}}
+            {{- end}}
+        {{- end}}{{/*end range headers */}}
+        return object;
+    };{{/*end toObject function*/}}
+
+    {{$TypeName}}.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    {{- end}} {{/*end tables */}}    
 })();
 
 module.exports = $root;

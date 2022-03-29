@@ -18,6 +18,26 @@ func IsEnum(pbType string) bool {
 	return false
 }
 
+func GetEnum(pbType string) *model.DefineTableInfo {
+	if settings.DEFINES == nil {
+		return nil
+	}
+	if val, ok := settings.DEFINES[pbType]; ok {
+		return val
+	}
+	return nil
+}
+
+func GetEnumDefault(pbType string) *model.DefineTableItem {
+	if settings.DEFINES == nil {
+		return nil
+	}
+	if val, ok := settings.DEFINES[pbType]; ok {
+		return val.Items[0]
+	}
+	return nil
+}
+
 func GetEnumValues(pbType string) []int {
 	if settings.DEFINES == nil {
 		return []int{}
@@ -33,6 +53,22 @@ func GetEnumValues(pbType string) []int {
 		}
 	}
 	return []int{}
+}
+
+func GetEnumNames(pbType string) []string {
+	if settings.DEFINES == nil {
+		return []string{}
+	}
+	if val, ok := settings.DEFINES[pbType]; ok {
+		if ok {
+			values := make([]string, 0)
+			for _, item := range val.Items {
+				values = append(values, item.FieldName)
+			}
+			return values
+		}
+	}
+	return []string{}
 }
 
 func IsStruct(pbType string) bool {

@@ -298,6 +298,7 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 			header.ValueType = t.TypeName
 			header.EncodeType = "bytes"
 			header.RawValueType = t.TypeName + "[]"
+			header.IsMessage = true
 			table.Headers = []*model.DataTableHeader{&header}
 
 			fd.Tables = append(fd.Tables, &table)

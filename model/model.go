@@ -9,6 +9,8 @@ type StructInfo struct {
 	TitleFieldName string
 	// 表中定义的原始类型
 	RawValueType string
+	// 转换后的标准类型
+	StandardValueType string
 	// 转换后的值类型
 	ValueType string
 	// 二进制编码方式
@@ -26,6 +28,8 @@ type StructInfo struct {
 	// 此字段是否可转换对象
 	Convertable bool
 	IsVoid      bool
+	// 是否消息类型
+	IsMessage bool
 }
 
 // 定义表数据项（按行）

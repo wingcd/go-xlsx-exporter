@@ -88,7 +88,7 @@ func registJSFuncs() {
 				}
 			} else if inst.IsStruct {
 				return nilType
-			} else if val, ok := defaultJsValue[inst.ValueType]; ok {
+			} else if val, ok := defaultJsValue[inst.StandardValueType]; ok {
 				return val
 			}
 		case *model.DataTable:
@@ -112,35 +112,26 @@ func registJSFuncs() {
 }
 
 var supportJSharpTypes = map[string]string{
-	"bool":    "bool",
-	"int":     "int",
-	"int32":   "int",
-	"uint":    "uint",
-	"uint32":  "uint",
-	"int64":   "long",
-	"uint64":  "ulong",
-	"float":   "float",
-	"float32": "float",
-	"double":  "double",
-	"float64": "double",
-	"string":  "string",
-	"void":    "object",
+	"bool":   "bool",
+	"int":    "int",
+	"uint":   "uint",
+	"int64":  "int64",
+	"uint64": "uint64",
+	"float":  "float",
+	"double": "double",
+	"string": "string",
 }
 
 var defaultJsValue = map[string]string{
-	"bool":    "false",
-	"int":     "0",
-	"int32":   "0",
-	"uint":    "0",
-	"uint32":  "0",
-	"int64":   "0",
-	"uint64":  "0",
-	"float":   "0",
-	"float32": "0",
-	"double":  "0",
-	"float64": "0",
-	"string":  "\"\"",
-	"void":    "",
+	"bool":   "false",
+	"int":    "0",
+	"uint":   "0",
+	"int64":  "0",
+	"uint64": "0",
+	"float":  "0",
+	"double": "0",
+	"string": "\"\"",
+	"void":   "null",
 }
 
 type jsFileDesc struct {
@@ -184,14 +175,6 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 
 	utils.PreProcessDefine(fd.Consts)
 
-	for _, c := range fd.Consts {
-		for _, it := range c.Items {
-			if !it.IsEnum && !it.IsStruct {
-				it.ValueType = supportJSharpTypes[it.ValueType]
-			}
-		}
-	}
-
 	tables := settings.GetAllTables()
 	utils.PreProcessTable(tables)
 	for _, t := range tables {
@@ -214,7 +197,6 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
-				h.ValueType = supportJSharpTypes[h.ValueType]
 			}
 		}
 
@@ -230,6 +212,7 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		header.IsArray = true
 		header.ValueType = t.TypeName
 		header.RawValueType = t.TypeName + "[]"
+		header.IsMessage = true
 		table.Headers = []*model.DataTableHeader{&header}
 
 		fd.Tables = append(fd.Tables, &table)

@@ -11,6 +11,8 @@ type StructInfo struct {
 	RawValueType string
 	// 转换后的标准类型
 	StandardValueType string
+	// protobuf类型
+	PBValueType string
 	// 转换后的值类型
 	ValueType string
 	// 二进制编码方式

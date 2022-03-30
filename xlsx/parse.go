@@ -116,6 +116,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
 		item.StandardValueType = item.ValueType
+		_, item.PBValueType = utils.ToPBType(item.StandardValueType)
 	}
 
 	// 预处理
@@ -151,6 +152,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 				item.TitleFieldName = item.FieldName
 				item.ValueType = ""
 				item.StandardValueType = ""
+				item.PBValueType = ""
 				item.Value = "0"
 				item.Desc = ""
 				item.IsArray = false
@@ -375,6 +377,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
 			header.StandardValueType = header.ValueType
+			_, header.PBValueType = utils.ToPBType(header.StandardValueType)
 			table.Headers = append(table.Headers, header)
 
 			if firstColIndex < 0 {

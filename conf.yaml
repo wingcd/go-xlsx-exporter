@@ -85,3 +85,7 @@ exports:
  id: 6
  type: "js"
  path: "./gen/code/data_mode.js"
+-
+ id: 7
+ type: "dts"
+ path: "./gen/code/data_mode.d.ts"

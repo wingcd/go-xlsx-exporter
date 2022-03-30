@@ -13,15 +13,15 @@ import (
 	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
-var jsTemplate = ""
+var dtsTemplate = ""
 
-func jsFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
+func dtsFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
 	var ret = ""
 	if isArray {
 		var arr = value.([]interface{})
 		var lst []string
 		for _, it := range arr {
-			lst = append(lst, jsFormatValue(it, valueType, isEnum, false))
+			lst = append(lst, dtsFormatValue(it, valueType, isEnum, false))
 		}
 		ret = fmt.Sprintf("[ %s ]", strings.Join(lst, ", "))
 	} else if isEnum {
@@ -41,13 +41,13 @@ func jsFormatValue(value interface{}, valueType string, isEnum bool, isArray boo
 	return ret
 }
 
-var jsGenetatorInited = false
+var dtsGenetatorInited = false
 
-func registJSFuncs() {
-	if jsGenetatorInited {
+func egistDTSFuncs() {
+	if dtsGenetatorInited {
 		return
 	}
-	jsGenetatorInited = true
+	dtsGenetatorInited = true
 
 	funcs["value_format"] = func(value string, item interface{}) string {
 		var isEnum = false
@@ -72,7 +72,7 @@ func registJSFuncs() {
 			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
 			return value
 		}
-		return jsFormatValue(val, valueType, isEnum, isArray)
+		return dtsFormatValue(val, valueType, isEnum, isArray)
 	}
 
 	funcs["default"] = func(item interface{}) string {
@@ -88,7 +88,7 @@ func registJSFuncs() {
 				}
 			} else if inst.IsStruct {
 				return nilType
-			} else if val, ok := defaultJsValue[inst.StandardValueType]; ok {
+			} else if val, ok := sdefaultDTSValue[inst.StandardValueType]; ok {
 				return val
 			}
 		case *model.DataTable:
@@ -96,7 +96,7 @@ func registJSFuncs() {
 		case *model.DefineTableInfo:
 			return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
 		case string:
-			if val, ok := defaultJsValue[inst]; ok {
+			if val, ok := sdefaultDTSValue[inst]; ok {
 				return val
 			} else if utils.IsEnum(inst) {
 				var enumInfo = settings.GetEnum(inst)
@@ -111,18 +111,18 @@ func registJSFuncs() {
 	}
 }
 
-var supportJSTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int",
-	"uint":   "uint",
-	"int64":  "int64",
-	"uint64": "uint64",
-	"float":  "float",
-	"double": "double",
+var supportDTSTypes = map[string]string{
+	"bool":   "boolean",
+	"int":    "number",
+	"uint":   "number",
+	"int64":  "number",
+	"uint64": "number",
+	"float":  "number",
+	"double": "number",
 	"string": "string",
 }
 
-var defaultJsValue = map[string]string{
+var sdefaultDTSValue = map[string]string{
 	"bool":   "false",
 	"int":    "0",
 	"uint":   "0",
@@ -134,7 +134,7 @@ var defaultJsValue = map[string]string{
 	"void":   "null",
 }
 
-type jsFileDesc struct {
+type dtsFileDesc struct {
 	commonFileDesc
 
 	Namespace string
@@ -143,28 +143,28 @@ type jsFileDesc struct {
 	Tables    []*model.DataTable
 }
 
-type jsGenerator struct {
+type dtsGenerator struct {
 }
 
-func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
-	registJSFuncs()
+func (g *dtsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+	egistDTSFuncs()
 
-	if jsTemplate == "" {
-		data, err := ioutil.ReadFile("./template/js.gtpl")
+	if dtsTemplate == "" {
+		data, err := ioutil.ReadFile("./template/dts.gtpl")
 		if err != nil {
 			log.Println(err)
 			return false, nil
 		}
-		jsTemplate = string(data)
+		dtsTemplate = string(data)
 	}
 
-	tpl, err := template.New("js").Funcs(funcs).Parse(jsTemplate)
+	tpl, err := template.New("dts").Funcs(funcs).Parse(dtsTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return false, nil
 	}
 
-	var fd = jsFileDesc{
+	var fd = dtsFileDesc{
 		Namespace: settings.PackageName,
 		Enums:     settings.ENUMS[:],
 		Consts:    settings.CONSTS[:],
@@ -174,6 +174,13 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	utils.PreProcessDefine(fd.Consts)
+	for _, c := range fd.Consts {
+		for _, it := range c.Items {
+			if !it.IsEnum && !it.IsStruct {
+				it.ValueType = supportDTSTypes[it.ValueType]
+			}
+		}
+	}
 
 	tables := settings.GetAllTables()
 	utils.PreProcessTable(tables)
@@ -193,10 +200,11 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		// 处理类型
 		for _, h := range t.Headers {
 			if !h.IsEnum && !h.IsStruct {
-				if _, ok := supportJSTypes[h.ValueType]; !ok {
+				if _, ok := supportDTSTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
+				h.ValueType = supportDTSTypes[h.ValueType]
 			}
 		}
 
@@ -231,5 +239,5 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 }
 
 func init() {
-	Regist("js", &jsGenerator{})
+	Regist("dts", &dtsGenerator{})
 }

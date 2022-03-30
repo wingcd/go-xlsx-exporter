@@ -99,6 +99,7 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 			header.IsArray = true
 			header.ValueType = t.TypeName
 			header.StandardValueType = t.TypeName
+			_, header.PBValueType = utils.ToPBType(t.TypeName)
 			header.RawValueType = t.TypeName + "[]"
 			header.IsMessage = true
 			table.Headers = []*model.DataTableHeader{&header}

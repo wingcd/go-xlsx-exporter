@@ -13,15 +13,15 @@ import (
 	"github.com/wingcd/go-xlsx-exporter/utils"
 )
 
-var jsTemplate = ""
+var tsTemplate = ""
 
-func jsFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
+func tsFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
 	var ret = ""
 	if isArray {
 		var arr = value.([]interface{})
 		var lst []string
 		for _, it := range arr {
-			lst = append(lst, jsFormatValue(it, valueType, isEnum, false))
+			lst = append(lst, tsFormatValue(it, valueType, isEnum, false))
 		}
 		ret = fmt.Sprintf("[ %s ]", strings.Join(lst, ", "))
 	} else if isEnum {
@@ -41,13 +41,13 @@ func jsFormatValue(value interface{}, valueType string, isEnum bool, isArray boo
 	return ret
 }
 
-var jsGenetatorInited = false
+var tsGenetatorInited = false
 
-func registJSFuncs() {
-	if jsGenetatorInited {
+func egistTSFuncs() {
+	if tsGenetatorInited {
 		return
 	}
-	jsGenetatorInited = true
+	tsGenetatorInited = true
 
 	funcs["value_format"] = func(value string, item interface{}) string {
 		var isEnum = false
@@ -72,7 +72,7 @@ func registJSFuncs() {
 			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
 			return value
 		}
-		return jsFormatValue(val, valueType, isEnum, isArray)
+		return tsFormatValue(val, valueType, isEnum, isArray)
 	}
 
 	funcs["default"] = func(item interface{}) string {
@@ -88,7 +88,7 @@ func registJSFuncs() {
 				}
 			} else if inst.IsStruct {
 				return nilType
-			} else if val, ok := defaultJsValue[inst.StandardValueType]; ok {
+			} else if val, ok := sdefaultTSValue[inst.StandardValueType]; ok {
 				return val
 			}
 		case *model.DataTable:
@@ -96,7 +96,7 @@ func registJSFuncs() {
 		case *model.DefineTableInfo:
 			return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
 		case string:
-			if val, ok := defaultJsValue[inst]; ok {
+			if val, ok := sdefaultTSValue[inst]; ok {
 				return val
 			} else if utils.IsEnum(inst) {
 				var enumInfo = settings.GetEnum(inst)
@@ -111,7 +111,7 @@ func registJSFuncs() {
 	}
 }
 
-var supportJSTypes = map[string]string{
+var supportTSharpTypes = map[string]string{
 	"bool":   "bool",
 	"int":    "int",
 	"uint":   "uint",
@@ -122,7 +122,7 @@ var supportJSTypes = map[string]string{
 	"string": "string",
 }
 
-var defaultJsValue = map[string]string{
+var sdefaultTSValue = map[string]string{
 	"bool":   "false",
 	"int":    "0",
 	"uint":   "0",
@@ -134,7 +134,7 @@ var defaultJsValue = map[string]string{
 	"void":   "null",
 }
 
-type jsFileDesc struct {
+type tsFileDesc struct {
 	commonFileDesc
 
 	Namespace string
@@ -143,28 +143,28 @@ type jsFileDesc struct {
 	Tables    []*model.DataTable
 }
 
-type jsGenerator struct {
+type tsGenerator struct {
 }
 
-func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
-	registJSFuncs()
+func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+	egistTSFuncs()
 
-	if jsTemplate == "" {
-		data, err := ioutil.ReadFile("./template/js.gtpl")
+	if tsTemplate == "" {
+		data, err := ioutil.ReadFile("./template/ts.gtpl")
 		if err != nil {
 			log.Println(err)
 			return false, nil
 		}
-		jsTemplate = string(data)
+		tsTemplate = string(data)
 	}
 
-	tpl, err := template.New("js").Funcs(funcs).Parse(jsTemplate)
+	tpl, err := template.New("ts").Funcs(funcs).Parse(tsTemplate)
 	if err != nil {
 		log.Println(err.Error())
 		return false, nil
 	}
 
-	var fd = jsFileDesc{
+	var fd = tsFileDesc{
 		Namespace: settings.PackageName,
 		Enums:     settings.ENUMS[:],
 		Consts:    settings.CONSTS[:],
@@ -193,7 +193,7 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		// 处理类型
 		for _, h := range t.Headers {
 			if !h.IsEnum && !h.IsStruct {
-				if _, ok := supportJSTypes[h.ValueType]; !ok {
+				if _, ok := supportTSharpTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
@@ -231,5 +231,5 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 }
 
 func init() {
-	Regist("js", &jsGenerator{})
+	Regist("ts", &tsGenerator{})
 }

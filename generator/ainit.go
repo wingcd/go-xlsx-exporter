@@ -52,7 +52,7 @@ func init() {
 
 	funcs = make(template.FuncMap)
 
-	funcs["getPBType"] = getPBType
+	funcs["get_pb_type"] = getPBType
 
 	funcs["upperF"] = func(str string) string {
 		if len(str) < 1 {

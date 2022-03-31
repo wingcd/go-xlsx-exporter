@@ -89,3 +89,7 @@ exports:
  id: 7
  type: "dts"
  path: "./gen/code/data_mode.d.ts"
+-
+ id: 8
+ type: "ts"
+ path: "./gen/code/data_mode.ts"

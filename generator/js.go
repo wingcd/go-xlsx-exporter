@@ -43,72 +43,76 @@ func jsFormatValue(value interface{}, valueType string, isEnum bool, isArray boo
 
 var jsGenetatorInited = false
 
+func jsValueDefault(item interface{}) string {
+	var nilType = "null"
+	switch inst := item.(type) {
+	case *model.DataTableHeader:
+		if inst.IsArray {
+			return nilType
+		} else if inst.IsEnum {
+			var enumInfo = settings.GetEnum(inst.ValueType)
+			if enumInfo != nil {
+				return fmt.Sprintf("%s.%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
+			}
+		} else if inst.IsStruct {
+			return nilType
+		} else if val, ok := defaultJsValue[inst.StandardValueType]; ok {
+			return val
+		}
+	case *model.DataTable:
+		return nilType
+	case *model.DefineTableInfo:
+		return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
+	case string:
+		if val, ok := defaultJsValue[inst]; ok {
+			return val
+		} else if utils.IsEnum(inst) {
+			var enumInfo = settings.GetEnum(inst)
+			if enumInfo != nil {
+				return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
+			}
+		} else if utils.IsTable(inst) || utils.IsStruct(inst) {
+			return nilType
+		}
+	}
+	return ""
+}
+
+func jsValueFormat(value string, item interface{}) string {
+	var isEnum = false
+	var valueType = ""
+	var rawValueType = ""
+	var fieldName = ""
+	switch inst := item.(type) {
+	case *model.DefineTableItem:
+		fieldName = inst.FieldName
+		isEnum = inst.IsEnum
+		valueType = inst.ValueType
+		rawValueType = inst.RawValueType
+	case *model.DataTableHeader:
+		fieldName = inst.FieldName
+		isEnum = inst.IsEnum
+		valueType = inst.ValueType
+		rawValueType = inst.RawValueType
+	}
+
+	var ok, val, isArray = utils.ParseValue(rawValueType, value)
+	if !ok {
+		fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
+		return value
+	}
+	return jsFormatValue(val, valueType, isEnum, isArray)
+}
+
 func registJSFuncs() {
 	if jsGenetatorInited {
 		return
 	}
 	jsGenetatorInited = true
 
-	funcs["value_format"] = func(value string, item interface{}) string {
-		var isEnum = false
-		var valueType = ""
-		var rawValueType = ""
-		var fieldName = ""
-		switch inst := item.(type) {
-		case *model.DefineTableItem:
-			fieldName = inst.FieldName
-			isEnum = inst.IsEnum
-			valueType = inst.ValueType
-			rawValueType = inst.RawValueType
-		case *model.DataTableHeader:
-			fieldName = inst.FieldName
-			isEnum = inst.IsEnum
-			valueType = inst.ValueType
-			rawValueType = inst.RawValueType
-		}
+	funcs["value_format"] = jsValueFormat
 
-		var ok, val, isArray = utils.ParseValue(rawValueType, value)
-		if !ok {
-			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
-			return value
-		}
-		return jsFormatValue(val, valueType, isEnum, isArray)
-	}
-
-	funcs["default"] = func(item interface{}) string {
-		var nilType = "null"
-		switch inst := item.(type) {
-		case *model.DataTableHeader:
-			if inst.IsArray {
-				return nilType
-			} else if inst.IsEnum {
-				var enumInfo = settings.GetEnum(inst.ValueType)
-				if enumInfo != nil {
-					return fmt.Sprintf("%s.%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
-				}
-			} else if inst.IsStruct {
-				return nilType
-			} else if val, ok := defaultJsValue[inst.StandardValueType]; ok {
-				return val
-			}
-		case *model.DataTable:
-			return nilType
-		case *model.DefineTableInfo:
-			return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
-		case string:
-			if val, ok := defaultJsValue[inst]; ok {
-				return val
-			} else if utils.IsEnum(inst) {
-				var enumInfo = settings.GetEnum(inst)
-				if enumInfo != nil {
-					return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
-				}
-			} else if utils.IsTable(inst) || utils.IsStruct(inst) {
-				return nilType
-			}
-		}
-		return ""
-	}
+	funcs["default"] = jsValueDefault
 }
 
 var supportJSTypes = map[string]string{

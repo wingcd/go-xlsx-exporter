@@ -6,63 +6,103 @@
 {{- $G := .}}
 {{- $NS := .Namespace}}
 
-/*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-"use strict";
-
-var protobuf = require("protobufjs/minimal");
+import protobuf from "protobufjs";
 
 // Common aliases
 var $Reader = protobuf.Reader, $Writer = protobuf.Writer, $util = protobuf.util;
 
 // Exported root namespace
-var $root = protobuf.roots["default"] || (protobuf.roots["default"] = {});
+var $root = protobuf.roots["default"] || (protobuf.roots["default"] = {} as any);
 
-$root.{{$NS}} = (function() {
-    /**
-     * Namespace {{$NS}}.
-     * @exports {{$NS}}
-     * @namespace
-     */
-    var {{$NS}} = {};
+export interface Long {
+    /** Low bits */
+    low: number;
 
+    /** High bits */
+    high: number;
+
+    /** Whether unsigned or not */
+    unsigned: boolean;
+}
+
+export interface Long {
+    /** Low bits */
+    low: number;
+
+    /** High bits */
+    high: number;
+
+    /** Whether unsigned or not */
+    unsigned: boolean;
+}
+
+export namespace {{$NS}} {
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
     // Defined in table: {{.DefinedTable}}
-    var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
-        var valuesById = {}, values = Object.create(valuesById);
-    {{range .Items}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
-        values[valuesById[{{.Index}}] = "{{.FieldName}}"] = {{.Value}};
-    {{end}}
-        return values;
-    })();
-    {{end}}
+    export enum {{.TypeName}} {
+        {{- range .Items}}
+        {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{.FieldName}} = {{.Value}},
+        {{end}}
+    }
+    {{end}}{{/* enum */}}
 
     {{- /*生成配置类类型*/}}
     {{- range .Consts}}
     // Defined in table: {{.DefinedTable}}
-    var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
-        var values = Object.create(valuesById);
-    {{range .Items}}
-    {{- if not .IsVoid }}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
-        values.{{.FieldName}} = {{value_format .Value .}};
-    {{- end}}
-        {{- if .Convertable}}
-        
-        {{- end}}
-    {{end}}
-        return values;
-    })();
-    {{end}}
+    export var {{.TypeName}}: {
+        {{- range .Items}}
+            {{- if not .IsVoid }}   
+                {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
+            {{end}}
+            {{- if .Convertable}}    
+            {{end}}
+        {{end}} {{/*end .Items */}}
+    } = {
+        {{- range .Items}}
+            {{- if not .IsVoid }}
+        {{.FieldName}} : {{value_format .Value .}},
+            {{end}}
+            {{- if .Convertable}}    
+            {{end}}
+        {{end}} {{/*end .Items */}}
+    }
+    {{end}}{{/*end .Consts */}}
 
     {{- /*生成类类型*/}}
     {{- range .Tables}}
+
     {{$TypeName := .TypeName}}
     // Defined in table: {{.DefinedTable}}
-    var {{$TypeName}} = {{$NS}}.{{$TypeName}} = (function() {
+    /** Properties of a {{$TypeName}}. */
+    export interface I{{$TypeName}} {
+        {{range .Headers}}
+            {{- if not .IsVoid }}               
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
+            {{end}} {{/*end not Void*/}}
+        {{end}} {{/*end .Headers */}}
+    }
 
-        function {{$TypeName}}(properties) {
+     /** Represents a {{$TypeName}}. */
+    export class {{$TypeName}} implements I{{$TypeName}} { 
+        {{range .Headers}}
+            {{- if not .IsVoid }}
+                {{- if .IsArray}}
+                    {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{.FieldName}} =  $util.emptyArray;
+                {{else}}
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = {{default .}};
+                {{end -}}   
+            {{end -}} 
+        {{end}}
+
+        /**
+         * Constructs a new {{$TypeName}}.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: I{{$TypeName}}) {
             {{range .Headers}}
         {{- if not .IsVoid }}
             {{- if .IsArray}}
@@ -76,22 +116,11 @@ $root.{{$NS}} = (function() {
                         this[keys[i]] = properties[keys[i]];
         }{{/*end function */}}
 
-        {{range .Headers}}
-            {{- if not .IsVoid }}
-                {{- if .IsArray}}
-                    {{- if ne .Desc ""}} //{{.Desc}} {{end}}
-        {{$TypeName}}.prototype.{{.FieldName}} =  $util.emptyArray;
-                {{else}}
-        {{$TypeName}}.prototype.{{.FieldName}} =  {{default .}};
-                {{end -}}   
-            {{end -}} 
-        {{end}} 
-
-        {{$TypeName}}.create = function create(properties) {
+        static create(properties?: {{$TypeName}}): {{$TypeName}} {
             return new {{$TypeName}}(properties);
-        };
+        }
 
-        {{$TypeName}}.encode = function encode(message, writer) {
+        static encode(message: I{{$TypeName}}, writer?: protobuf.Writer): protobuf.Writer {
             if (!writer)
                 writer = $Writer.create();
                 
@@ -127,13 +156,13 @@ $root.{{$NS}} = (function() {
             {{end -}} 
 
             return writer;
-        };
+        }
 
-        {{$TypeName}}.encodeDelimited = function encodeDelimited(message, writer) {
+        static encodeDelimited(message: I{{$TypeName}}, writer?: protobuf.Writer): protobuf.Writer {
             return this.encode(message, writer).ldelim();
-        };
+        }
 
-        {{$TypeName}}.decode = function decode(reader, length) {
+        static decode(reader: (protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             var end = length === undefined ? reader.len : reader.pos + length, message = new {{$TypeName}}();
@@ -171,15 +200,15 @@ $root.{{$NS}} = (function() {
                 }
             }
             return message;
-        };
+        }
 
-        {{$TypeName}}.decodeDelimited = function decodeDelimited(reader) {
+        static decodeDelimited(reader: (protobuf.Reader|Uint8Array)): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
-        };
+        }
 
-        {{$TypeName}}.verify = function verify(message) {
+        static verify(message: { [k: string]: any }): (string|null) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             {{- range .Headers}}        
@@ -255,9 +284,9 @@ $root.{{$NS}} = (function() {
                 }
             {{- end}} {{/**end range Headers */}}
             return null;
-        };
+        }
 
-        {{$TypeName}}.fromObject = function fromObject(object) {
+        static fromObject(object: { [k: string]: any }): {{$TypeName}} {
             if (object instanceof {{$TypeName}})
                 return object;
             var message = new {{$TypeName}}();
@@ -268,8 +297,8 @@ $root.{{$NS}} = (function() {
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: array expected");            
                 message.{{.FieldName}} = [];
                 for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                    {{- $Ofn := .FieldName}}
                     {{- if .IsEnum}} 
-                        {{- $Ofn := .FieldName}}
                         {{- $enum := get_enum .StandardValueType}}
                     switch (object.{{.FieldName}}[i]) {
                         default:
@@ -305,10 +334,10 @@ $root.{{$NS}} = (function() {
                     message.{{.FieldName}}[i] = {{$TypeName}}.fromObject(object.{{.FieldName}}[i]);
                     {{- end}}
             }
-                {{- else}}{{/**end if Array */}}
+                {{- else}}{{/**end if Array */}}    
                     {{- if not .IsEnum}}                
             if (object.{{.FieldName}} != null)
-                    {{- end}}
+                    {{- end}}                
                     {{- if .IsEnum}} 
                     {{- $Ofn := .FieldName}}
                     {{- $enum := get_enum .StandardValueType}}
@@ -348,12 +377,12 @@ $root.{{$NS}} = (function() {
                 {{- end}}
             {{- end}}
             return message;
-        };
+        }
 
-        {{$TypeName}}.toObject = function toObject(message, options) {
+        static toObject(message: {{$TypeName}}, options?: protobuf.IConversionOptions): { [k: string]: any } {
             if (!options)
                 options = {};
-            var object = {};
+            var object: any = {};
             if (options.arrays || options.defaults) {
             {{- range .Headers}}  
                 {{- if .IsArray}}
@@ -419,17 +448,11 @@ $root.{{$NS}} = (function() {
                 {{- end}}
             {{- end}}{{/*end range headers */}}
             return object;
-        };{{/*end toObject function*/}}
+        }{{/*end toObject function*/}}
 
-        {{$TypeName}}.prototype.toJSON = function toJSON() {
-            return this.constructor.toObject(this, protobuf.util.toJSONOptions);
-        };
-
-        return {{$TypeName}};
-    })(); {{/*end class */}}
+        toJSON(): { [k: string]: any } {
+            return {{$TypeName}}.toObject(this, protobuf.util.toJSONOptions);
+        }
+    } {{/*end class */}}
         {{- end}} {{/*end tables */}}
-
-    return {{$NS}};
-})(); {{/*end all */}}
-
-module.exports = $root;
+}{{/*end namespace */}}

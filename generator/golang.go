@@ -209,11 +209,11 @@ func (f *goFileDesc) genProtoRawDesc() {
 	// proto.FileDescriptor(XXX)
 	// 生成文件描述数据
 	pt := protodesc.ToFileDescriptorProto(fd)
-	var b, _ = proto.Marshal(pt)
-	if len(b) > 0 {
+	var bts, _ = proto.Marshal(pt)
+	if len(bts) > 0 {
 		// var v = protoimpl.X.CompressGZIP(b)
 		var rets = make([]string, 0)
-		for i, b := range b {
+		for i, b := range bts {
 			if (i%16) == 0 && i != 0 {
 				rets = append(rets, "\n")
 			}

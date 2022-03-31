@@ -6,6 +6,17 @@
 {{- $G := .}}
 {{- $NS := .Namespace}}
 
+export interface Long {
+    /** Low bits */
+    low: number;
+
+    /** High bits */
+    high: number;
+
+    /** Whether unsigned or not */
+    unsigned: boolean;
+}
+
 /** Namespace  */
 export namespace {{$NS}} {
     {{/*生成枚举类型*/}}
@@ -22,11 +33,11 @@ export namespace {{$NS}} {
     {{- /*生成配置类类型*/}}
     {{- range .Consts}}
     // Defined in table: {{.DefinedTable}}
-    var {{.TypeName}} = {
+    var {{.TypeName}}: {
         {{- range .Items}}
             {{- if not .IsVoid }}   
-                {{- if ne .Desc ""}} //{{.Desc}} {{end}}
-        {{.FieldName}}?: ({{.ValueType}}{{if is_long .StandardValueType}}|Long{{end}}|null),
+                {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
             {{end}}
             {{- if .Convertable}}
     
@@ -42,12 +53,8 @@ export namespace {{$NS}} {
     /** Properties of a {{$TypeName}}. */
     interface I{{$TypeName}} {
         {{range .Headers}}
-            {{- if not .IsVoid }}
-                {{- if .IsArray}}
-        {{.FieldName}}?: (({{.ValueType}}{{if is_long .ValueType}}|Long{{end}})[]|null);
-                {{- else}}        
-        {{.FieldName}}?: ({{.ValueType}}{{if is_long .ValueType}}|Long{{end}}|null);
-                {{- end}}
+            {{- if not .IsVoid }}                
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
             {{end}} {{/*end not Void*/}}
         {{end}} {{/*end .Headers */}}
     }
@@ -58,15 +65,11 @@ export namespace {{$NS}} {
          * Constructs a new {{$TypeName}}.
          * @param [properties] Properties to set
          */
-        constructor(properties?: {{$TypeName}});
+        constructor(properties?: I{{$TypeName}});
 
         {{range .Headers}}
             {{- if not .IsVoid }}
-                {{- if .IsArray}}
-        public {{.FieldName}}?: (({{.ValueType}}{{if is_long .ValueType}}|Long{{end}})[]|null);
-                {{- else}}        
-        public {{.FieldName}}?: ({{.ValueType}}{{if is_long .ValueType}}|Long{{end}}|null);
-                {{- end}}
+        public {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
             {{- end}} {{/*end not Void*/}}
         {{- end}} {{/*end .Headers */}}
 

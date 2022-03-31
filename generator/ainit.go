@@ -40,6 +40,60 @@ var getPBType = func(valueType string) string {
 	return val
 }
 
+func isInterger(valueType string) bool {
+	for _, v := range intList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isLong(valueType string) bool {
+	for _, v := range longList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isFloat(valueType string) bool {
+	for _, v := range floatList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isNumber(valueType string) bool {
+	for _, v := range numbersList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isBool(valueType string) bool {
+	for _, v := range boolsList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isString(valueType string) bool {
+	for _, v := range stringList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
 func init() {
 	var commonInitialismsForReplacer []string
 	var uncommonInitialismsForReplacer []string
@@ -199,59 +253,17 @@ func init() {
 		return 0
 	}
 
-	funcs["is_interger"] = func(valueType string) bool {
-		for _, v := range intList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_interger"] = isInterger
 
-	funcs["is_long"] = func(valueType string) bool {
-		for _, v := range longList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_long"] = isLong
 
-	funcs["is_float"] = func(valueType string) bool {
-		for _, v := range floatList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_float"] = isFloat
 
-	funcs["is_number"] = func(valueType string) bool {
-		for _, v := range numbersList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_number"] = isNumber
 
-	funcs["is_bool"] = func(valueType string) bool {
-		for _, v := range boolsList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_bool"] = isBool
 
-	funcs["is_string"] = func(valueType string) bool {
-		for _, v := range stringList {
-			if v == valueType {
-				return true
-			}
-		}
-		return false
-	}
+	funcs["is_string"] = isString
 
 	funcs["get_enum"] = func(pbType string) *model.DefineTableInfo {
 		return utils.GetEnum(pbType)

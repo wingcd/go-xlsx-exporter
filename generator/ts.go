@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 	"text/template"
 
 	"github.com/wingcd/go-xlsx-exporter/model"
@@ -15,33 +14,21 @@ import (
 
 var tsTemplate = ""
 
-func tsFormatValue(value interface{}, valueType string, isEnum bool, isArray bool) string {
-	var ret = ""
-	if isArray {
-		var arr = value.([]interface{})
-		var lst []string
-		for _, it := range arr {
-			lst = append(lst, tsFormatValue(it, valueType, isEnum, false))
-		}
-		ret = fmt.Sprintf("[ %s ]", strings.Join(lst, ", "))
-	} else if isEnum {
-		var enumStr = utils.ToEnumString(valueType, value.(int32))
-		if enumStr != "" {
-			ret = fmt.Sprintf("%s.%s", valueType, enumStr)
-		} else {
-			fmt.Printf("[错误] 值解析失败 类型:%s 值：%v \n", valueType, value)
-		}
-	} else if valueType == "float" {
-		ret = fmt.Sprintf("%v", value)
-	} else if valueType == "string" {
-		ret = fmt.Sprintf("\"%v\"", value)
-	} else {
-		ret = fmt.Sprintf("%v", value)
-	}
-	return ret
-}
-
 var tsGenetatorInited = false
+
+func tsTypeFormat(standardValueType, valueType string, isArray bool) string {
+	if isArray {
+		if isLong(standardValueType) {
+			return fmt.Sprintf("((%s|Long)[]|null)", valueType)
+		} else {
+			return fmt.Sprintf("(%s[]|null)", valueType)
+		}
+	}
+	if isLong(standardValueType) {
+		return fmt.Sprintf("(%s|Long|null)", valueType)
+	}
+	return fmt.Sprintf("(%s|null)", valueType)
+}
 
 func egistTSFuncs() {
 	if tsGenetatorInited {
@@ -49,76 +36,21 @@ func egistTSFuncs() {
 	}
 	tsGenetatorInited = true
 
-	funcs["value_format"] = func(value string, item interface{}) string {
-		var isEnum = false
-		var valueType = ""
-		var rawValueType = ""
-		var fieldName = ""
-		switch inst := item.(type) {
-		case *model.DefineTableItem:
-			fieldName = inst.FieldName
-			isEnum = inst.IsEnum
-			valueType = inst.ValueType
-			rawValueType = inst.RawValueType
-		case *model.DataTableHeader:
-			fieldName = inst.FieldName
-			isEnum = inst.IsEnum
-			valueType = inst.ValueType
-			rawValueType = inst.RawValueType
-		}
+	funcs["value_format"] = jsValueFormat
 
-		var ok, val, isArray = utils.ParseValue(rawValueType, value)
-		if !ok {
-			fmt.Printf("[错误] 值解析失败 字段：%s 类型:%s 值：%v \n", fieldName, valueType, value)
-			return value
-		}
-		return tsFormatValue(val, valueType, isEnum, isArray)
-	}
+	funcs["type_format"] = tsTypeFormat
 
-	funcs["default"] = func(item interface{}) string {
-		var nilType = "null"
-		switch inst := item.(type) {
-		case *model.DataTableHeader:
-			if inst.IsArray {
-				return nilType
-			} else if inst.IsEnum {
-				var enumInfo = settings.GetEnum(inst.ValueType)
-				if enumInfo != nil {
-					return fmt.Sprintf("%s.%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
-				}
-			} else if inst.IsStruct {
-				return nilType
-			} else if val, ok := sdefaultTSValue[inst.StandardValueType]; ok {
-				return val
-			}
-		case *model.DataTable:
-			return nilType
-		case *model.DefineTableInfo:
-			return fmt.Sprintf("%s_%s", inst.TypeName, inst.Items[0].FieldName)
-		case string:
-			if val, ok := sdefaultTSValue[inst]; ok {
-				return val
-			} else if utils.IsEnum(inst) {
-				var enumInfo = settings.GetEnum(inst)
-				if enumInfo != nil {
-					return fmt.Sprintf("%s_%s", enumInfo.TypeName, enumInfo.Items[0].FieldName)
-				}
-			} else if utils.IsTable(inst) || utils.IsStruct(inst) {
-				return nilType
-			}
-		}
-		return ""
-	}
+	funcs["default"] = jsValueDefault
 }
 
-var supportTSharpTypes = map[string]string{
-	"bool":   "bool",
-	"int":    "int",
-	"uint":   "uint",
-	"int64":  "int64",
-	"uint64": "uint64",
-	"float":  "float",
-	"double": "double",
+var supportTSTypes = map[string]string{
+	"bool":   "boolean",
+	"int":    "number",
+	"uint":   "number",
+	"int64":  "number",
+	"uint64": "number",
+	"float":  "number",
+	"double": "number",
 	"string": "string",
 }
 
@@ -174,6 +106,13 @@ func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	utils.PreProcessDefine(fd.Consts)
+	for _, c := range fd.Consts {
+		for _, it := range c.Items {
+			if !it.IsEnum && !it.IsStruct {
+				it.ValueType = supportTSTypes[it.ValueType]
+			}
+		}
+	}
 
 	tables := settings.GetAllTables()
 	utils.PreProcessTable(tables)
@@ -193,10 +132,11 @@ func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		// 处理类型
 		for _, h := range t.Headers {
 			if !h.IsEnum && !h.IsStruct {
-				if _, ok := supportTSharpTypes[h.ValueType]; !ok {
+				if _, ok := supportTSTypes[h.ValueType]; !ok {
 					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
+				h.ValueType = supportTSTypes[h.ValueType]
 			}
 		}
 

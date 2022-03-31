@@ -132,16 +132,12 @@ func PreProcessDefine(defines []*model.DefineTableInfo) {
 	for _, d := range defines {
 		for _, st := range d.Items {
 			st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
-			st.StandardValueType = ConvertToStandardType(st.ValueType)
-			_, st.PBValueType = ToPBType(st.StandardValueType)
 		}
 	}
 }
 
 func PreProcessHeader(header *model.DataTableHeader) {
 	header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
-	header.StandardValueType = ConvertToStandardType(header.ValueType)
-	_, header.PBValueType = ToPBType(header.StandardValueType)
 }
 
 func PreProcessTable(tables []*model.DataTable) {

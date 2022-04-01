@@ -78,11 +78,11 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 		// 处理类型
 		for _, h := range t.Headers {
 			if !h.IsEnum && !h.IsStruct {
-				if _, ok := supportProtoTypes[h.ValueType]; !ok {
-					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
+				if _, ok := supportProtoTypes[h.StandardValueType]; !ok {
+					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.RawValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
-				h.ValueType = supportProtoTypes[h.ValueType]
+				h.ValueType = supportProtoTypes[h.StandardValueType]
 			}
 		}
 

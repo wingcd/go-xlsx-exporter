@@ -106,12 +106,12 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		item.Value = row[model.DEFINE_COLUMN_VALUE_INDEX]
 		item.Desc = row[model.DEFINE_COLUMN_COMMENT_INDEX]
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
-		_, valueType, repeated, splitChar, convertable, isVoid := utils.CompileValueType(item.RawValueType)
-		item.IsArray = repeated
-		item.ValueType = valueType
-		item.ArraySplitChar = splitChar
-		item.Convertable = convertable
-		item.IsVoid = isVoid
+		finfo := utils.CompileValueType(item.RawValueType)
+		item.IsArray = finfo.IsArray
+		item.ValueType = finfo.ValueType
+		item.ArraySplitChar = finfo.SplitChar
+		item.Convertable = finfo.Converable
+		item.IsVoid = finfo.IsVoid
 		info.Items = append(info.Items, item)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
@@ -353,8 +353,8 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 
 		if !ignore {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
-			_, valueType, repeated, splitChar, convertable, isVoid := utils.CompileValueType(header.RawValueType)
-			if !isVoid {
+			finfo := utils.CompileValueType(header.RawValueType)
+			if !finfo.IsVoid {
 				idx++
 			} else {
 				// 数据需要过滤此列
@@ -368,11 +368,11 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			names[header.FieldName] = 0
 
 			header.TitleFieldName = strings.Title(header.FieldName)
-			header.IsArray = repeated
-			header.ValueType = valueType
-			header.ArraySplitChar = splitChar
-			header.Convertable = convertable
-			header.IsVoid = isVoid
+			header.IsArray = finfo.IsArray
+			header.ValueType = finfo.ValueType
+			header.ArraySplitChar = finfo.SplitChar
+			header.Convertable = finfo.Converable
+			header.IsVoid = finfo.IsVoid
 			header.Index = idx
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)

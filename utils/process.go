@@ -113,14 +113,14 @@ var pbFieldEncodeTypes = map[string]string{
 // 返回值： 编码类型，是否枚举, 是否结构体
 func GetEncodeType(valueType string) (string, bool, bool) {
 	valueType = strings.Replace(valueType, " ", "", -1)
-	_, rawType, repeated, _, _, _ := CompileValueType(valueType)
+	finfo := CompileValueType(valueType)
 
-	var isEnum = IsEnum(rawType)
-	var isStruct = IsStruct(rawType) || IsTable(rawType)
-	if repeated {
+	var isEnum = IsEnum(finfo.ValueType)
+	var isStruct = IsStruct(finfo.ValueType) || IsTable(finfo.ValueType)
+	if finfo.IsArray {
 		return "bytes", isEnum, isStruct
 	}
-	if tp, ok := pbFieldEncodeTypes[rawType]; ok {
+	if tp, ok := pbFieldEncodeTypes[finfo.ValueType]; ok {
 		return tp, isEnum, isStruct
 	} else if isEnum {
 		return "varint", isEnum, isStruct

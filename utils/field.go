@@ -22,28 +22,54 @@ var (
 )
 
 func init() {
-	valueTypeRegx, _ = regexp.Compile(`^(?P<name>\w+)(?P<array>\[(?P<split>.?)\])?(?P<conv>\??)$`)
+	// like: Name[,]?Type<1>
+	valueTypeRegx, _ = regexp.Compile(`^(?P<array>\w+)(\[(?P<split>.?)\])?(?P<conv>(\?|\?\w+))?(\<(?P<rule>\d+)\>)?$`)
 }
 
-func CompileValueType(valueType string) (valiable bool, baseValue string, isArray bool, splitChar string, converable, isVoid bool) {
+type FiledInfo struct {
+	Valiable   bool
+	ValueType  string
+	IsArray    bool
+	SplitChar  string
+	Converable bool
+	Alias      string
+	IsVoid     bool
+	Rule       int
+}
+
+func CompileValueType(valueType string) *FiledInfo {
+	finfo := FiledInfo{}
 	valueType = strings.Replace(valueType, " ", "", -1)
 	var match = valueTypeRegx.FindStringSubmatch(valueType)
-	valiable = len(match) == 5
-	if !valiable {
-		return
+	finfo.Valiable = len(match) == 8
+	if !finfo.Valiable {
+		return &finfo
 	}
-	baseValue = match[1]
-	isArray = match[2] != ""
-	splitChar = match[3]
-	if splitChar == "" {
-		splitChar = settings.ArraySplitChar
+	finfo.ValueType = match[1]
+	finfo.IsArray = match[2] != ""
+	finfo.SplitChar = match[3]
+	if finfo.SplitChar == "" {
+		finfo.SplitChar = settings.ArraySplitChar
 	}
-	converable = match[4] != ""
-	isVoid = IsVoid(baseValue)
-	if isVoid {
-		converable = true
+	finfo.Converable = match[4] != ""
+	if finfo.Converable && match[4] != "?" {
+		finfo.Alias = strings.Replace(match[4], "?", "", 1)
 	}
-	return
+	finfo.IsVoid = IsVoid(finfo.ValueType)
+	if finfo.IsVoid {
+		finfo.Converable = true
+	}
+	if match[7] != "" {
+		rule, err := strconv.Atoi(match[7])
+		if err != nil {
+			fmt.Printf("[错误] 规则配置错误:%v 规则：%s\n", err, match[7])
+			finfo.Rule = -1
+		} else {
+			finfo.Rule = rule
+		}
+
+	}
+	return &finfo
 }
 
 func Split(s, sep string) []string {
@@ -114,30 +140,30 @@ var supportProtoTypes = map[string]string{
 }
 
 /**
-	see: https://developers.google.cn/protocol-buffers/docs/reference/csharp/class/google/protobuf/wire-format?hl=en
+see: https://developers.google.cn/protocol-buffers/docs/reference/csharp/class/google/protobuf/wire-format?hl=en
 */
-var wireType = map[string]int{	
-	"bool":    	0,
-	"int32":   	0,
-	"uint32":  	0,
-	"sint32":  	0,
-	"int64":   	0,
-	"uint64":  	0,
-	"sint64":  	0,
-	"float":   	5,
-	"fix32": 	5,
-	"sfix32": 	5,
-	"double":  	1,
-	"fixed64": 	1,
+var wireType = map[string]int{
+	"bool":     0,
+	"int32":    0,
+	"uint32":   0,
+	"sint32":   0,
+	"int64":    0,
+	"uint64":   0,
+	"sint64":   0,
+	"float":    5,
+	"fix32":    5,
+	"sfix32":   5,
+	"double":   1,
+	"fixed64":  1,
 	"sfixed64": 1,
-	"string":  	2,
+	"string":   2,
 	"bytes":    2,
 }
 
-func GetWireType (item interface{}) int {
+func GetWireType(item interface{}) int {
 	switch inst := item.(type) {
 	case *model.DataTableHeader:
-		_, valType  := ToPBType(inst.ValueType)
+		_, valType := ToPBType(inst.ValueType)
 		if inst.IsArray {
 			return 2
 		} else if inst.IsEnum {
@@ -154,8 +180,8 @@ func GetWireType (item interface{}) int {
 		return 2
 	case *model.DefineTableInfo:
 		return 2
-	case string:		
-		_, valType  := ToPBType(inst)
+	case string:
+		_, valType := ToPBType(inst)
 		if val, ok := wireType[valType]; ok {
 			return val
 		} else if IsEnum(inst) {
@@ -222,34 +248,34 @@ func ConvertEnumValue(info *model.DefineTableInfo, valueType, value string) (err
 
 // 获取枚举类型的值
 func ParseEnumValue(info *model.DefineTableInfo, valueType, value string) (success bool, ret interface{}, isArray bool) {
-	_, valueType, repeated, splitChar, _, _ := CompileValueType(valueType)
+	finfo := CompileValueType(valueType)
 
 	var err error
 
-	if !repeated {
+	if !finfo.IsArray {
 		err, ret = ConvertEnumValue(info, valueType, value)
 		if err != nil {
 			fmt.Printf("[错误] 值类型转换失败:%v [表：%s, 类型:%s 值：%v] \n", err, info.DefinedTable, valueType, value)
-			return false, value, repeated
+			return false, value, finfo.IsArray
 		}
 	} else {
 		ret = make([]interface{}, 0)
 
-		rstrs := Split(value, splitChar)
+		rstrs := Split(value, finfo.SplitChar)
 
 		for _, vstr := range rstrs {
 			err, rvalue := ConvertEnumValue(info, valueType, vstr)
 
 			if err != nil {
 				fmt.Printf("[错误] 数组类型转换失败:%s [表：%s, 类型:%s 值：%s 子项：%s] \n", err, info.DefinedTable, valueType, value, vstr)
-				return false, value, repeated
+				return false, value, finfo.IsArray
 			}
 
 			ret = append(ret.([]interface{}), rvalue)
 		}
 	}
 
-	return true, ret, repeated
+	return true, ret, finfo.IsArray
 }
 
 func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{}, isArray bool) {
@@ -266,11 +292,11 @@ func ResolveEnumValue(valueType, cellValue string) (success bool, ret interface{
 
 // 将表格中支持的类型转换为protobuf支持的类型（包含数组）
 func ParseType(vtype string) (bool, string) {
-	_, vtype, repeated, _, _, _ := CompileValueType(vtype)
+	finfo := CompileValueType(vtype)
 
 	if tp, ok := supportProtoTypes[vtype]; !ok {
 		return false, ""
-	} else if repeated {
+	} else if finfo.IsArray {
 		return true, "repeated " + tp
 	} else {
 		return true, tp
@@ -345,34 +371,34 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 
 // 通过原始类型对值进行转换
 func ParseValue(rawType, value string) (success bool, ret interface{}, isArray bool) {
-	_, rawType, repeated, splitChar, _, _ := CompileValueType(rawType)
+	finfo := CompileValueType(rawType)
 
 	var err error
 
-	if !repeated {
-		err, ret = ConvertValue(rawType, value)
+	if !finfo.IsArray {
+		err, ret = ConvertValue(finfo.ValueType, value)
 		if err != nil {
-			fmt.Printf("[错误] 值类型转换失败:%v [类型:%s 值：%v] \n", err, rawType, value)
-			return false, value, repeated
+			fmt.Printf("[错误] 值类型转换失败:%v [类型:%s 值：%v] \n", err, finfo.ValueType, value)
+			return false, value, finfo.IsArray
 		}
 	} else {
 		ret = make([]interface{}, 0)
 
-		rstrs := Split(value, splitChar)
+		rstrs := Split(value, finfo.SplitChar)
 
 		for _, vstr := range rstrs {
-			err, rvalue := ConvertValue(rawType, vstr)
+			err, rvalue := ConvertValue(finfo.ValueType, vstr)
 
 			if err != nil {
-				fmt.Printf("[错误] 数组类型转换失败:%v [类型:%s 值：%s 子项：%s] \n", err, rawType, value, vstr)
-				return false, value, repeated
+				fmt.Printf("[错误] 数组类型转换失败:%v [类型:%s 值：%s 子项：%s] \n", err, finfo.ValueType, value, vstr)
+				return false, value, finfo.IsArray
 			}
 
 			ret = append(ret.([]interface{}), rvalue)
 		}
 	}
 
-	return true, ret, repeated
+	return true, ret, finfo.IsArray
 }
 
 func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto, customType bool) {

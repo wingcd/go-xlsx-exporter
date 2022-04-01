@@ -109,7 +109,7 @@ func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 	for _, c := range fd.Consts {
 		for _, it := range c.Items {
 			if !it.IsEnum && !it.IsStruct {
-				it.ValueType = supportTSTypes[it.ValueType]
+				it.ValueType = supportTSTypes[it.StandardValueType]
 			}
 		}
 	}
@@ -132,11 +132,11 @@ func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		// 处理类型
 		for _, h := range t.Headers {
 			if !h.IsEnum && !h.IsStruct {
-				if _, ok := supportTSTypes[h.ValueType]; !ok {
-					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.ValueType, t.DefinedTable, h.FieldName)
+				if _, ok := supportTSTypes[h.StandardValueType]; !ok {
+					log.Printf("[错误] 不支持类型%s 表：%s 列：%s \n", h.RawValueType, t.DefinedTable, h.FieldName)
 					return false, nil
 				}
-				h.ValueType = supportTSTypes[h.ValueType]
+				h.ValueType = supportTSTypes[h.StandardValueType]
 			}
 		}
 

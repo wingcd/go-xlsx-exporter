@@ -107,11 +107,17 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		item.Desc = row[model.DEFINE_COLUMN_COMMENT_INDEX]
 		item.RawValueType = row[model.DEFINE_COLUMN_TYPE_INDEX]
 		finfo := utils.CompileValueType(item.RawValueType)
+		if info.Category != model.DEFINE_TYPE_ENUM && !finfo.Valiable {
+			log.Fatalf("[错误] 字段定义错误 表：%s 类型：%s 列：%s 描述：%s\n", info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+		}
+
 		item.IsArray = finfo.IsArray
 		item.ValueType = finfo.ValueType
 		item.ArraySplitChar = finfo.SplitChar
 		item.Convertable = finfo.Converable
 		item.IsVoid = finfo.IsVoid
+		item.Alias = finfo.Alias
+		item.Rule = finfo.Rule
 		info.Items = append(info.Items, item)
 
 		item.ValueType = utils.ConvertToStandardType(item.ValueType)
@@ -354,6 +360,10 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		if !ignore {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
 			finfo := utils.CompileValueType(header.RawValueType)
+			if !finfo.Valiable {
+				log.Fatalf("[错误] 字段定义错误 表：%s 类型：%s 列：%s 描述：%s\n", table.DefinedTable, table.TypeName, header.FieldName, header.Desc)
+			}
+
 			if !finfo.IsVoid {
 				idx++
 			} else {
@@ -373,6 +383,8 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			header.ArraySplitChar = finfo.SplitChar
 			header.Convertable = finfo.Converable
 			header.IsVoid = finfo.IsVoid
+			header.Alias = finfo.Alias
+			header.Rule = finfo.Rule
 			header.Index = idx
 
 			header.ValueType = utils.ConvertToStandardType(header.ValueType)
@@ -435,4 +447,25 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	table.Data = rows
 
 	return
+}
+
+func CheckTable(table *model.DataTable) {
+	for i, row := range table.Data {
+		for j, col := range row {
+			header := table.Headers[j]
+			if header.Rule > 0 {
+				if !settings.CheckRule(header.Rule, col) {
+					log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 数据行:%v 列：%s 描述：%s\n", header.Rule, table.DefinedTable, table.TypeName, i, header.FieldName, header.Desc)
+				}
+			}
+		}
+	}
+}
+
+func CheckDefine(info *model.DefineTableInfo) {
+	for _, item := range info.Items {
+		if item.Rule > 0 && !settings.CheckRule(item.Rule, item.Value) {
+			log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 列：%s 描述：%s\n", item.Rule, info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+		}
+	}
 }

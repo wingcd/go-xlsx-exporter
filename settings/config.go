@@ -1,10 +1,11 @@
-package main
+package settings
 
 import (
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 )
@@ -32,6 +33,14 @@ type ExportInfo struct {
 	Package    string `yaml:"package"`
 }
 
+type RuleInfo struct {
+	ID   int    `yaml:"id"`
+	Rule string `yaml:"rule"`
+	Desc string `yaml:"desc"`
+
+	RRule *regexp.Regexp
+}
+
 type YamlConf struct {
 	Package        string `yaml:"package"`
 	PBBytesFileExt string `yaml:"pb_bytes_file_ext"`
@@ -41,8 +50,9 @@ type YamlConf struct {
 	PauseOnEnd     bool   `yaml:"pause_on_end"`
 	StrictMode     bool   `yaml:"strict_mode"`
 
-	Exports []ExportInfo `yaml:"exports"`
-	Sheets  []SheetInfo  `yaml:"sheets"`
+	Rules   []*RuleInfo   `yaml:"rules"`
+	Exports []*ExportInfo `yaml:"exports"`
+	Sheets  []*SheetInfo  `yaml:"sheets"`
 }
 
 func PathExists(path string) (bool, error) {
@@ -76,6 +86,13 @@ func NewYamlConf(filename string) *YamlConf {
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
 		fmt.Println(err.Error())
+	}
+
+	for _, r := range c.Rules {
+		r.RRule, err = regexp.Compile(r.Rule)
+		if err != nil {
+			log.Fatalf("非法的规则：id=%v, rule=%v, desc=%v", r.ID, r.Rule, r.Desc)
+		}
 	}
 	return c
 }

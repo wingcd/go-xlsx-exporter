@@ -5,7 +5,15 @@ export_type: 1 #全局导出类型设置，1-all,2-client,3-server,4-ignore-不�
 array_split_char: "|" #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
 strict_mode: false # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
-
+rules:
+-
+  id: 1
+  rule: '\w+?\.png'
+  desc: '图片'
+-
+  id: 2
+  rule: '\d+'
+  desc: '数字'
 sheets:
  -
   id: 1
@@ -73,10 +81,10 @@ exports:
 #  path: "./gen/code/DataModel.cs"
 #  sheets: ""
 #  package: "Cfg"
-# -
-#  id: 4
-#  type: "proto_bytes"
-#  path: "./gen/data/"
+-
+ id: 4
+ type: "proto_bytes"
+ path: "./gen/data/"
 # -
 #  id: 5
 #  type: "charset"

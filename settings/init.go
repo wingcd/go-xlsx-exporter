@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"log"
 	"strings"
 
 	"github.com/wingcd/go-xlsx-exporter/model"
@@ -26,6 +27,8 @@ var (
 
 	// just for debug
 	GenLanguageType = false
+
+	Rules []*RuleInfo
 
 	DEFINES     map[string]*model.DefineTableInfo
 	ENUMS       []*model.DefineTableInfo
@@ -175,4 +178,19 @@ func CombineTables(tables []*model.DataTable) []*model.DataTable {
 		}
 	}
 	return newTables
+}
+
+func CheckRule(id int, value string) bool {
+	var rule *RuleInfo
+	for _, r := range Rules {
+		if r.ID == id {
+			rule = r
+			break
+		}
+	}
+	if rule == nil || rule.RRule == nil {
+		log.Fatalf("未找到规则Id=%v", id)
+		return true
+	}
+	return rule.RRule.MatchString(value)
 }

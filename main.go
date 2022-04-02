@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	config *YamlConf
+	config *settings.YamlConf
 
 	p_help              bool
 	p_version           bool
@@ -51,7 +51,7 @@ func main() {
 func parseParams() {
 	flag.Parse()
 
-	config = NewYamlConf(p_config)
+	config = settings.NewYamlConf(p_config)
 	if p_pb_bytes_file_ext != "" {
 		config.PBBytesFileExt = p_pb_bytes_file_ext
 	}
@@ -74,6 +74,7 @@ func parseParams() {
 	settings.CommentSymbol = config.CommentSymbol
 	settings.GenLanguageType = p_gen_language_code
 	settings.ArraySplitChar = config.ArraySplitChar
+	settings.Rules = config.Rules
 
 	if settings.ArraySplitChar == "" {
 		settings.ArraySplitChar = "|"
@@ -143,11 +144,11 @@ func getIds(val string) map[int]bool {
 
 func process() {
 	exportIds := getIds(p_exports)
-	var exports []ExportInfo
+	var exports []*settings.ExportInfo
 	if len(exportIds) == 0 {
 		exports = config.Exports[:]
 	} else {
-		exports = make([]ExportInfo, 0)
+		exports = make([]*settings.ExportInfo, 0)
 		for _, info := range config.Exports {
 			if _, ok := exportIds[info.ID]; ok {
 				exports = append(exports, info)
@@ -160,7 +161,7 @@ func process() {
 	}
 }
 
-func doExport(exportInfo ExportInfo) {
+func doExport(exportInfo *settings.ExportInfo) {
 	if exportInfo.Type == "" {
 		log.Fatalln("导出类型不能为空")
 	}
@@ -210,12 +211,12 @@ func doExport(exportInfo ExportInfo) {
 		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1])
 
 	sheetsIds := getIds(exportInfo.Sheets)
-	var sheets []SheetInfo
+	var sheets []*settings.SheetInfo
 
 	if len(sheetsIds) == 0 {
 		sheets = config.Sheets[:]
 	} else {
-		sheets = make([]SheetInfo, 0)
+		sheets = make([]*settings.SheetInfo, 0)
 		for _, info := range config.Sheets {
 			if _, ok := sheetsIds[info.ID]; ok {
 				sheets = append(sheets, info)
@@ -223,9 +224,9 @@ func doExport(exportInfo ExportInfo) {
 		}
 	}
 
-	defineSheets := make([]SheetInfo, 0)
-	dataSheets := make([]SheetInfo, 0)
-	langSheets := make([]SheetInfo, 0)
+	defineSheets := make([]*settings.SheetInfo, 0)
+	dataSheets := make([]*settings.SheetInfo, 0)
+	langSheets := make([]*settings.SheetInfo, 0)
 	for _, info := range sheets {
 		tp := strings.ToLower(info.Type)
 		if tp == "define" {
@@ -254,13 +255,13 @@ func doExport(exportInfo ExportInfo) {
 
 	// 数据表
 	if len(dataSheets) > 0 {
-		var tableMap = make(map[string][]SheetInfo)
+		var tableMap = make(map[string][]*settings.SheetInfo)
 		for _, info := range dataSheets {
 			if info.TypeName == "" {
 				log.Fatalf("数据表类型名不能为空，id：%v \n", info.ID)
 			}
 			if _, ok := tableMap[info.TypeName]; !ok {
-				tableMap[info.TypeName] = make([]SheetInfo, 0)
+				tableMap[info.TypeName] = make([]*settings.SheetInfo, 0)
 			}
 
 			tableMap[info.TypeName] = append(tableMap[info.TypeName], info)

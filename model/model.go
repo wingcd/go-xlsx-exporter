@@ -32,6 +32,10 @@ type StructInfo struct {
 	IsVoid      bool
 	// 是否消息类型
 	IsMessage bool
+	// 别名（可转换对象显示类型）
+	Alias string
+	// 字段限制规则
+	Rule int
 }
 
 // 定义表数据项（按行）

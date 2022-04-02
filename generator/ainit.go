@@ -315,13 +315,13 @@ func Build(typeName, outfile string) bool {
 			f, err := os.Create(outfile)
 			defer f.Close()
 			if err != nil {
-				fmt.Errorf(err.Error())
+				fmt.Printf(err.Error())
 				return false
 			}
 
 			_, err = f.WriteString(code.String())
 			if err != nil {
-				fmt.Errorf(err.Error())
+				fmt.Printf(err.Error())
 				return false
 			}
 		}

@@ -4,6 +4,10 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 #### 类型支持
 
+数据类型表达式：`(基础类型|void)[[数组分割符]][[?]自定义类型][<规则ID>]`,其中技基础数据必须包含，实例如下如： 
+  string,int,int32,void,string[,],string[,]?UserInfo,string?UserInfo,string[,]?UserInfo<1>等...
+  一般情况，如果没有特殊需求，基本类型即可满足要求
+
 - bool
 
 - int
@@ -28,6 +32,10 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - 支持在类型后添加‘?’, 如string?，将在生成除此字段的属性值外，多一个Get函数，类似void生成，用于解决此字段数据转特殊对象的应用
 
+- 如果问号后面带上自定义类型，可在生成Get函数时定义返回类型，减少类型转换，如果有自定义类型，一般会在生成配置中`添加引用`，或者直接修改相关代码生成模板，在`模板中添加引用`
+
+- 如果使用规则，需要在最后添加<规则id>,如<1>标明使用id=1的规则对列数据进行检测，且检测一般发生在数据生成时
+
 #### 数据配置
 
 - [x] 支持枚举类型
@@ -48,25 +56,31 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 #### 导出支持
 
-- [x] 支持.proto文件导出
+- [x] 支持.proto文件导出(type:proto)
 
-- [x] 支持序列化为protobuf文件导出
+- [x] 支持序列化为protobuf文件导出(type:proto_bytes)
 
-- [x] 支持golang数据结构代码导出
+- [x] 支持golang数据结构代码导出(type:golang)
 
-- [x] 支持csharp数据接口代码导出
+- [x] 支持csharp数据接口代码导出(type:csharp)
 
-- [x] 支持多语言导出
+- [x] 支持javascript数据接口代码导出(type:js)
 
-- [x] 支持多语言表使用的文字导出为文本文件，用于生成字符集
+- [x] 支持typescript接口代码导出, 用于配合javascript代码(type:dts)
+
+- [x] 支持typescript数据接口代码导出(type:ts)
 
 - [ ] 支持json结构及数据导出
 
 - [ ] 支持lua结构及数据导出
 
+- [x] 支持多语言表使用的文字导出为文本文件，用于生成字符集(type:charset)
+
+- [x] 支持多语言数据导出
+
 - [ ] 支持sqlite表结构及数据导出
 
-- [ ] 支持列正则检查
+- [x] 支持列正则检查
 
 #### 读取支持
 
@@ -84,7 +98,7 @@ golang编写的将xlsx表文件数据及结构导出工具
 
   - [x] 计算类型(?)配置与读取
 
-  - [ ] ?配置增加指定类型
+  - [x] ?配置增加指定类型
 
 - [x] golang读取支持
 
@@ -118,6 +132,17 @@ export_type: 1 # 全局导出类型设置，1-导出前后端代码/数据,2-仅
 array_split_char: "|" #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
 strict_mode: true # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
+rules: #数据规则，可在字段类型后加入规则id,在数据导出时进行规则检测，严格模式会中断输出，否则只进行日志提示
+-
+  id: 1              # 规则id，在类型表达式中使用
+  rule: '\w+?\.png'  # 规则正则表达式
+  desc: '图片'        # 描述
+  disable: false     # 是否关闭此规则
+-
+  id: 2
+  rule: '\d+'
+  desc: '数字'
+  disable: false
 sheets: # 所有表格数据
  -
   id: 1 # 表格编号，用于生成时过滤
@@ -164,6 +189,17 @@ exports: # 导出任务集合
  id: 5
  type: "charset"
  path: "./gen/data/lang.txt"
+-
+ id: 6
+ type: "js,dts" #部分任务可同时进行，避免多次解析表格，多类型导出按","分割，且输出路径必须与类型数量相同
+ path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
+ imports:  #当使用了自定义类型转换，可在生成代码中加入引用，防止生成代码错误
+  - "import UserData from './userdata'"
+  - "import XXX from './xxx'"
+-
+ id: 7
+ type: "ts"
+ path: "./gen/code/data_mode.ts"
 
 ```
 

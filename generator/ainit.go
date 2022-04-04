@@ -35,6 +35,18 @@ type commonFileDesc struct {
 	GoProtoVersion string
 }
 
+type BuildInfo struct {
+	Imports []string
+	Output  string
+}
+
+func NewBuildInfo(output string) *BuildInfo {
+	info := new(BuildInfo)
+	info.Output = output
+	info.Imports = make([]string, 0)
+	return info
+}
+
 var getPBType = func(valueType string) string {
 	_, val := utils.ToPBType(valueType)
 	return val
@@ -287,7 +299,7 @@ func init() {
 }
 
 type Generator interface {
-	Generate(output string) (save bool, data *bytes.Buffer)
+	Generate(info *BuildInfo) (save bool, data *bytes.Buffer)
 }
 
 func GetAllGenerators() map[string]Generator {
@@ -303,16 +315,16 @@ func HasGenerator(name string) bool {
 	return ok
 }
 
-func Build(typeName, outfile string) bool {
-	utils.CheckPath(outfile)
+func Build(typeName string, info *BuildInfo) bool {
+	utils.CheckPath(info.Output)
 
-	fmt.Printf("启动生成器：%s,生成文件：%s...\n", typeName, outfile)
+	fmt.Printf("启动生成器：%s,生成文件：%s...\n", typeName, info.Output)
 
 	if gen, ok := generators[typeName]; ok {
-		save, code := gen.Generate(outfile)
+		save, code := gen.Generate(info)
 
 		if save {
-			f, err := os.Create(outfile)
+			f, err := os.Create(info.Output)
 			defer f.Close()
 			if err != nil {
 				fmt.Printf(err.Error())

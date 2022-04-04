@@ -114,7 +114,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		item.IsArray = finfo.IsArray
 		item.ValueType = finfo.ValueType
 		item.ArraySplitChar = finfo.SplitChar
-		item.Convertable = finfo.Converable
+		item.Convertable = finfo.Convertable
 		item.IsVoid = finfo.IsVoid
 		item.Alias = finfo.Alias
 		item.Rule = finfo.Rule
@@ -381,7 +381,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			header.IsArray = finfo.IsArray
 			header.ValueType = finfo.ValueType
 			header.ArraySplitChar = finfo.SplitChar
-			header.Convertable = finfo.Converable
+			header.Convertable = finfo.Convertable
 			header.IsVoid = finfo.IsVoid
 			header.Alias = finfo.Alias
 			header.Rule = finfo.Rule
@@ -455,7 +455,11 @@ func CheckTable(table *model.DataTable) {
 			header := table.Headers[j]
 			if header.Rule > 0 {
 				if !settings.CheckRule(header.Rule, col) {
-					log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 数据行:%v 列：%s 描述：%s\n", header.Rule, table.DefinedTable, table.TypeName, i, header.FieldName, header.Desc)
+					if settings.StrictMode {
+						log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 数据行:%v 列：%s 描述：%s\n", header.Rule, table.DefinedTable, table.TypeName, i, header.FieldName, header.Desc)
+					} else {
+						log.Printf("[错误] 不满足规则[%v] 表：%s 类型：%s 数据行:%v 列：%s 描述：%s\n", header.Rule, table.DefinedTable, table.TypeName, i, header.FieldName, header.Desc)
+					}
 				}
 			}
 		}
@@ -465,7 +469,11 @@ func CheckTable(table *model.DataTable) {
 func CheckDefine(info *model.DefineTableInfo) {
 	for _, item := range info.Items {
 		if item.Rule > 0 && !settings.CheckRule(item.Rule, item.Value) {
-			log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 列：%s 描述：%s\n", item.Rule, info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+			if settings.StrictMode {
+				log.Fatalf("[错误] 不满足规则[%v] 表：%s 类型：%s 列：%s 描述：%s\n", item.Rule, info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+			} else {
+				log.Printf("[错误] 不满足规则[%v] 表：%s 类型：%s 列：%s 描述：%s\n", item.Rule, info.DefinedTable, info.TypeName, item.FieldName, item.Desc)
+			}
 		}
 	}
 }

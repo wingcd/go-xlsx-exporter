@@ -6,13 +6,17 @@
 {{- $G := .}}
 {{- $NS := .Namespace}}
 
-import protobuf from "protobufjs";
+{{- range .Info.Imports}}
+{{.}}
+{{- end}}
+
+import $protobuf from "protobufjs";
 
 // Common aliases
-var $Reader = protobuf.Reader, $Writer = protobuf.Writer, $util = protobuf.util;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = protobuf.roots["default"] || (protobuf.roots["default"] = {} as any);
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {} as any);
 
 export interface Long {
     /** Low bits */
@@ -34,6 +38,17 @@ export interface Long {
 
     /** Whether unsigned or not */
     unsigned: boolean;
+}
+
+export class DataConverter {
+    static convertHandler: (typeName: string, fieldName:string, value: string)=>any = null;
+
+    static convertData(typeName: string, fieldName:string, value: string): any {
+        if(this.convertHandler) {
+            return this.convertHandler(typeName, fieldName, value);
+        }
+        return null;
+    }
 }
 
 export namespace {{$NS}} {
@@ -50,6 +65,8 @@ export namespace {{$NS}} {
 
     {{- /*生成配置类类型*/}}
     {{- range .Consts}}
+    {{$TypeName := .TypeName}}
+
     // Defined in table: {{.DefinedTable}}
     export var {{.TypeName}}: {
         {{- range .Items}}
@@ -58,6 +75,7 @@ export namespace {{$NS}} {
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
             {{end}}
             {{- if .Convertable}}    
+        get{{.FieldName}}(): {{get_alias .Alias}},
             {{end}}
         {{end}} {{/*end .Items */}}
     } = {
@@ -66,6 +84,9 @@ export namespace {{$NS}} {
         {{.FieldName}} : {{value_format .Value .}},
             {{end}}
             {{- if .Convertable}}    
+        get{{.FieldName}}(): {{get_alias .Alias}} {
+            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+        },
             {{end}}
         {{end}} {{/*end .Items */}}
     }
@@ -82,11 +103,16 @@ export namespace {{$NS}} {
             {{- if not .IsVoid }}               
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
             {{end}} {{/*end not Void*/}}
+            {{- if .Convertable}}
+        get{{.FieldName}}(): {{get_alias .Alias}};
+            {{- end}}
         {{end}} {{/*end .Headers */}}
     }
 
      /** Represents a {{$TypeName}}. */
     export class {{$TypeName}} implements I{{$TypeName}} { 
+        private static __type_name__ = "{{$TypeName}}";
+
         {{range .Headers}}
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
@@ -96,6 +122,11 @@ export namespace {{$NS}} {
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = {{default .}};
                 {{end -}}   
             {{end -}} 
+            {{- if .Convertable}}    
+        get{{.FieldName}}(): {{get_alias .Alias}} {
+            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+        };
+            {{end}}
         {{end}}
 
         /**
@@ -120,7 +151,7 @@ export namespace {{$NS}} {
             return new {{$TypeName}}(properties);
         }
 
-        static encode(message: I{{$TypeName}}, writer?: protobuf.Writer): protobuf.Writer {
+        static encode(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             if (!writer)
                 writer = $Writer.create();
                 
@@ -158,11 +189,11 @@ export namespace {{$NS}} {
             return writer;
         }
 
-        static encodeDelimited(message: I{{$TypeName}}, writer?: protobuf.Writer): protobuf.Writer {
+        static encodeDelimited(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             return this.encode(message, writer).ldelim();
         }
 
-        static decode(reader: (protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
+        static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             var end = length === undefined ? reader.len : reader.pos + length, message = new {{$TypeName}}();
@@ -202,7 +233,7 @@ export namespace {{$NS}} {
             return message;
         }
 
-        static decodeDelimited(reader: (protobuf.Reader|Uint8Array)): {{$TypeName}} {
+        static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
@@ -379,7 +410,7 @@ export namespace {{$NS}} {
             return message;
         }
 
-        static toObject(message: {{$TypeName}}, options?: protobuf.IConversionOptions): { [k: string]: any } {
+        static toObject(message: {{$TypeName}}, options?: $protobuf.IConversionOptions): { [k: string]: any } {
             if (!options)
                 options = {};
             var object: any = {};
@@ -451,7 +482,7 @@ export namespace {{$NS}} {
         }{{/*end toObject function*/}}
 
         toJSON(): { [k: string]: any } {
-            return {{$TypeName}}.toObject(this, protobuf.util.toJSONOptions);
+            return {{$TypeName}}.toObject(this, $protobuf.util.toJSONOptions);
         }
     } {{/*end class */}}
         {{- end}} {{/*end tables */}}

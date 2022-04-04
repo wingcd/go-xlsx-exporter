@@ -6,6 +6,9 @@
 using System;
 using System.Collections.Generic;
 using ProtoBuf;
+{{- range .Info.Imports}}
+{{.}}
+{{- end}}
 
 namespace {{.Namespace}}
 {
@@ -48,17 +51,17 @@ namespace {{.Namespace}}
     [ProtoContract]
     public class {{.TypeName}} : PBDataModel
     { {{range .Items}}
-    {{- if not .IsVoid }}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{- if not .IsVoid }}
+            {{-if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
-        {{- if .IsArray}}
+            {{- if .IsArray}}
         public List<{{.ValueType}}> {{.FieldName}} { get; set; }
-        {{- else}}
+            {{- else}}
         public {{.ValueType}} {{.FieldName}} { get; set; }
-        {{end -}}
-    {{- end}}
+            {{end -}}
+        {{- end}}
         {{- if .Convertable}}
-        public object Get{{camel_case .FieldName}}()
+        public {{get_alias .Alias}} Get{{camel_case .FieldName}}()
         {
             return GetConvertData("{{.FieldName}}", {{.FieldName}});
         }
@@ -84,14 +87,14 @@ namespace {{.Namespace}}
         public {{.ValueType}} {{$fieldName}} { get; set; }
         {{end -}}
         {{- if .Convertable}}
-        public object Get{{$fieldName}}()
+        public {{get_alias .Alias}} Get{{$fieldName}}()
         {
             return GetConvertData("{{$fieldName}}", {{$fieldName}});
         }
         {{- end}}
     {{else}}    
         {{- if .Convertable}}
-        public object Get{{$fieldName}}()
+        public {{get_alias .Alias}} Get{{$fieldName}}()
         {
             return GetConvertData("{{$fieldName}}", null);
         }

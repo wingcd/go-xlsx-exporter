@@ -23,8 +23,8 @@ type charsetFileDesc struct {
 type charsetGenerator struct {
 }
 
-func (g *charsetGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
-	utils.CheckPath(output)
+func (g *charsetGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
+	utils.CheckPath(info.Output)
 
 	if charsetTemplate == "" {
 		data, err := ioutil.ReadFile("./template/charset.gtpl")
@@ -53,7 +53,7 @@ func (g *charsetGenerator) Generate(output string) (save bool, data *bytes.Buffe
 			datas = append(datas, table.Data...)
 		}
 
-		var tempFileName = output + ".tpl"
+		var tempFileName = info.Output + ".tpl"
 		var content = ""
 		if ok, _ := utils.PathExists(tempFileName); ok {
 			bts, err := os.ReadFile(tempFileName)

@@ -150,6 +150,7 @@ type goFileDesc struct {
 	commonFileDesc
 
 	Package string
+	Info    *BuildInfo
 	Enums   []*model.DefineTableInfo
 	Consts  []*model.DefineTableInfo
 	Tables  []*model.DataTable
@@ -223,7 +224,7 @@ func (f *goFileDesc) genProtoRawDesc() {
 	}
 }
 
-func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *goGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	registGoFuncs()
 
 	if goTemplate == "" {
@@ -241,9 +242,10 @@ func (g *goGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 		return false, nil
 	}
 
-	var filename = strings.Split(filepath.Base(output), ".")[0]
+	var filename = strings.Split(filepath.Base(info.Output), ".")[0]
 	var fd = goFileDesc{
 		Package:  settings.PackageName,
+		Info:     info,
 		Enums:    settings.ENUMS[:],
 		Consts:   settings.CONSTS[:],
 		Tables:   make([]*model.DataTable, 0),

@@ -142,6 +142,7 @@ type jsFileDesc struct {
 	commonFileDesc
 
 	Namespace string
+	Info      *BuildInfo
 	Enums     []*model.DefineTableInfo
 	Consts    []*model.DefineTableInfo
 	Tables    []*model.DataTable
@@ -150,7 +151,7 @@ type jsFileDesc struct {
 type jsGenerator struct {
 }
 
-func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *jsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	registJSFuncs()
 
 	if jsTemplate == "" {
@@ -170,6 +171,7 @@ func (g *jsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 
 	var fd = jsFileDesc{
 		Namespace: settings.PackageName,
+		Info:      info,
 		Enums:     settings.ENUMS[:],
 		Consts:    settings.CONSTS[:],
 		Tables:    make([]*model.DataTable, 0),

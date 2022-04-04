@@ -156,7 +156,43 @@ func process() {
 		}
 	}
 
+	finalExports := make([]*settings.ExportInfo, 0)
 	for _, info := range exports {
+		if strings.Contains(info.Type, ",") {
+			types := strings.Split(info.Type, ",")
+			paths := strings.Split(info.Path, ",")
+			if len(types) != len(paths) {
+				log.Fatalf("类型数量与输出数量必须相同")
+			}
+			for i := 0; i < len(types); i++ {
+				newInfo := new(settings.ExportInfo)
+				newInfo.ID = info.ID
+				newInfo.Type = types[i]
+				newInfo.Package = info.Package
+				newInfo.Path = paths[i]
+				newInfo.Sheets = info.Sheets
+				newInfo.ExportType = info.ExportType
+				newInfo.Imports = info.Imports
+
+				finalExports = append(finalExports, newInfo)
+			}
+		} else {
+			finalExports = append(finalExports, info)
+		}
+	}
+
+	for _, info := range finalExports {
+		if !generator.HasGenerator(info.Type) {
+			gens := ""
+			for key, _ := range generator.GetAllGenerators() {
+				if gens != "" {
+					gens += ", "
+				}
+				gens += key
+			}
+			log.Fatalf("未知导出类型:%v, id:%v, 路径：%v \n\t\t\t合法类型有： %v\n", info.Type, info.ID, info.Path, gens)
+		}
+
 		doExport(info)
 	}
 }
@@ -164,17 +200,6 @@ func process() {
 func doExport(exportInfo *settings.ExportInfo) {
 	if exportInfo.Type == "" {
 		log.Fatalln("导出类型不能为空")
-	}
-
-	if !generator.HasGenerator(exportInfo.Type) {
-		gens := ""
-		for key, _ := range generator.GetAllGenerators() {
-			if gens != "" {
-				gens += ", "
-			}
-			gens += key
-		}
-		log.Fatalf("未知导出类型:%v, id:%v, 路径：%v \n\t\t\t合法类型有： %v\n", exportInfo.Type, exportInfo.ID, exportInfo.Path, gens)
 	}
 
 	if exportInfo.Path == "" {
@@ -298,6 +323,11 @@ func doExport(exportInfo *settings.ExportInfo) {
 
 	settings.SetTables(tables...)
 
+	info := generator.NewBuildInfo(exportInfo.Path)
+	if exportInfo.Imports != nil {
+		info.Imports = exportInfo.Imports
+	}
+
 	// 执行导出任务
-	generator.Build(exportInfo.Type, exportInfo.Path)
+	generator.Build(exportInfo.Type, info)
 }

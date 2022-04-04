@@ -211,7 +211,7 @@ func TestGenProtoBytesFile(t *testing.T) {
 
 	settings.SetTables(t_user, t_class)
 
-	generator.Build("proto_bytes", "./gen/bytes/")
+	generator.Build("proto_bytes", generator.NewBuildInfo("./gen/bytes/"))
 }
 
 func TestGenProtoFile(t *testing.T) {
@@ -227,7 +227,7 @@ func TestGenProtoFile(t *testing.T) {
 
 	settings.SetTables(t_user, t_class)
 
-	generator.Build("proto", "./gen/all.proto")
+	generator.Build("proto", generator.NewBuildInfo("./gen/all.proto"))
 }
 
 func TestGenCSharpFile(t *testing.T) {
@@ -247,7 +247,7 @@ func TestGenCSharpFile(t *testing.T) {
 
 	settings.SetTables(t_user, t_class, t_location1, t_location2)
 
-	generator.Build("csharp", "./gen/DataMode.cs")
+	generator.Build("csharp", generator.NewBuildInfo("./gen/DataMode.cs"))
 }
 
 func TestGenGolangFile(t *testing.T) {
@@ -263,7 +263,7 @@ func TestGenGolangFile(t *testing.T) {
 	settings.AddLanguageTable()
 
 	settings.PackageName = "gen"
-	generator.Build("golang", "./gen/DataMode.pb.go")
+	generator.Build("golang", generator.NewBuildInfo("./gen/DataMode.pb.go"))
 }
 
 func TestGenLangFile(t *testing.T) {
@@ -271,7 +271,7 @@ func TestGenLangFile(t *testing.T) {
 	settings.AddLanguageTable()
 
 	settings.PackageName = "go_xlsx_exporter"
-	generator.Build("golang", "./gen/__inner_language__.pb.go")
+	generator.Build("golang", generator.NewBuildInfo("./gen/__inner_language__.pb.go"))
 }
 
 func TestGenGolangFileWithComment(t *testing.T) {
@@ -282,7 +282,7 @@ func TestGenGolangFileWithComment(t *testing.T) {
 	t_comment.TypeName = "Comment"
 	settings.SetTables(t_comment)
 
-	generator.Build("golang", "./gen/Comment.pb.go")
+	generator.Build("golang", generator.NewBuildInfo("./gen/Comment.pb.go"))
 }
 
 func TestGenLanguageProtoBytes(t *testing.T) {
@@ -301,6 +301,6 @@ func TestGenLanguageProtoBytes(t *testing.T) {
 
 	settings.SetTables(t_user, t_class, t_location)
 
-	generator.Build("proto_bytes", "./gen/bytes/")
+	generator.Build("proto_bytes", generator.NewBuildInfo("./gen/bytes/"))
 
 }

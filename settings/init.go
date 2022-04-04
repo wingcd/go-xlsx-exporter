@@ -30,6 +30,8 @@ var (
 
 	Rules []*RuleInfo
 
+	Imports []string
+
 	DEFINES     map[string]*model.DefineTableInfo
 	ENUMS       []*model.DefineTableInfo
 	STRUCTS     []*model.DefineTableInfo
@@ -192,5 +194,10 @@ func CheckRule(id int, value string) bool {
 		log.Fatalf("未找到规则Id=%v", id)
 		return true
 	}
+
+	if rule.Disable {
+		return true
+	}
+
 	return rule.RRule.MatchString(value)
 }

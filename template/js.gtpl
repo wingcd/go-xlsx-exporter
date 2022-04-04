@@ -9,13 +9,13 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
 "use strict";
 
-var protobuf = require("protobufjs/minimal");
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-var $Reader = protobuf.Reader, $Writer = protobuf.Writer, $util = protobuf.util;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = protobuf.roots["default"] || (protobuf.roots["default"] = {});
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
 $root.{{$NS}} = (function() {
     /**
@@ -23,7 +23,18 @@ $root.{{$NS}} = (function() {
      * @exports {{$NS}}
      * @namespace
      */
-    var {{$NS}} = {};
+    var {{$NS}} = {};    
+
+    var DataConverter = $root.DataConverter = (function() {
+        DataConverter.convertHandler = null;
+
+        DataConverter.convertData(typeName, fieldName, value) {
+            if(this.convertHandler) {
+                return this.convertHandler(typeName, fieldName, value);
+            }
+            return null;
+        }
+    })();
 
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
@@ -39,7 +50,8 @@ $root.{{$NS}} = (function() {
     {{end}}
 
     {{- /*生成配置类类型*/}}
-    {{- range .Consts}}
+    {{- range .Consts}}    
+    {{$TypeName := .TypeName}}
     // Defined in table: {{.DefinedTable}}
     var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
         var values = Object.create(valuesById);
@@ -49,7 +61,9 @@ $root.{{$NS}} = (function() {
         values.{{.FieldName}} = {{value_format .Value .}};
     {{- end}}
         {{- if .Convertable}}
-        
+        values.get{{.FieldName}} = function() {
+            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+        };
         {{- end}}
     {{end}}
         return values;
@@ -61,6 +75,7 @@ $root.{{$NS}} = (function() {
     {{$TypeName := .TypeName}}
     // Defined in table: {{.DefinedTable}}
     var {{$TypeName}} = {{$NS}}.{{$TypeName}} = (function() {
+        {{$TypeName}}.__type_name__ = "{{$TypeName}}";
 
         function {{$TypeName}}(properties) {
             {{range .Headers}}
@@ -85,6 +100,11 @@ $root.{{$NS}} = (function() {
         {{$TypeName}}.prototype.{{.FieldName}} =  {{default .}};
                 {{end -}}   
             {{end -}} 
+            {{- if .Convertable}}
+        {{$TypeName}}.prototype.get{{.FieldName}} = function() {
+            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+        };
+            {{- end}}
         {{end}} 
 
         {{$TypeName}}.create = function create(properties) {
@@ -422,7 +442,7 @@ $root.{{$NS}} = (function() {
         };{{/*end toObject function*/}}
 
         {{$TypeName}}.prototype.toJSON = function toJSON() {
-            return this.constructor.toObject(this, protobuf.util.toJSONOptions);
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         return {{$TypeName}};

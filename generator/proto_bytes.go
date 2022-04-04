@@ -13,8 +13,8 @@ import (
 type protoBytesGenerator struct {
 }
 
-func (g *protoBytesGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
-	utils.CheckPath(output)
+func (g *protoBytesGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
+	utils.CheckPath(info.Output)
 
 	fd, _ := utils.BuildFileDesc("", true)
 
@@ -26,16 +26,16 @@ func (g *protoBytesGenerator) Generate(output string) (save bool, data *bytes.Bu
 		xlsx.CheckTable(table)
 	}
 
-	if !serialize.GenDataTables("", fd, output, settings.TABLES) {
-		fmt.Printf("[错误] protobuf数据序列化失败，路径：%s \n", output)
+	if !serialize.GenDataTables("", fd, info.Output, settings.TABLES) {
+		fmt.Printf("[错误] protobuf数据序列化失败，路径：%s \n", info.Output)
 	}
 
-	if !serialize.GenLanguageTables("", fd, output, settings.TABLES, settings.LANG_TABLES) {
-		fmt.Printf("[错误] protobuf多语言序列化失败，路径：%s \n", output)
+	if !serialize.GenLanguageTables("", fd, info.Output, settings.TABLES, settings.LANG_TABLES) {
+		fmt.Printf("[错误] protobuf多语言序列化失败，路径：%s \n", info.Output)
 	}
 
-	if !serialize.GenDefineTables("", fd, output, settings.CONSTS) {
-		fmt.Printf("[错误] protobuf配置序列化失败，路径：%s \n", output)
+	if !serialize.GenDefineTables("", fd, info.Output, settings.CONSTS) {
+		fmt.Printf("[错误] protobuf配置序列化失败，路径：%s \n", info.Output)
 	}
 	return false, nil
 }

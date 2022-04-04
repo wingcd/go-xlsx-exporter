@@ -27,14 +27,14 @@ func init() {
 }
 
 type FiledInfo struct {
-	Valiable   bool
-	ValueType  string
-	IsArray    bool
-	SplitChar  string
-	Converable bool
-	Alias      string
-	IsVoid     bool
-	Rule       int
+	Valiable    bool
+	ValueType   string
+	IsArray     bool
+	SplitChar   string
+	Convertable bool
+	Alias       string
+	IsVoid      bool
+	Rule        int
 }
 
 func CompileValueType(valueType string) *FiledInfo {
@@ -51,13 +51,13 @@ func CompileValueType(valueType string) *FiledInfo {
 	if finfo.SplitChar == "" {
 		finfo.SplitChar = settings.ArraySplitChar
 	}
-	finfo.Converable = match[4] != ""
-	if finfo.Converable && match[4] != "?" {
+	finfo.Convertable = match[4] != ""
+	if finfo.Convertable && match[4] != "?" {
 		finfo.Alias = strings.Replace(match[4], "?", "", 1)
 	}
 	finfo.IsVoid = IsVoid(finfo.ValueType)
 	if finfo.IsVoid {
-		finfo.Converable = true
+		finfo.Convertable = true
 	}
 	if match[7] != "" {
 		rule, err := strconv.Atoi(match[7])

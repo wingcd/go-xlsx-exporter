@@ -5,15 +5,17 @@ export_type: 1 #全局导出类型设置，1-all,2-client,3-server,4-ignore-不�
 array_split_char: "|" #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
 strict_mode: false # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
-rules:
+rules: #数据规则，可在字段类型后加入规则id,在数据导出时进行规则检测，严格模式会中断输出，否则只进行日志提示
 -
-  id: 1
-  rule: '\w+?\.png'
-  desc: '图片'
+  id: 1              # 规则id，在类型表达式中使用
+  rule: '\w+?\.png'  # 规则正则表达式
+  desc: '图片'        # 描述
+  disable: false     # 是否关闭此规则
 -
   id: 2
   rule: '\d+'
   desc: '数字'
+  disable: false
 sheets:
  -
   id: 1
@@ -91,12 +93,15 @@ exports:
 #  path: "./gen/data/lang.txt"
 -
  id: 6
- type: "js"
- path: "./gen/code/data_mode.js"
--
- id: 7
- type: "dts"
- path: "./gen/code/data_mode.d.ts"
+ type: "js,dts"
+ path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
+ imports:
+  - "import UserData from './userdata'"
+  - "import XXX from './xxx'"
+# -
+#  id: 7
+#  type: "dts"
+#  path: "./gen/code/data_mode.d.ts"
 -
  id: 8
  type: "ts"

@@ -26,6 +26,13 @@ func egistDTSFuncs() {
 	funcs["type_format"] = tsTypeFormat
 
 	funcs["default"] = jsValueDefault
+
+	funcs["get_alias"] = func(alias string) string {
+		if alias == "" {
+			return "any"
+		}
+		return alias
+	}
 }
 
 var supportDTSTypes = map[string]string{
@@ -55,6 +62,7 @@ type dtsFileDesc struct {
 	commonFileDesc
 
 	Namespace string
+	Info      *BuildInfo
 	Enums     []*model.DefineTableInfo
 	Consts    []*model.DefineTableInfo
 	Tables    []*model.DataTable
@@ -63,7 +71,7 @@ type dtsFileDesc struct {
 type dtsGenerator struct {
 }
 
-func (g *dtsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *dtsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	egistDTSFuncs()
 
 	if dtsTemplate == "" {
@@ -83,6 +91,7 @@ func (g *dtsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 
 	var fd = dtsFileDesc{
 		Namespace: settings.PackageName,
+		Info:      info,
 		Enums:     settings.ENUMS[:],
 		Consts:    settings.CONSTS[:],
 		Tables:    make([]*model.DataTable, 0),

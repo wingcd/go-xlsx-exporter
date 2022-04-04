@@ -25,18 +25,20 @@ type SheetInfo struct {
 }
 
 type ExportInfo struct {
-	ID         int    `yaml:"id"`
-	Type       string `yaml:"type"`
-	Path       string `yaml:"path"`
-	Sheets     string `yaml:"sheets"`
-	ExportType int    `yaml:"export_type"`
-	Package    string `yaml:"package"`
+	ID         int      `yaml:"id"`
+	Type       string   `yaml:"type"`
+	Path       string   `yaml:"path"`
+	Sheets     string   `yaml:"sheets"`
+	ExportType int      `yaml:"export_type"`
+	Package    string   `yaml:"package"`
+	Imports    []string `yaml:"imports"`
 }
 
 type RuleInfo struct {
-	ID   int    `yaml:"id"`
-	Rule string `yaml:"rule"`
-	Desc string `yaml:"desc"`
+	ID      int    `yaml:"id"`
+	Rule    string `yaml:"rule"`
+	Desc    string `yaml:"desc"`
+	Disable bool   `yaml:"disable"`
 
 	RRule *regexp.Regexp
 }

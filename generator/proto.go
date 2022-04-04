@@ -34,6 +34,7 @@ type protoFileDesc struct {
 
 	Version string
 	Package string
+	Info    *BuildInfo
 	Enums   []*model.DefineTableInfo
 	Tables  []*model.DataTable
 }
@@ -41,7 +42,7 @@ type protoFileDesc struct {
 type protoGenerator struct {
 }
 
-func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *protoGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	if protoTemplate == "" {
 		data, err := ioutil.ReadFile("./template/proto.gtpl")
 		if err != nil {
@@ -60,6 +61,7 @@ func (g *protoGenerator) Generate(output string) (save bool, data *bytes.Buffer)
 	var fd = protoFileDesc{
 		Version: settings.TOOL_VERSION,
 		Package: settings.PackageName,
+		Info:    info,
 		Enums:   settings.ENUMS[:],
 		Tables:  make([]*model.DataTable, 0),
 	}

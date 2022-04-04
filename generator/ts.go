@@ -41,6 +41,13 @@ func egistTSFuncs() {
 	funcs["type_format"] = tsTypeFormat
 
 	funcs["default"] = jsValueDefault
+
+	funcs["get_alias"] = func(alias string) string {
+		if alias == "" {
+			return "any"
+		}
+		return alias
+	}
 }
 
 var supportTSTypes = map[string]string{
@@ -70,6 +77,7 @@ type tsFileDesc struct {
 	commonFileDesc
 
 	Namespace string
+	Info      *BuildInfo
 	Enums     []*model.DefineTableInfo
 	Consts    []*model.DefineTableInfo
 	Tables    []*model.DataTable
@@ -78,7 +86,7 @@ type tsFileDesc struct {
 type tsGenerator struct {
 }
 
-func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *tsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	egistTSFuncs()
 
 	if tsTemplate == "" {
@@ -98,6 +106,7 @@ func (g *tsGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
 
 	var fd = tsFileDesc{
 		Namespace: settings.PackageName,
+		Info:      info,
 		Enums:     settings.ENUMS[:],
 		Consts:    settings.CONSTS[:],
 		Tables:    make([]*model.DataTable, 0),

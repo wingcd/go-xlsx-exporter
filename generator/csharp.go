@@ -49,6 +49,13 @@ func registCSFuncs() {
 	}
 	csGenetatorInited = true
 
+	funcs["get_alias"] = func(alias string) string {
+		if alias == "" {
+			return "object"
+		}
+		return alias
+	}
+
 	funcs["value_format"] = func(value string, item interface{}) string {
 		var isEnum = false
 		var valueType = ""
@@ -96,6 +103,7 @@ type csharpFileDesc struct {
 	commonFileDesc
 
 	Namespace string
+	Info      *BuildInfo
 	Enums     []*model.DefineTableInfo
 	Structs   []*model.DefineTableInfo
 	Consts    []*model.DefineTableInfo
@@ -105,7 +113,7 @@ type csharpFileDesc struct {
 type csharpGenerator struct {
 }
 
-func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer) {
+func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	registCSFuncs()
 
 	if csharpTemplate == "" {
@@ -124,6 +132,7 @@ func (g *csharpGenerator) Generate(output string) (save bool, data *bytes.Buffer
 	}
 
 	var fd = csharpFileDesc{
+		Info:      info,
 		Namespace: settings.PackageName,
 		Enums:     settings.ENUMS[:],
 		Structs:   settings.STRUCTS[:],

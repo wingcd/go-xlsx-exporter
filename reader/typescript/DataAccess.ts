@@ -143,7 +143,7 @@ export class DataItem {
     }
 
     protected load(): any {
-        var buffer = this.onLoadData(this.dataType.name);
+        var buffer = this.onLoadData(this.dataType["__type_name__"]);
         var msgType:IMessage = this.dataType as any;        
         return msgType.decode(buffer);
     }
@@ -175,9 +175,9 @@ export class DataTable extends DataItem {
     }
 
     protected load() : any[] {
-        // var arrTypeName = this.dataType.name + "_ARRAY"; 
+        // var arrTypeName = this.dataType["__type_name__"] + "_ARRAY"; 
 
-        var buffer = this.onLoadData(this.dataType.name);
+        var buffer = this.onLoadData(this.dataType["__type_name__"]);
         var msgType:IMessage = this.dataType as any;
         var message = msgType.decode(buffer);
         return (message as IDataArray).Items;        

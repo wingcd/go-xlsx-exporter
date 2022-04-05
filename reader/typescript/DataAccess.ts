@@ -38,8 +38,8 @@ export class DataAccess
     public static generator: FileNameGenerateHandler;
     public static loader: LoadDataHandler;
 
-    private static _items:{[key:string]:DataItem} = {};
-    private static _tables: {[key:string]:DataTable} = {};
+    private static _items:{[key:string]:any} = {};
+    private static _tables: {[key:string]:any} = {};
 
     public static initial(dataDir:string, loadHandle?:LoadDataHandler, fileNameGenerateHandle?:FileNameGenerateHandler){
         this.dataDir = dataDir;
@@ -49,22 +49,22 @@ export class DataAccess
         $protobuf.Method
     }
 
-    public static getDataItem(dataType: Function): DataItem {
+    public static getDataItem<T>(dataType: Function): DataItem<T> {
         if(this._items[dataType.name]) {
             return this._items[dataType.name];
         }
-        return this._items[dataType.name] = new DataItem(dataType);
+        return this._items[dataType.name] = new DataItem<T>(dataType);
     }
 
-    public static getDataTable(dataType:Function, keyName = "ID") : DataTable {
+    public static getDataTable<T>(dataType:Function, keyName = "ID") : DataTable<T> {
         if(this._tables[dataType.name]) {
             return this._tables[dataType.name];
         }
-        return this._tables[dataType.name] = new DataTable(dataType, keyName);
+        return this._tables[dataType.name] = new DataTable<T>(dataType, keyName);
     }
 }
 
-export class DataItem {
+export class DataItem<T> {
     protected localGenerator: FileNameGenerateHandler;
     protected localLoader: LoadDataHandler;
 
@@ -128,8 +128,8 @@ export class DataItem {
         this.localGenerator = fileNameGenerateHandle;
     }
 
-    public static create(dataType: ObjectConstructor, source: BufferAsset): DataItem {
-        var instance = new DataItem(dataType);
+    public static create<T>(dataType: ObjectConstructor, source: BufferAsset): DataItem<T> {
+        var instance = new DataItem<T>(dataType);
         instance.setSource(source);
         return instance;
     }
@@ -148,21 +148,17 @@ export class DataItem {
         return msgType.decode(buffer);
     }
 
-    private _item: any[];
-    public get data(): any[] {
+    private _item: T;
+    public get data(): T {
         if (this._item == null)
         {
             this._item = this.load();
         }
         return this._item;
     }
-
-    public set data(value: any) {
-        this._item = value;
-    }
 }
 
-export class DataTable extends DataItem {
+export class DataTable<T> extends DataItem<T> {
     private _keyName = "ID";
     public get keyName() {
         return this._keyName;
@@ -174,7 +170,7 @@ export class DataTable extends DataItem {
         this._keyName = keyName;
     }
 
-    protected load() : any[] {
+    protected load() : T[] {
         // var arrTypeName = this.dataType["__type_name__"] + "_ARRAY"; 
 
         var buffer = this.onLoadData(this.dataType["__type_name__"]);
@@ -183,8 +179,8 @@ export class DataTable extends DataItem {
         return (message as IDataArray).Items;        
     }
 
-    public static create(dataType: ObjectConstructor, source: BufferAsset, keyName = "ID"): DataTable{
-        var instance = new DataTable(dataType, keyName);
+    public static create<T>(dataType: ObjectConstructor, source: BufferAsset, keyName = "ID"): DataTable<T>{
+        var instance = new DataTable<T>(dataType, keyName);
         instance.setSource(source);
         return instance;
     }
@@ -198,8 +194,8 @@ export class DataTable extends DataItem {
         return this._itemMap;
     }
 
-    private _items: any[];
-    public get items(): any[] {
+    private _items: T[];
+    public get items(): T[] {
         try{
             if (this._items == null){
                 this._items = this.initDataAsList();
@@ -222,7 +218,7 @@ export class DataTable extends DataItem {
         return this._ids;
     }
 
-    public getItem(key: KeyType): any
+    public getItem(key: KeyType): T
     {
         return this.itemMap[key];
     }
@@ -241,7 +237,7 @@ export class DataTable extends DataItem {
         }
     }
 
-    protected initDataAsList(): any[]{
+    protected initDataAsList(): T[]{
         return this.load();
     }
 

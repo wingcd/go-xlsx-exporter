@@ -25,16 +25,16 @@ $root.{{$NS}} = (function() {
      */
     var {{$NS}} = {};    
 
-    var DataConverter = $root.DataConverter = (function() {
-        DataConverter.convertHandler = null;
+    var DataConverter = $root.DataConverter = {
+        convertHandler:null,
 
-        DataConverter.convertData(typeName, fieldName, value) {
+        convertData: function(typeName, fieldName, value) {
             if(this.convertHandler) {
                 return this.convertHandler(typeName, fieldName, value);
             }
             return null;
         }
-    })();
+    };
 
     {{/*生成枚举类型*/}}
     {{- range .Enums}}

@@ -41,14 +41,30 @@ export interface Long {
 }
 
 export class DataConverter {
-    static convertHandler: (typeName: string, fieldName:string, value: string)=>any = null;
+    private static _cache = {};
 
-    static convertData(typeName: string, fieldName:string, value: string): any {
-        if(this.convertHandler) {
-            return this.convertHandler(typeName, fieldName, value);
+    static convertHandler: (data: DataModel, fieldName:string, value: string)=>any = null;
+}
+
+export class DataModel {
+    private _converted = {};
+
+    protected getConvertData(fieldName: string, value: any)
+    {
+        if(this._converted[fieldName])
+        {
+            this._converted[fieldName];
         }
-        return null;
-    }
+
+        if(DataConverter.convertHandler == null)
+        {
+            throw `convert field ${fieldName} value need a convetor`;
+        }
+
+        var data = DataConverter.convertHandler(this, fieldName, value);
+        this._converted[fieldName] = data;
+        return data;
+    } 
 }
 
 export namespace {{$NS}} {
@@ -83,11 +99,6 @@ export namespace {{$NS}} {
             {{- if not .IsVoid }}
         {{.FieldName}} : {{value_format .Value .}},
             {{end}}
-            {{- if .Convertable}}    
-        get{{.FieldName}}(): {{get_alias .Alias}} {
-            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
-        },
-            {{end}}
         {{end}} {{/*end .Items */}}
     }
     {{end}}{{/*end .Consts */}}
@@ -110,7 +121,7 @@ export namespace {{$NS}} {
     }
 
      /** Represents a {{$TypeName}}. */
-    export class {{$TypeName}} implements I{{$TypeName}} { 
+    export class {{$TypeName}} extends DataModel implements I{{$TypeName}} { 
         private static __type_name__ = "{{$TypeName}}";
 
         {{range .Headers}}
@@ -124,7 +135,7 @@ export namespace {{$NS}} {
             {{end -}} 
             {{- if .Convertable}}    
         get{{.FieldName}}(): {{get_alias .Alias}} {
-            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+            return this.getConvertData("{{.FieldName}}", this.{{.FieldName}});
         };
             {{end}}
         {{end}}
@@ -134,6 +145,8 @@ export namespace {{$NS}} {
          * @param [properties] Properties to set
          */
         constructor(properties?: I{{$TypeName}}) {
+            super();
+            
             {{range .Headers}}
         {{- if not .IsVoid }}
             {{- if .IsArray}}

@@ -16,7 +16,7 @@ const (
 
 var (
 	GO_PROTO_VERTION = "v1.27.1"
-	TOOL_VERSION     = "1.1"
+	TOOL_VERSION     = "1.2"
 
 	ExportType     = EXPORT_TYPE_ALL
 	PackageName    = "PBGen"

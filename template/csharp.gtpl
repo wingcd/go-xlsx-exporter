@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using ProtoBuf;
+using System.IO;
 {{- range .Info.Imports}}
 {{.}}
 {{- end}}
@@ -121,14 +122,28 @@ namespace {{.Namespace}}
         {{- end}}  
         }; 
 
-        public static PBDataModel CreateInstance(int id)
+        public static PBDataModel CreateMessage(int id)
         {
             if(!Types.ContainsKey(id)) 
             {                
                 return null;
             }
 
-            return (PBDataModel)Activator.CreateInstance(Types[id]);
+            return Activator.CreateInstance(Types[id]) as PBDataModel;
+        }
+
+        public static PBDataModel LoadMessage(int id, byte[] bytes)
+        {
+            if(!Types.ContainsKey(id)) 
+            {                
+                return null;
+            }
+
+            using (var stream = new MemoryStream(bytes))
+            {
+                object data = Serializer.NonGeneric.Deserialize(Types[id], stream);
+                return data as PBDataModel;
+            }
         }
     }
     {{- end}}

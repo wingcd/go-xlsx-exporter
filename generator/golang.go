@@ -269,8 +269,12 @@ func (g *goGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) 
 	utils.PreProcessTable(tables)
 
 	for _, t := range tables {
+		if t.TableType == model.ETableType_Message {
+			fd.HasMessage = true
+		}
+
 		// 排除语言类型
-		if t.IsLanguage && !settings.GenLanguageType {
+		if t.TableType == model.ETableType_Language && !settings.GenLanguageType {
 			continue
 		}
 
@@ -287,7 +291,7 @@ func (g *goGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) 
 			}
 		}
 
-		if t.IsDataTable {
+		if t.NeedAddItems {
 			// 添加数组类型
 			table := model.DataTable{}
 			table.DefinedTable = t.DefinedTable

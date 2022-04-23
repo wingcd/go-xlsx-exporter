@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/settings"
 	"github.com/wingcd/go-xlsx-exporter/xlsx"
+	"github.com/wingcd/go-xlsx-exporter/xml"
 )
 
 var (
@@ -158,6 +160,10 @@ func process() {
 
 	finalExports := make([]*settings.ExportInfo, 0)
 	for _, info := range exports {
+		if info == nil {
+			continue
+		}
+
 		if strings.Contains(info.Type, ",") {
 			types := strings.Split(info.Type, ",")
 			paths := strings.Split(info.Path, ",")
@@ -252,29 +258,59 @@ func doExport(exportInfo *settings.ExportInfo) {
 	defineSheets := make([]*settings.SheetInfo, 0)
 	dataSheets := make([]*settings.SheetInfo, 0)
 	langSheets := make([]*settings.SheetInfo, 0)
+	messageDefinss := make([]*settings.SheetInfo, 0)
+	messages := make([]*settings.SheetInfo, 0)
 	for _, info := range sheets {
+		if info.File == "" {
+			continue
+		}
+
 		tp := strings.ToLower(info.Type)
 		if tp == "define" {
-			defineSheets = append(defineSheets, info)
+			if path.Ext(info.File) == ".xml" {
+				messageDefinss = append(defineSheets, info)
+			} else {
+				defineSheets = append(defineSheets, info)
+			}
 		} else if tp == "table" {
 			if !info.IsLang {
 				dataSheets = append(dataSheets, info)
 			} else {
 				langSheets = append(langSheets, info)
 			}
+		} else if tp == "message" {
+			messages = append(messages, info)
 		} else {
 			log.Fatalf("配置错误：未知表类型[%v],id:%v 文件:%v, 表:%v, 只支持[define/table]\n", tp, info.ID, info.File, info.Sheet)
 		}
 	}
 
 	// 定义表
+	defineTables := make(map[string]*model.DefineTableInfo, 0)
 	if len(defineSheets) > 0 {
 		defines := make([]string, 0)
 		for _, info := range defineSheets {
 			defines = append(defines, info.File, info.Sheet)
 		}
-		settings.SetDefines(xlsx.ParseDefineSheet(defines...))
+		d := xlsx.ParseDefineSheet(defines...)
+		for _, info := range d {
+			defineTables[info.TypeName] = info
+		}
 	}
+
+	// xml 定义表
+	if len(messageDefinss) > 0 {
+		defines := make([]string, 0)
+		for _, info := range messageDefinss {
+			defines = append(defines, info.File)
+		}
+		d := xml.ParseDefine(defines...)
+		for _, info := range d {
+			defineTables[info.TypeName] = info
+		}
+	}
+
+	settings.SetDefines(defineTables)
 
 	tables := make([]*model.DataTable, 0)
 
@@ -315,8 +351,17 @@ func doExport(exportInfo *settings.ExportInfo) {
 
 		table := xlsx.ParseDataSheet(defines...)
 		table.Id = langSheets[0].ID
-		table.IsLanguage = true
+		table.TableType = model.ETableType_Language
 		tables = append(tables, table)
+	}
+
+	// 消息文件
+	if len(messages) > 0 {
+		defines := make([]string, 0)
+		for _, info := range messages {
+			defines = append(defines, info.File)
+		}
+		tables = append(xml.Parse(defines...))
 	}
 
 	sort.Sort(model.DataTables(tables))

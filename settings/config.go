@@ -18,7 +18,7 @@ const (
 type SheetInfo struct {
 	ID       int    `yaml:"id"`
 	Type     string `yaml:"type"`
-	File     string `yaml:"xls_file"`
+	File     string `yaml:"file"`
 	Sheet    string `yaml:"sheet"`
 	TypeName string `yaml:"type_name"`
 	IsLang   bool   `yaml:"is_lang"`

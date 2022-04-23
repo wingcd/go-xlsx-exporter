@@ -53,6 +53,8 @@ golang编写的将xlsx表文件数据及结构导出工具
 - [x] 忽略空行/列
 
 - [x] 分表配置支持
+  
+- [x] 支持消息协议配置(xml格式， type=[define/message])
 
 #### 导出支持
 
@@ -81,6 +83,8 @@ golang编写的将xlsx表文件数据及结构导出工具
 - [ ] 支持sqlite表结构及数据导出
 
 - [x] 支持列正则检查
+  
+- [x] 支持消息导出（无需单独导出类型，按相关语言导出即可）
 
 #### 读取支持
 
@@ -147,18 +151,18 @@ sheets: # 所有表格数据
  -
   id: 1 # 表格编号，用于生成时过滤
   type: "define" # 表格数据类型,包含： define/table/language
-  xls_file: 'data/define.xlsx' # xlsx文件路径
+  file: 'data/define.xlsx' # xlsx文件路径
   sheet: 'define' # xlsx中的表格名
  - 
   id: 2
   type: "table"
-  xls_file: 'data/model.xlsx'
+  file: 'data/model.xlsx'
   sheet: 'user'
   type_name: 'User'  
  - 
   id: 2
   type: "table"
-  xls_file: 'data/i18n.xlsx'
+  file: 'data/i18n.xlsx'
   sheet: 'location1'
   is_lang: true
   
@@ -430,3 +434,40 @@ DataAccess.DataConvertHandler = (item, field, data) =>
     var settings = dt.Item().(*Settings)
     fmt.Printf("settings version=%v,maxconn=%v\n\n", settings.VERSION,    settings.MAX_CONNECT)
    ```
+
+#### 通信协议导出
+  支持网络协议(protobuf3)导出
+  1. define文件定义(后缀.xml)，此文件可定义`枚举类型`, 方便后续使用
+  ```xml
+  <define>
+    <enum name="EMsgType">
+        <field name="JSON" value="1" alias="用户ID"/>
+        <field name="XML"/>
+    </enum>
+</define>
+  ```
+
+  2. 消息文件定义(后缀.xml)，此文件定义用于网络传输的消息，可以使用预定义的枚举类型，以及此文件中的所有类型，当不定义消息id时，将不会对此消息进行注册
+ ``` xml
+ <proto>
+    <message id="10001" name="C2S_GetPlayerInfo">
+        <field name="id" alias="用户ID" type="int32" export="cs" desc="用户ID"/>
+        <field name="name" type="string"/>
+    </message>
+    <message id="10002" name="S2C_GetPlayerInfo">
+        <field name="id" type="int32" desc="用户ID"/>
+        <field name="name" type="string"/>      
+        <field name="type" type="EMsgType"/>  
+        <field name="items" type="Item[]"/>
+    </message>
+    <message name="Item">
+        <field name="id" type="int32" desc="ID"/>
+        <field name="name" type="string"/>
+    </message>
+</proto>
+ ```
+ 3. 消息使用，可注册一个消息封装体，用来二次包装传送消息，方便拿取id后进行消息创建，如golang中通过id和二进制数据创建消息
+ ``` golang
+err, dt := LoadMessage(10001, bytes)
+ ```
+   

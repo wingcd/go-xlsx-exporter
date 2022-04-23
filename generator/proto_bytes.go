@@ -3,7 +3,9 @@ package generator
 import (
 	"bytes"
 	"fmt"
-	"go-xlsx-exporter/xlsx"
+
+	"github.com/wingcd/go-xlsx-exporter/model"
+	"github.com/wingcd/go-xlsx-exporter/xlsx"
 
 	"github.com/wingcd/go-xlsx-exporter/serialize"
 	"github.com/wingcd/go-xlsx-exporter/settings"
@@ -26,7 +28,14 @@ func (g *protoBytesGenerator) Generate(info *BuildInfo) (save bool, data *bytes.
 		xlsx.CheckTable(table)
 	}
 
-	if !serialize.GenDataTables("", fd, info.Output, settings.TABLES) {
+	tables := make([]*model.DataTable, 0)
+	for _, table := range settings.TABLES {
+		if table.TableType == model.ETableType_Data {
+			tables = append(tables, table)
+		}
+	}
+
+	if !serialize.GenDataTables("", fd, info.Output, tables) {
 		fmt.Printf("[错误] protobuf数据序列化失败，路径：%s \n", info.Output)
 	}
 

@@ -1,0 +1,16 @@
+<proto>
+    <message id="10001" name="C2S_GetPlayerInfo">
+        <field name="id" alias="用户ID" type="int32" export="cs" desc="用户ID"/>
+        <field name="name" type="string"/>
+    </message>
+    <message id="10002" name="S2C_GetPlayerInfo">
+        <field name="id" type="int32" desc="用户ID"/>
+        <field name="name" type="string"/>      
+        <field name="type" type="EMsgType"/>  
+        <field name="items" type="Item[]"/>
+    </message>
+    <message name="Item">
+        <field name="id" type="int32" desc="ID"/>
+        <field name="name" type="string"/>
+    </message>
+</proto>

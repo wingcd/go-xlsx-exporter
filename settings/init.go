@@ -99,8 +99,7 @@ func SetDefines(defines ...map[string]*model.DefineTableInfo) {
 func AddLanguageTable() *model.DataTable {
 	var table = model.DataTable{}
 	table.TypeName = "Language"
-	table.IsDataTable = true
-	table.IsLanguage = true
+	table.TableType = model.ETableType_Language
 	table.DefinedTable = ""
 	table.Headers = make([]*model.DataTableHeader, 0)
 
@@ -138,7 +137,7 @@ func SetTables(tables ...*model.DataTable) {
 	LANG_TABLES = make([]*model.DataTable, 0)
 
 	for _, table := range tables {
-		if table.IsLanguage {
+		if table.TableType == model.ETableType_Language {
 			table.TypeName = "Language"
 			LANG_TABLES = append(LANG_TABLES, table)
 		} else {

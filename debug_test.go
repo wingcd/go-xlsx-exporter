@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/wingcd/go-xlsx-exporter/generator"
+	"github.com/wingcd/go-xlsx-exporter/model"
 	"github.com/wingcd/go-xlsx-exporter/serialize"
 	"github.com/wingcd/go-xlsx-exporter/settings"
 	"github.com/wingcd/go-xlsx-exporter/utils"
@@ -240,10 +241,10 @@ func TestGenCSharpFile(t *testing.T) {
 	t_class.TypeName = "PClass"
 
 	t_location1 := xlsx.ParseDataSheet("data/i18n.xlsx", "location1")
-	t_location1.IsLanguage = true
+	t_location1.TableType = model.ETableType_Language
 
 	t_location2 := xlsx.ParseDataSheet("data/i18n.xlsx", "location2")
-	t_location2.IsLanguage = true
+	t_location2.TableType = model.ETableType_Language
 
 	settings.SetTables(t_user, t_class, t_location1, t_location2)
 
@@ -297,7 +298,7 @@ func TestGenLanguageProtoBytes(t *testing.T) {
 	t_class.TypeName = "PClass"
 
 	t_location := xlsx.ParseDataSheet("data/i18n.xlsx", "location1", "data/i18n.xlsx", "location2")
-	t_location.IsLanguage = true
+	t_location.TableType = model.ETableType_Language
 
 	settings.SetTables(t_user, t_class, t_location)
 

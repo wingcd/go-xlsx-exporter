@@ -52,7 +52,7 @@ namespace {{.Namespace}}
     public class {{.TypeName}} : PBDataModel
     { {{range .Items}}
         {{- if not .IsVoid }}
-            {{-if ne .Desc ""}} //{{.Desc}} {{end}}
+            {{- if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
             {{- if .IsArray}}
         public List<{{.ValueType}}> {{.FieldName}} { get; set; }
@@ -72,35 +72,64 @@ namespace {{.Namespace}}
 
     {{- /*生成类类型*/}}
     {{- range .Tables}}
+    
     // Defined in table: {{.DefinedTable}}
     [Serializable]
     [ProtoContract]
     public class {{.TypeName}} : {{if .IsArray}}PBDataModels{{else}}PBDataModel{{end}}
-    { {{range .Headers}}
+    { 
+    {{range .Headers}}
         {{- $fieldName := camel_case .FieldName -}}
     {{- if not .IsVoid }}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
         public List<{{.ValueType}}> {{$fieldName}} { get; set; }
-        {{- else}}
+        {{- else }}
         public {{.ValueType}} {{$fieldName}} { get; set; }
-        {{end -}}
+        {{- end}}
         {{- if .Convertable}}
         public {{get_alias .Alias}} Get{{$fieldName}}()
         {
             return GetConvertData("{{$fieldName}}", {{$fieldName}});
         }
         {{- end}}
-    {{else}}    
+    {{- else}}    
         {{- if .Convertable}}
         public {{get_alias .Alias}} Get{{$fieldName}}()
         {
             return GetConvertData("{{$fieldName}}", null);
         }
         {{- end}}
-    {{end -}}
-    {{end}}
+    {{- end}}
+    {{- end}}
     }
-    {{end}}
+    {{- end}}
+
+    {{- if .HasMessage}}    
+    // regist all messages
+    public static class MessageFactory
+    {    
+        public static Dictionary<int, Type> Types = new Dictionary<int, Type>()
+        {
+        {{- range .Tables}}
+            {{- if is_message_table .TableType}}
+                {{- if gt .Id 0}}
+            { {{.Id}}, typeof({{.TypeName}}) },
+                {{- end}}
+            {{- end}}
+        {{- end}}  
+        }; 
+
+        public static PBDataModel CreateInstance(int id)
+        {
+            if(!Types.ContainsKey(id)) 
+            {                
+                return null;
+            }
+
+            return (PBDataModel)Activator.CreateInstance(Types[id]);
+        }
+    }
+    {{- end}}
 }

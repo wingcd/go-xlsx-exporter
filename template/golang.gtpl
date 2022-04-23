@@ -6,10 +6,14 @@
 package {{.Package}}
 
 import (
+	reflect "reflect"
+	sync "sync"	
+	"fmt"	
+	
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
+	"google.golang.org/protobuf/proto"
+
 	{{- range .Info.Imports}}
 	{{.}}
 	{{- end}}
@@ -210,7 +214,6 @@ var {{$innerVarPrefix}}_depIdxs = []int32{
 	{{.DepIdexs}}
 }
 
-func init() { {{$innerVarPrefix}}_init() }
 func {{$innerVarPrefix}}_init() {
 	if {{$outterVarPrefix}} != nil {
 		return
@@ -252,4 +255,47 @@ func {{$innerVarPrefix}}_init() {
 	{{$innerVarPrefix}}_rawDesc = nil
 	{{$innerVarPrefix}}_goTypes = nil
 	{{$innerVarPrefix}}_depIdxs = nil
+}
+
+{{- if .HasMessage}}    
+// regist all messages
+var Messages = make(map[int] reflect.Type)
+func {{$innerVarPrefix}}_regist() {
+	{{- range .Tables}}
+		{{- if is_message_table .TableType}}
+			{{- if gt .Id 0}}
+	Messages[{{.Id}}] = reflect.TypeOf({{.TypeName}}{})
+			{{- end}}
+		{{- end}}
+	{{- end}}  
+}
+
+func CreateMessage(id int) protoreflect.ProtoMessage {
+	tp, ok := Messages[id]
+	if !ok {
+		return nil
+	}
+
+	return reflect.New(tp).Interface().(protoreflect.ProtoMessage)
+}
+
+func LoadMessage(id int, data []byte) (error, protoreflect.ProtoMessage) {
+	msg := CreateMessage(id)
+	if msg == nil {
+		return fmt.Errorf("message %d not found", id), nil
+	}
+
+	err := proto.Unmarshal(data, msg)
+	if err != nil {
+		return err, nil
+	}
+	return nil, msg
+}
+{{- end}}
+
+func init() { 
+	{{$innerVarPrefix}}_init()
+	{{- if .HasMessage}} 
+	{{$innerVarPrefix}}_regist()
+	{{- end}}
 }

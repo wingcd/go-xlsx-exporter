@@ -125,6 +125,12 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		_, item.PBValueType = utils.ToPBType(item.StandardValueType)
 	}
 
+	DefinesPreProcess(infos)
+
+	return
+}
+
+func DefinesPreProcess(infos map[string]*model.DefineTableInfo) {
 	// 预处理
 	preValue := -1
 	for _, info := range infos {
@@ -198,8 +204,6 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 			}
 		}
 	}
-
-	return
 }
 
 // @params filename 文件名,表格名，文件名，表格名...
@@ -281,7 +285,8 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	}
 
 	table.Headers = make([]*model.DataTableHeader, 0)
-	table.IsDataTable = true
+	table.TableType = model.ETableType_Data
+	table.NeedAddItems = true
 
 	ignoreRows := make(map[int]bool, 0)
 	ignoreCols := make(map[int]bool, 0)

@@ -33,6 +33,7 @@ var stringList = []string{"string"}
 type commonFileDesc struct {
 	Version        string
 	GoProtoVersion string
+	HasMessage     bool
 }
 
 type BuildInfo struct {
@@ -295,6 +296,18 @@ func init() {
 
 	funcs["is_message"] = func(pbType string) bool {
 		return utils.IsStruct(pbType) || utils.IsTable(pbType)
+	}
+
+	funcs["is_define_table"] = func(tableType model.ETableType) bool {
+		return tableType == model.ETableType_Define
+	}
+
+	funcs["is_table_table"] = func(tableType model.ETableType) bool {
+		return tableType == model.ETableType_Data
+	}
+
+	funcs["is_message_table"] = func(tableType model.ETableType) bool {
+		return tableType == model.ETableType_Message
 	}
 }
 

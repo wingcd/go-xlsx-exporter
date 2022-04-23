@@ -1,0 +1,6 @@
+<define>
+    <enum name="EMsgType">
+        <field name="JSON" value="1" alias="用户ID"/>
+        <field name="XML"/>
+    </enum>
+</define>

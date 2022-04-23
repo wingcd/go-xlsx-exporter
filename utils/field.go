@@ -401,7 +401,7 @@ func ParseValue(rawType, value string) (success bool, ret interface{}, isArray b
 	return true, ret, finfo.IsArray
 }
 
-func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto, customType bool) {
+func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto) {
 	switch pbType {
 	case "int", "int32":
 		pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum()
@@ -423,11 +423,13 @@ func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto, 
 		if IsEnum(pbType) {
 			pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum()
 			pbDesc.TypeName = proto.String(settings.PackageName + "." + pbType)
-		} else if IsStruct(pbType) || customType {
-			pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum()
-			pbDesc.TypeName = proto.String(settings.PackageName + "." + pbType)
 		} else {
-			panic("unknown pb type: " + pbType)
+			if IsStruct(pbType) || IsTable(pbType) {
+				pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum()
+				pbDesc.TypeName = proto.String(settings.PackageName + "." + pbType)
+			} else {
+				panic("unknown pb type: " + pbType)
+			}
 		}
 	}
 }
@@ -497,7 +499,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 				fd.Name = proto.String(field.FieldName)
 				fd.JsonName = proto.String(field.FieldName)
 				fd.Number = proto.Int32(int32(idx))
-				TableType2PbType(field.ValueType, &fd, false)
+				TableType2PbType(field.ValueType, &fd)
 				if field.IsArray {
 					fd.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
 				} else {
@@ -523,7 +525,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 			fd.Name = proto.String(field.FieldName)
 			fd.JsonName = proto.String(field.FieldName)
 			fd.Number = proto.Int32(int32(field.Index))
-			TableType2PbType(field.ValueType, &fd, false)
+			TableType2PbType(field.ValueType, &fd)
 			if field.IsArray {
 				fd.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
 			} else {
@@ -534,7 +536,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		}
 		file.MessageType = append(file.MessageType, &desc)
 
-		if tab.IsDataTable {
+		if tab.NeedAddItems {
 			// 创建列表结构
 			var itemsDesc descriptorpb.DescriptorProto
 			itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
@@ -542,7 +544,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 			itemsFD.Name = proto.String("Items")
 			itemsFD.JsonName = proto.String("Items")
 			itemsFD.Number = proto.Int32(int32(1))
-			TableType2PbType(tab.TypeName, &itemsFD, true)
+			TableType2PbType(tab.TypeName, &itemsFD)
 			itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
 			itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
 
@@ -583,7 +585,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 
 	for _, tab := range tables {
 		// 当不生成语言类型时，过滤语言类型
-		if tab.IsLanguage && !includeLanguage {
+		if tab.TableType == model.ETableType_Language && !includeLanguage {
 			continue
 		}
 
@@ -598,7 +600,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 			fd.Name = proto.String(field.FieldName)
 			fd.JsonName = proto.String(field.FieldName)
 			fd.Number = proto.Int32(int32(field.Index))
-			TableType2PbType(field.ValueType, &fd, false)
+			TableType2PbType(field.ValueType, &fd)
 			if field.IsArray {
 				fd.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
 			} else {
@@ -609,7 +611,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 		}
 		file.MessageType = append(file.MessageType, &desc)
 
-		if tab.IsDataTable {
+		if tab.TableType == model.ETableType_Data {
 			// 创建列表结构
 			var itemsDesc descriptorpb.DescriptorProto
 			itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")
@@ -617,7 +619,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 			itemsFD.Name = proto.String("Items")
 			itemsFD.JsonName = proto.String("Items")
 			itemsFD.Number = proto.Int32(int32(1))
-			TableType2PbType(tab.TypeName, &itemsFD, true)
+			TableType2PbType(tab.TypeName, &itemsFD)
 			itemsFD.Label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()
 			itemsDesc.Field = append(itemsDesc.Field, &itemsFD)
 

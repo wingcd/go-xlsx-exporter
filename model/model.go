@@ -83,6 +83,15 @@ type DataTableHeader struct {
 	StructInfo
 }
 
+type ETableType int
+
+const (
+	ETableType_Define   ETableType = iota + 1 // 数据表
+	ETableType_Data                           // 数据表
+	ETableType_Language                       // 语言
+	ETableType_Message                        // 消息
+)
+
 // 数据表
 type DataTable struct {
 	Id int
@@ -94,12 +103,12 @@ type DataTable struct {
 	DefinedTable string
 	// 数据
 	Data [][]string
-	// 是否数据表
-	IsDataTable bool
-	// 是否多语言表
-	IsLanguage bool
+	// 表类型
+	TableType ETableType
 	// 是否数组
 	IsArray bool
+	// 是否需要增加子项
+	NeedAddItems bool
 }
 
 type DataTables []*DataTable
@@ -117,6 +126,7 @@ func Struct2Table(info *DefineTableInfo) *DataTable {
 	table.TypeName = info.TypeName
 	table.Headers = make([]*DataTableHeader, 0)
 	table.DefinedTable = info.DefinedTable
+	table.TableType = ETableType_Define
 
 	for _, item := range info.Items {
 		header := DataTableHeader{}
@@ -138,6 +148,7 @@ func Const2Table(info *DefineTableInfo) *DataTable {
 	table.TypeName = info.TypeName
 	table.Headers = make([]*DataTableHeader, 0)
 	table.DefinedTable = info.DefinedTable
+	table.TableType = ETableType_Define
 
 	for _, item := range info.Items {
 		header := DataTableHeader{}

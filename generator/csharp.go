@@ -163,8 +163,12 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 
 	utils.PreProcessTable(settings.TABLES)
 	for _, t := range settings.TABLES {
+		if t.TableType == model.ETableType_Message {
+			fd.HasMessage = true
+		}
+
 		// 排除语言类型
-		if t.IsLanguage && !settings.GenLanguageType {
+		if t.TableType == model.ETableType_Language && !settings.GenLanguageType {
 			continue
 		}
 
@@ -181,22 +185,24 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 			}
 		}
 
-		// 添加数组类型
-		table := model.DataTable{}
-		table.DefinedTable = t.DefinedTable
-		table.TypeName = t.TypeName + "_ARRAY"
-		table.IsArray = true
-		header := model.DataTableHeader{}
-		header.Index = 1
-		header.FieldName = "Items"
-		header.TitleFieldName = header.FieldName
-		header.IsArray = true
-		header.ValueType = t.TypeName
-		header.RawValueType = t.TypeName + "[]"
-		header.IsMessage = true
-		table.Headers = []*model.DataTableHeader{&header}
+		if t.NeedAddItems {
+			// 添加数组类型
+			table := model.DataTable{}
+			table.DefinedTable = t.DefinedTable
+			table.TypeName = t.TypeName + "_ARRAY"
+			table.IsArray = true
+			header := model.DataTableHeader{}
+			header.Index = 1
+			header.FieldName = "Items"
+			header.TitleFieldName = header.FieldName
+			header.IsArray = true
+			header.ValueType = t.TypeName
+			header.RawValueType = t.TypeName + "[]"
+			header.IsMessage = true
+			table.Headers = []*model.DataTableHeader{&header}
 
-		fd.Tables = append(fd.Tables, &table)
+			fd.Tables = append(fd.Tables, &table)
+		}
 	}
 	utils.PreProcessTable(fd.Tables)
 

@@ -7,41 +7,41 @@ sheets:
  -
   id: 1
   type: define #type: define/table/language
-  xls_file: 'data/define.xlsx'
+  file: 'data/define.xlsx'
   sheet: 'define'
  -
   id: 2
   type: define
-  xls_file: 'data/define.xlsx'
+  file: 'data/define.xlsx'
   sheet: 'consts'
  - 
   id: 3
   type: table
-  xls_file: 'data/model.xlsx'
+  file: 'data/model.xlsx'
   sheet: 'class'
   type_name: 'PClass'
  - 
   id: 4
   type: table
-  xls_file: 'data/model.xlsx'
+  file: 'data/model.xlsx'
   sheet: 'class1'
   type_name: 'PClass'
  - 
   id: 5
   type: table
-  xls_file: 'data/model.xlsx'
+  file: 'data/model.xlsx'
   sheet: 'user'
   type_name: 'User'
  - 
   id: 6
   type: table
-  xls_file: 'data/i18n.xlsx'
+  file: 'data/i18n.xlsx'
   sheet: 'location1'
   is_lang: true
  - 
   id: 7
   type: table
-  xls_file: 'data/i18n.xlsx'
+  file: 'data/i18n.xlsx'
   sheet: 'location2'
   is_lang: true
 

@@ -28,7 +28,7 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 	}
 
 	for _, table := range tables {
-		if table.IsLanguage {
+		if table.TableType == model.ETableType_Data {
 			continue
 		}
 		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
@@ -50,7 +50,7 @@ func GenLanguageTables(pbFilename string, fd pref.FileDescriptor, dir string, ta
 
 	var langTable *model.DataTable = nil
 	for _, table := range tables {
-		if table.IsLanguage {
+		if table.TableType == model.ETableType_Language {
 			langTable = table
 			break
 		}

@@ -451,7 +451,7 @@ DataAccess.DataConvertHandler = (item, field, data) =>
   ```xml
   <define>
     <enum name="EMsgType">
-        <field name="JSON" value="1" alias="用户ID"/>
+        <field name="JSON" value="1" desc="用户ID"/>
         <field name="XML"/>
     </enum>
 </define>
@@ -461,7 +461,7 @@ DataAccess.DataConvertHandler = (item, field, data) =>
  ``` xml
  <proto>
     <message id="10001" name="C2S_GetPlayerInfo">
-        <field name="id" alias="用户ID" type="int32" export="cs" desc="用户ID"/>
+        <field name="id" type="int32" desc="用户ID"/>
         <field name="name" type="string"/>
     </message>
     <message id="10002" name="S2C_GetPlayerInfo">

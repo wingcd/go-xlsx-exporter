@@ -38,7 +38,6 @@ type Field struct {
 	Name   string   `xml:"name,attr"`
 	Alias  string   `xml:"alias,attr"`
 	Type   string   `xml:"type,attr"`
-	Export string   `xml:"export,attr"`
 	Desc   string   `xml:"desc,attr"`
 }
 
@@ -167,14 +166,8 @@ func Parse(files ...string) (tables []*model.DataTable) {
 
 				header.Alias = field.Alias
 				header.Desc = field.Desc
-				if field.Export == "" {
-					header.ExportClient = true
-					header.ExportServer = true
-				} else {
-					cs := strings.ToLower(field.Export)
-					header.ExportClient = strings.Contains(cs, "c")
-					header.ExportServer = strings.Contains(cs, "s")
-				}
+				header.ExportClient = true
+				header.ExportServer = true
 
 				header.RawValueType = field.Type
 				finfo := utils.CompileValueType(header.RawValueType)

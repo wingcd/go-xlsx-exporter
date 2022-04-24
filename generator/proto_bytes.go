@@ -30,7 +30,7 @@ func (g *protoBytesGenerator) Generate(info *BuildInfo) (save bool, data *bytes.
 
 	tables := make([]*model.DataTable, 0)
 	for _, table := range settings.TABLES {
-		if table.TableType == model.ETableType_Data {
+		if table.TableType != model.ETableType_Message {
 			tables = append(tables, table)
 		}
 	}

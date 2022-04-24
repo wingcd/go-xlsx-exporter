@@ -49,6 +49,11 @@ export class DataAccess
         $protobuf.Method
     }
 
+    /**
+     * 获取配置表
+     * @param dataType 配置的数据类型
+     * @returns 
+     */
     public static getDataItem<T>(dataType: Function): DataItem<T> {
         if(this._items[dataType.name]) {
             return this._items[dataType.name];
@@ -56,6 +61,12 @@ export class DataAccess
         return this._items[dataType.name] = new DataItem<T>(dataType);
     }
 
+    /**
+     * 获取配置表, 可自定义主键名称
+     * @param dataType 配置的数据类型
+     * @param keyName 主键名称
+     * @returns 
+     */
     public static getDataTable<T>(dataType:Function, keyName = "ID") : DataTable<T> {
         if(this._tables[dataType.name]) {
             return this._tables[dataType.name];
@@ -171,9 +182,9 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     protected load() : T[] {
-        // var arrTypeName = this.dataType["__type_name__"] + "_ARRAY"; 
+        var arrTypeName = this.dataType["__type_name__"] + "_ARRAY";
 
-        var buffer = this.onLoadData(this.dataType["__type_name__"]);
+        var buffer = this.onLoadData(arrTypeName);
         var msgType:IMessage = this.dataType as any;
         var message = msgType.decode(buffer);
         return (message as IDataArray).Items;        

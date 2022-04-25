@@ -23,7 +23,7 @@ var (
 
 func init() {
 	// like: Name[,]?Type<1>
-	valueTypeRegx, _ = regexp.Compile(`^(?P<array>\w+)(\[(?P<split>.?)\])?(?P<conv>(\?|\?\w+))?(\<(?P<rule>\d+)\>)?$`)
+	valueTypeRegx, _ = regexp.Compile(`^(?P<array>\w+)(\[(?P<split>.?)\])?(?P<conv>(\?|\?.*?))?(\<(?P<rule>\d+)\>)?$`)
 }
 
 type FiledInfo struct {

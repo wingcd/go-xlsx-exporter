@@ -17,6 +17,31 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
+var DataConverter = $root.DataConverter = {
+    convertHandler: null,
+};
+
+var DataModel = $root.DataModel = function() {
+    this._converted = {};
+
+    this.getConvertData = function(fieldName, value)
+    {
+        if(this._converted[fieldName])
+        {
+            this._converted[fieldName];
+        }
+
+        if(DataConverter.convertHandler == null)
+        {
+            throw `convert field ${fieldName} value need a convetor`;
+        }
+
+        var data = DataConverter.convertHandler(this, fieldName, value);
+        this._converted[fieldName] = data;
+        return data;
+    } 
+};
+
 $root.{{$NS}} = (function() {
     /**
      * Namespace {{$NS}}.
@@ -25,16 +50,7 @@ $root.{{$NS}} = (function() {
      */
     var {{$NS}} = {};    
 
-    var DataConverter = $root.DataConverter = {
-        convertHandler:null,
-
-        convertData: function(typeName, fieldName, value) {
-            if(this.convertHandler) {
-                return this.convertHandler(typeName, fieldName, value);
-            }
-            return null;
-        }
-    };
+    var ALLTYPES = {{$NS}}.ALLTYPES = {};
 
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
@@ -54,17 +70,12 @@ $root.{{$NS}} = (function() {
     {{$TypeName := .TypeName}}
     // Defined in table: {{.DefinedTable}}
     var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
-        var values = Object.create(valuesById);
+        var valuesById = {}, values = Object.create(valuesById);
     {{range .Items}}
     {{- if not .IsVoid }}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         values.{{.FieldName}} = {{value_format .Value .}};
     {{- end}}
-        {{- if .Convertable}}
-        values.get{{.FieldName}} = function() {
-            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
-        };
-        {{- end}}
     {{end}}
         return values;
     })();
@@ -75,7 +86,15 @@ $root.{{$NS}} = (function() {
     {{$TypeName := .TypeName}}
     // Defined in table: {{.DefinedTable}}
     var {{$TypeName}} = {{$NS}}.{{$TypeName}} = (function() {
-        {{$TypeName}}.__type_name__ = "{{$TypeName}}";
+        this.prototype = Object.create(DataModel.prototype);
+
+        {{$TypeName}}.__type_name__ = "{{$TypeName}}";   
+        {{- if not .IsArray}}   
+        {{$TypeName}}.__array_type_name__ = "{{$TypeName}}_ARRAY";
+        {{$TypeName}}.getArrayType() = function() {
+            return ALLTYPES[ALLTYPES.__type_name__];
+        }
+        {{- end}}
 
         function {{$TypeName}}(properties) {
             {{range .Headers}}
@@ -102,7 +121,7 @@ $root.{{$NS}} = (function() {
             {{end -}} 
             {{- if .Convertable}}
         {{$TypeName}}.prototype.get{{.FieldName}} = function() {
-            return DataConverter.convertData("{{$TypeName}}", "{{.FieldName}}", this.{{.FieldName}});
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}});
         };
             {{- end}}
         {{end}} 
@@ -160,7 +179,8 @@ $root.{{$NS}} = (function() {
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
-                {{- range .Headers}}          
+                {{- range .Headers}} 
+                {{- if not .IsVoid}}          
                 case {{.Index}}:
                     {{- if .IsArray}}                    
                     if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
@@ -184,7 +204,8 @@ $root.{{$NS}} = (function() {
                         {{- end}} {{/*end message*/}}
                     {{- end}} 
                     break;
-                {{- end}}
+                {{- end}} {{/**end .IsVoid */}}
+                {{- end}} {{/**end case */}}
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -202,7 +223,8 @@ $root.{{$NS}} = (function() {
         {{$TypeName}}.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            {{- range .Headers}}        
+            {{- range .Headers}}      
+            {{- if not .IsVoid }}
                 if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}")) {
                 {{- if .IsArray}}
                     if (!Array.isArray(message.{{.FieldName}}))
@@ -273,6 +295,7 @@ $root.{{$NS}} = (function() {
                     {{- end}}
                 {{- end}} {{/* end if IsArray */}}
                 }
+            {{- end}} {{/* end if not IsVoid */}}
             {{- end}} {{/**end range Headers */}}
             return null;
         };
@@ -282,6 +305,7 @@ $root.{{$NS}} = (function() {
                 return object;
             var message = new {{$TypeName}}();
             {{- range .Headers}}  
+            {{- if not .IsVoid }}
                 {{- if .IsArray}}
             if(object.{{.FieldName}}) {
                 if (!Array.isArray(object.{{.FieldName}}))
@@ -366,7 +390,8 @@ $root.{{$NS}} = (function() {
                 message.{{.FieldName}} = {{$TypeName}}.fromObject(object.{{.FieldName}});
                     {{- end}}
                 {{- end}}
-            {{- end}}
+            {{- end}} {{/* end if not IsVoid */}}
+            {{- end}} {{/* end range Headers */}}
             return message;
         };
 
@@ -376,14 +401,17 @@ $root.{{$NS}} = (function() {
             var object = {};
             if (options.arrays || options.defaults) {
             {{- range .Headers}}  
+            {{- if not .IsVoid }}
                 {{- if .IsArray}}
                 object.{{.FieldName}} = [];
                 {{- end}}
+            {{- end}} {{/* end if not IsVoid */}}
             {{- end}}
             }
 
             if (options.defaults) {
-            {{- range .Headers}}  
+            {{- range .Headers}}
+            {{- if not .IsVoid }}
                 {{- if is_long .StandardValueType}}
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
@@ -396,10 +424,12 @@ $root.{{$NS}} = (function() {
                 {{- else}}
                 object.{{.FieldName}} = {{default .}};
                 {{- end}}
-            {{- end}}
+            {{- end}} {{/* end if not IsVoid */}}
+            {{- end}} {{/* end range Headers */}}
             }
 
             {{- range .Headers}}  
+            {{- if not .IsVoid }}
                 {{- if .IsArray}}
                 
             if (message.{{.FieldName}} && message.{{.FieldName}}.length) {
@@ -437,6 +467,7 @@ $root.{{$NS}} = (function() {
                 object.{{.FieldName}} = message.{{.FieldName}};
                     {{- end}}
                 {{- end}}
+            {{- end}} {{/* end if not IsVoid */}}
             {{- end}}{{/*end range headers */}}
             return object;
         };{{/*end toObject function*/}}
@@ -447,6 +478,8 @@ $root.{{$NS}} = (function() {
 
         return {{$TypeName}};
     })(); {{/*end class */}}
+    ALLTYPES.__type_name__ = {{$TypeName}};
+    
         {{- end}} {{/*end tables */}}
 
     return {{$NS}};

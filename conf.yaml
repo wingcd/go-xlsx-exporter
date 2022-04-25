@@ -91,29 +91,29 @@ exports:
 #  path: "./gen/code/DataModel.cs"
 #  sheets: ""
 #  package: "Cfg"
--
- id: 4
- type: "proto_bytes"
- path: "./gen/data/"
+# -
+#  id: 4
+#  type: "proto_bytes"
+#  path: "./gen/data/"
 # -
 #  id: 5
 #  type: "charset"
 #  path: "./gen/data/lang.txt"
-# -
-#  id: 6
-#  type: "js,dts"
-#  path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
-#  imports:
-#   - "import UserData from './userdata'"
-#   - "import XXX from './xxx'"
+-
+ id: 6
+ type: "js,dts"
+ path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
+ imports:
+  - "import UserData from './userdata'"
+  - "import XXX from './xxx'"
 # -
 #  id: 7
 #  type: "dts"
 #  path: "./gen/code/data_mode.d.ts"
-# -
-#  id: 8
-#  type: "ts"
-#  path: "./gen/code/data_mode.ts"
+-
+ id: 8
+ type: "ts"
+ path: "./gen/code/data_mode.ts"
 # -
 #  id: 10
 #  type: "csharp"

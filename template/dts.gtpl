@@ -21,14 +21,16 @@ export interface Long {
     unsigned: boolean;
 }
 
-export class DataConverter {
-    static convertHandler: (typeName: string, fieldName:string, value: string)=>any;
+export class DataModel {
+    private _converted: object;
 
-    static convertData(typeName: string, fieldName:string, value: string): any;
+    protected getConvertData(fieldName: string, value: any): any;
 }
 
 /** Namespace  */
 export namespace {{$NS}} {
+    export var ALLTYPES: {[key: string]: any};
+
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
     // Defined in table: {{.DefinedTable}}
@@ -48,9 +50,6 @@ export namespace {{$NS}} {
             {{- if not .IsVoid }}   
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
-            {{end}}
-            {{- if .Convertable}}    
-        get{{.FieldName}}(): {{get_alias .Alias}};
             {{end}}
         {{end}} {{/*end .Items */}}
     }
@@ -73,7 +72,9 @@ export namespace {{$NS}} {
     }
 
     /** Represents a {{$TypeName}}. */
-    class {{$TypeName}} implements I{{$TypeName}} {    
+    class {{$TypeName}} extends DataModel implements I{{$TypeName}} {
+        static getArrayType(): any;
+
         /**
          * Constructs a new {{$TypeName}}.
          * @param [properties] Properties to set

@@ -154,8 +154,8 @@ export class DataItem<T> {
     }
 
     protected load(): any {
-        var buffer = this.onLoadData(this.dataType["__type_name__"]);
-        var msgType:IMessage = this.dataType as any;        
+        var buffer = this.onLoadData(this.dataType["__array_type_name__"]);
+        var msgType:IMessage = this.dataType["__array_type__"] as any;   
         return msgType.decode(buffer);
     }
 
@@ -182,10 +182,10 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     protected load() : T[] {
-        var arrTypeName = this.dataType["__type_name__"] + "_ARRAY";
+        var arrTypeName = this.dataType["__array_type_name__"];
 
         var buffer = this.onLoadData(arrTypeName);
-        var msgType:IMessage = this.dataType as any;
+        var msgType:IMessage = this.dataType["getArrayType"]() as any;
         var message = msgType.decode(buffer);
         return (message as IDataArray).Items;        
     }

@@ -41,15 +41,13 @@ export interface Long {
 }
 
 export class DataConverter {
-    private static _cache = {};
-
     static convertHandler: (data: DataModel, fieldName:string, value: string)=>any = null;
 }
 
 export class DataModel {
     private _converted = {};
 
-    protected getConvertData(fieldName: string, value: any)
+    protected getConvertData(fieldName: string, value: any): any
     {
         if(this._converted[fieldName])
         {
@@ -68,6 +66,8 @@ export class DataModel {
 }
 
 export namespace {{$NS}} {
+    export var ALLTYPES: {[key: string]: any} = {};
+
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
     // Defined in table: {{.DefinedTable}}
@@ -89,9 +89,6 @@ export namespace {{$NS}} {
             {{- if not .IsVoid }}   
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
-            {{end}}
-            {{- if .Convertable}}    
-        get{{.FieldName}}(): {{get_alias .Alias}},
             {{end}}
         {{end}} {{/*end .Items */}}
     } = {
@@ -123,6 +120,12 @@ export namespace {{$NS}} {
      /** Represents a {{$TypeName}}. */
     export class {{$TypeName}} extends DataModel implements I{{$TypeName}} { 
         private static __type_name__ = "{{$TypeName}}";
+        {{- if not .IsArray}}
+        private static __array_type_name__ = "{{$TypeName}}_ARRAY";
+        static getArrayType(): any {
+            return ALLTYPES[{{$TypeName}}.__array_type_name__];
+        }
+        {{- end}}
 
         {{range .Headers}}
             {{- if not .IsVoid }}
@@ -135,7 +138,7 @@ export namespace {{$NS}} {
             {{end -}} 
             {{- if .Convertable}}    
         get{{.FieldName}}(): {{get_alias .Alias}} {
-            return this.getConvertData("{{.FieldName}}", this.{{.FieldName}});
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}});
         };
             {{end}}
         {{end}}
@@ -168,7 +171,7 @@ export namespace {{$NS}} {
             if (!writer)
                 writer = $Writer.create();
                 
-            {{range .Headers}}        
+            {{range .Headers}} 
                 {{- $wireType := get_wire_type .}}
                 {{- $count := calc_wire_offset .}}           
                 
@@ -197,7 +200,7 @@ export namespace {{$NS}} {
                             {{- end}}{{/*end message*/}}
                     {{- end -}} {{/*end if*/}}   
                 {{- end}} 
-            {{end -}} 
+            {{end -}} {{/*end .Headers*/}}
 
             return writer;
         }
@@ -213,7 +216,8 @@ export namespace {{$NS}} {
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
-                {{- range .Headers}}          
+                {{- range .Headers}}  
+                {{- if not .IsVoid}}        
                 case {{.Index}}:
                     {{- if .IsArray}}                    
                     if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
@@ -237,11 +241,12 @@ export namespace {{$NS}} {
                         {{- end}} {{/*end message*/}}
                     {{- end}} 
                     break;
-                {{- end}}
+                {{- end}} {{/**end .IsVoid */}}
+                {{- end}} {{/**end case */}}
                 default:
                     reader.skipType(tag & 7);
                     break;
-                }
+                } 
             }
             return message;
         }
@@ -255,7 +260,8 @@ export namespace {{$NS}} {
         static verify(message: { [k: string]: any }): (string|null) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            {{- range .Headers}}        
+            {{- range .Headers}}   
+            {{- if not .IsVoid}}     
                 if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}")) {
                 {{- if .IsArray}}
                     if (!Array.isArray(message.{{.FieldName}}))
@@ -326,6 +332,7 @@ export namespace {{$NS}} {
                     {{- end}}
                 {{- end}} {{/* end if IsArray */}}
                 }
+            {{- end}} {{/* end if not .IsVoid */}}
             {{- end}} {{/**end range Headers */}}
             return null;
         }
@@ -335,6 +342,7 @@ export namespace {{$NS}} {
                 return object;
             var message = new {{$TypeName}}();
             {{- range .Headers}}  
+            {{- if not .IsVoid}}
                 {{- if .IsArray}}
             if(object.{{.FieldName}}) {
                 if (!Array.isArray(object.{{.FieldName}}))
@@ -419,7 +427,8 @@ export namespace {{$NS}} {
                 message.{{.FieldName}} = {{$TypeName}}.fromObject(object.{{.FieldName}});
                     {{- end}}
                 {{- end}}
-            {{- end}}
+            {{- end}} {{/* end if not .IsVoid */}}
+            {{- end}} {{/* end range Headers */}}
             return message;
         }
 
@@ -429,14 +438,17 @@ export namespace {{$NS}} {
             var object: any = {};
             if (options.arrays || options.defaults) {
             {{- range .Headers}}  
-                {{- if .IsArray}}
+                {{- if not .IsVoid}}
+                    {{- if .IsArray}}
                 object.{{.FieldName}} = [];
-                {{- end}}
+                    {{- end}}
+                {{- end}} {{/* end if not .IsVoid */}}
             {{- end}}
             }
 
             if (options.defaults) {
             {{- range .Headers}}  
+            {{- if not .IsVoid}}
                 {{- if is_long .StandardValueType}}
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
@@ -449,10 +461,12 @@ export namespace {{$NS}} {
                 {{- else}}
                 object.{{.FieldName}} = {{default .}};
                 {{- end}}
-            {{- end}}
+            {{- end}} {{/* end if not .IsVoid */}}
+            {{- end}} {{/* end range Headers */}}
             }
 
             {{- range .Headers}}  
+            {{- if not .IsVoid}}
                 {{- if .IsArray}}
                 
             if (message.{{.FieldName}} && message.{{.FieldName}}.length) {
@@ -490,6 +504,7 @@ export namespace {{$NS}} {
                 object.{{.FieldName}} = message.{{.FieldName}};
                     {{- end}}
                 {{- end}}
+            {{- end}} {{/** end not .IsVoid */}}
             {{- end}}{{/*end range headers */}}
             return object;
         }{{/*end toObject function*/}}
@@ -498,5 +513,7 @@ export namespace {{$NS}} {
             return {{$TypeName}}.toObject(this, $protobuf.util.toJSONOptions);
         }
     } {{/*end class */}}
+    ALLTYPES.__type_name__ = {{$TypeName}};
+    
         {{- end}} {{/*end tables */}}
 }{{/*end namespace */}}

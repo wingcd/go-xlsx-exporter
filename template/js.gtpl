@@ -120,7 +120,7 @@ $root.{{$NS}} = (function() {
                 {{end -}}   
             {{end -}} 
             {{- if .Convertable}}
-        {{$TypeName}}.prototype.get{{.FieldName}} = function() {
+        {{$TypeName}}.prototype.get{{upperF .FieldName}} = function() {
             return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}});
         };
             {{- end}}
@@ -147,15 +147,22 @@ $root.{{$NS}} = (function() {
                     {{.ValueType}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
                             {{- else}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length) {
+                {{- if ne .ValueType "string"}}
                 writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork();
+                {{- end}}
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)
-                    writer.uint32(message.{{.FieldName}}[i]);
+                    {{- if eq "string" .ValueType}}
+                    writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).string(message.{{.FieldName}}[i]);
+                    {{- else}}
+                    {{- $pbType := get_pb_type .StandardValueType}}
+                    writer.{{$pbType}}(message.{{.FieldName}}[i]);
+                    {{- end}}
                 writer.ldelim();
             }
                             {{- end}}{{/*end message*/}}
-                    {{- else}}
+                    {{- else}} {{/*not array */}}
             if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
-                            {{- if .IsMessage}}
+                            {{- if .IsMessage}} 
                 {{.ValueType}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
                             {{- else}}
                     {{- $pbType := get_pb_type .StandardValueType}}
@@ -189,13 +196,17 @@ $root.{{$NS}} = (function() {
                         {{- if .IsMessage}}
                     message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
                         {{- else}}
+                            {{- if ne .ValueType "string"}}
                     if ((tag & 7) === 2) {
                         var end2 = reader.uint32() + reader.pos;
                         while (reader.pos < end2)
                             message.{{.FieldName}}.push(reader.{{.PBValueType}}());
                     } else
                         message.{{.FieldName}}.push(reader.{{.PBValueType}}());
-                        {{- end}}
+                            {{- else}}
+                    message.{{.FieldName}}.push(reader.{{.PBValueType}}());
+                            {{- end}} {{/*end if string */}}
+                        {{- end}} {{/*end if message*/}}
                     {{- else}}
                         {{- if .IsMessage}}
                     {{.ValueType}}.decode(reader, reader.uint32());

@@ -66,7 +66,7 @@ export namespace {{$NS}} {
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
             {{end}} {{/*end not Void*/}}
             {{- if .Convertable}}    
-        get{{.FieldName}}(): {{get_alias .Alias}};
+        get{{upperF .FieldName}}(): {{get_alias .Alias}};
             {{end}}
         {{end}} {{/*end .Headers */}}
     }
@@ -86,7 +86,7 @@ export namespace {{$NS}} {
         public {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
             {{- end}} {{/*end not Void*/}}
             {{- if .Convertable}}    
-        get{{.FieldName}}(): {{get_alias .Alias}};
+        get{{upperF .FieldName}}(): {{get_alias .Alias}};
             {{end}}
         {{- end}} {{/*end .Headers */}}
 

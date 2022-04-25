@@ -16,7 +16,6 @@ import (
 type DefineField struct {
 	Field xml.Name `xml:"field"`
 	Name  string   `xml:"name,attr"`
-	Alias string   `xml:"alias,attr"`
 	Value string   `xml:"value,attr"`
 	Type  string   `xml:"type,attr"`
 	Desc  string   `xml:"desc,attr"`
@@ -34,11 +33,10 @@ type Define struct {
 }
 
 type Field struct {
-	Field  xml.Name `xml:"field"`
-	Name   string   `xml:"name,attr"`
-	Alias  string   `xml:"alias,attr"`
-	Type   string   `xml:"type,attr"`
-	Desc   string   `xml:"desc,attr"`
+	Field xml.Name `xml:"field"`
+	Name  string   `xml:"name,attr"`
+	Type  string   `xml:"type,attr"`
+	Desc  string   `xml:"desc,attr"`
 }
 
 type Message struct {
@@ -164,7 +162,6 @@ func Parse(files ...string) (tables []*model.DataTable) {
 				header.FieldName = field.Name
 				header.TitleFieldName = strings.Title(header.FieldName)
 
-				header.Alias = field.Alias
 				header.Desc = field.Desc
 				header.ExportClient = true
 				header.ExportServer = true

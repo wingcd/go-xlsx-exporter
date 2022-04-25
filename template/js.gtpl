@@ -478,7 +478,7 @@ $root.{{$NS}} = (function() {
 
         return {{$TypeName}};
     })(); {{/*end class */}}
-    ALLTYPES.__type_name__ = {{$TypeName}};
+    ALLTYPES["{{$TypeName}}"] = {{$TypeName}};
     
         {{- end}} {{/*end tables */}}
 

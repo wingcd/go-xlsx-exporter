@@ -66,7 +66,7 @@ export class DataModel {
 }
 
 export namespace {{$NS}} {
-    export var ALLTYPES: {[key: string]: any} = {};
+    var ALLTYPES: {[key: string]: any} = {};
 
     {{/*生成枚举类型*/}}
     {{- range .Enums}}
@@ -513,7 +513,7 @@ export namespace {{$NS}} {
             return {{$TypeName}}.toObject(this, $protobuf.util.toJSONOptions);
         }
     } {{/*end class */}}
-    ALLTYPES.__type_name__ = {{$TypeName}};
+    ALLTYPES["{{$TypeName}}"] = {{$TypeName}};
     
         {{- end}} {{/*end tables */}}
 }{{/*end namespace */}}

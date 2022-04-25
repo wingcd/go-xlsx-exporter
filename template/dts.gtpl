@@ -29,7 +29,7 @@ export class DataModel {
 
 /** Namespace  */
 export namespace {{$NS}} {
-    export var ALLTYPES: {[key: string]: any};
+    var ALLTYPES: {[key: string]: any};
 
     {{/*生成枚举类型*/}}
     {{- range .Enums}}

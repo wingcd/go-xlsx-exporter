@@ -55,10 +55,11 @@ export class DataAccess
      * @returns 
      */
     public static getDataItem<T>(dataType: Function): DataItem<T> {
-        if(this._items[dataType.name]) {
-            return this._items[dataType.name];
+        let typename = dataType["__type_name__"];
+        if(this._items[typename]) {
+            return this._items[typename];
         }
-        return this._items[dataType.name] = new DataItem<T>(dataType);
+        return this._items[typename] = new DataItem<T>(dataType);
     }
 
     /**
@@ -68,10 +69,11 @@ export class DataAccess
      * @returns 
      */
     public static getDataTable<T>(dataType:Function, keyName = "ID") : DataTable<T> {
-        if(this._tables[dataType.name]) {
-            return this._tables[dataType.name];
+        let typename = dataType["__type_name__"];
+        if(this._tables[typename]) {
+            return this._tables[typename];
         }
-        return this._tables[dataType.name] = new DataTable<T>(dataType, keyName);
+        return this._tables[typename] = new DataTable<T>(dataType, keyName);
     }
 }
 

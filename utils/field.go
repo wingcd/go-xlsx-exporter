@@ -167,11 +167,11 @@ var wireType = map[string]int{
 func GetWireType(item interface{}) int {
 	switch inst := item.(type) {
 	case *model.DataTableHeader:
-		_, valType := ToPBType(inst.ValueType)
+		_, valType := ToPBType(inst.StandardValueType)
 		if inst.IsArray {
 			return 2
 		} else if inst.IsEnum {
-			var enumInfo = settings.GetEnum(inst.ValueType)
+			var enumInfo = settings.GetEnum(inst.StandardValueType)
 			if enumInfo != nil {
 				return 0
 			}

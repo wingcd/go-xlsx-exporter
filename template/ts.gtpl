@@ -186,17 +186,21 @@ export namespace {{$NS}} {
                     {{.ValueType}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
                             {{- else}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length) {
-                {{- if ne .ValueType "string"}}
+                {{- if out .StandardValueType "string" "bytes"}}
                 writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork();
                 {{- end}}
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)
-                    {{- if eq "string" .ValueType}}
+                    {{- if eq "string" .StandardValueType}}
                     writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).string(message.{{.FieldName}}[i]);
+                    {{- else if eq "bytes" .StandardValueType}}
+                    writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).bytes(message.{{.FieldName}}[i]);
                     {{- else}}
                     {{- $pbType := get_pb_type .StandardValueType}}
                     writer.{{$pbType}}(message.{{.FieldName}}[i]);
                     {{- end}}
+                {{- if out .StandardValueType "string" "bytes"}}
                 writer.ldelim();
+                {{- end}}
             }
                             {{- end}}{{/*end message*/}}
                     {{- else}}
@@ -235,7 +239,7 @@ export namespace {{$NS}} {
                         {{- if .IsMessage}}
                     message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
                         {{- else}}
-                            {{- if ne .ValueType "string"}}
+                            {{- if out .ValueType "string" "bytes"}}
                     if ((tag & 7) === 2) {
                         var end2 = reader.uint32() + reader.pos;
                         while (reader.pos < end2)
@@ -305,7 +309,11 @@ export namespace {{$NS}} {
                     {{- else if is_string .StandardValueType}}
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (!$util.isString(message.{{.FieldName}}[i]))
-                            return "{{.FieldName}}: string[] expected";    
+                            return "{{.FieldName}}: string[] expected";  
+                    {{- else if is_bytes .StandardValueType}}
+                    for (var i = 0; i < message.{{.FieldName}}.length; ++i)
+                        if (!(message.{{.FieldName}}[i] && typeof message.{{.FieldName}}[i].length === "number" || $util.isString(message.{{.FieldName}}[i])))
+                            return "{{.FieldName}}: buffer[] expected";  
                     {{- else if .IsMessage}}     
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i) {
                         var error = {{.ValueType}}.verify(message.{{.FieldName}}[i]);
@@ -396,6 +404,11 @@ export namespace {{$NS}} {
                     message.{{.FieldName}}[i] = Number(object.{{.FieldName}}[i]);                
                     {{- else if eq .StandardValueType "string"}}
                     message.{{.FieldName}}[i] = String(object.{{.FieldName}}[i]);
+                    {{- else if eq .StandardValueType "bytes"}}
+                    if (typeof object.{{.FieldName}}[i] === "string")
+                        $util.base64.decode(object.{{.FieldName}}[i], message.{{.FieldName}}[i] = $util.newBuffer($util.base64.length(object.{{.FieldName}}[i])), 0);
+                    else if (object.{{.FieldName}}[i].length)
+                        message.{{.FieldName}}[i] = object.{{.FieldName}}[i];
                     {{- else if .IsMessage}}
                     if (typeof object.{{.FieldName}}[i] !== "object")
                         throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
@@ -502,6 +515,8 @@ export namespace {{$NS}} {
                         object.{{.FieldName}}[j] = options.longs === String ? $util.Long.prototype.toString.call(message.{{.FieldName}}[j]) : options.longs === Number ? new $util.LongBits(message.{{.FieldName}}[j].low >>> 0, message.{{.FieldName}}[j].high >>> 0).toNumber() : message.{{.FieldName}}[j];
                     {{- else if .IsEnum}}
                     object.{{.FieldName}}[j] = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}[j]] : message.{{.FieldName}}[j];
+                    {{- else if eq .StandardValueType "bytes"}}
+                    object.{{.FieldName}}[j] = options.bytes === String ? $util.base64.encode(message.{{.FieldName}}[j], 0, message.{{.FieldName}}[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
                     {{- else if .IsMessage}}
                     object.{{.FieldName}}[j] = {{.ValueType}}.toObject(message.{{.FieldName}}[j], options);
                     {{- else}}
@@ -519,6 +534,8 @@ export namespace {{$NS}} {
                     object.{{.FieldName}} = options.longs === String ? $util.Long.prototype.toString.call(message.{{.FieldName}}) : options.longs === Number ? new $util.LongBits(message.{{.FieldName}}.low >>> 0, message.{{.FieldName}}.high >>> 0).toNumber() : message.{{.FieldName}};
                     {{- else if .IsEnum}}
                     object.{{.FieldName}} = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}] : message.{{.FieldName}};
+                    {{- else if eq .StandardValueType "bytes"}}
+                object.{{.FieldName}} = options.bytes === String ? $util.base64.encode(message.{{.FieldName}}, 0, message.{{.FieldName}}.length) : options.bytes === Array ? Array.prototype.slice.call(message.{{.FieldName}}) : message.{{.FieldName}};
                     {{- else if .IsMessage}}
                 object.{{.FieldName}} = {{.ValueType}}.toObject(message.{{.FieldName}}, options);
                     {{- else}}

@@ -240,6 +240,32 @@ func init() {
 		return ret
 	}
 
+	funcs["in"] = func(strs ...string) bool {
+		var size = len(strs)
+		if size <= 1 {
+			return false
+		}
+		for i := 1; i < size; i++ {
+			if strs[0] == strs[i] {
+				return true
+			}
+		}
+		return false
+	}
+
+	funcs["out"] = func(strs ...string) bool {
+		var size = len(strs)
+		if size <= 1 {
+			return true
+		}
+		for i := 1; i < size; i++ {
+			if strs[0] == strs[i] {
+				return false
+			}
+		}
+		return true
+	}
+
 	funcs["is_value_type"] = func(valueType string) bool {
 		if utils.IsStruct(valueType) || utils.IsTable(valueType) {
 			return false

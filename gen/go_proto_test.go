@@ -16,7 +16,6 @@ func TestGoPBMode(t *testing.T) {
 	data.Name = "test"
 	data.Type = EDataType_CSHARP
 	data.Level = 1
-	data.Test = []byte("test")
 
 	bts, err := proto.Marshal(&data)
 	if err != nil {
@@ -81,6 +80,23 @@ func TestGoLoadPBFile(t *testing.T) {
 		fmt.Printf("Name:%v \n", cdata.Name)
 		fmt.Printf("Type:%v \n", cdata.Type.String())
 		fmt.Printf("Level:%v \n", cdata.Level)
+	}
+}
+
+func TestGoLoadPBFile2(t *testing.T) {
+	var users = User_ARRAY{}
+	var bytes, _ = ioutil.ReadFile("./data/user.bytes")
+	err := proto.Unmarshal(bytes, &users)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	for _, cdata := range users.Items {
+		fmt.Printf("ID:%v \n", cdata.ID)
+		fmt.Printf("Name:%v \n", cdata.Name)
+		fmt.Printf("Type:%v \n", cdata.Type.String())
+		fmt.Printf("Level:%v \n", cdata.Head)
 	}
 }
 

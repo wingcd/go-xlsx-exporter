@@ -24,6 +24,8 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - string
 
+- bytes 用于配置16进制数据，部分语言支持，不支持语言将按字符串形式表达
+
 - void   此类型不会单独生成字段，且无需配置数值，只会在代码层生成Get函数，比如：size字段，将csharp中将生成public object GetSize(),获取值为用户注册转换函数的返回值，并缓存起来；可用于解决多字段组合问题，或者需要根据此列表生成的对象
 
 - 及以上数据类型的数组类型，如bool[],int[],数组通过自定义分割符（默认配置为‘|’）分割，通过两个分割符（如：‘||’）可转义此分割符
@@ -460,8 +462,12 @@ DataAccess.DataConvertHandler = (item, field, data) =>
   2. 消息文件定义(后缀.xml)，此文件定义用于网络传输的消息，可以使用预定义的枚举类型，以及此文件中的所有类型，当不定义消息id时，将不会对此消息进行注册
  ``` xml
  <proto>
+    <message name="MessageWrapper">
+        <field name="id" type="int32"/>
+        <field name="data" type="bytes"/>
+    </message>
     <message id="10001" name="C2S_GetPlayerInfo">
-        <field name="id" type="int32" desc="用户ID"/>
+        <field name="id" alias="用户ID" type="int32" desc="用户ID"/>
         <field name="name" type="string"/>
     </message>
     <message id="10002" name="S2C_GetPlayerInfo">
@@ -474,7 +480,7 @@ DataAccess.DataConvertHandler = (item, field, data) =>
         <field name="id" type="int32" desc="ID"/>
         <field name="name" type="string"/>
     </message>
-</proto>
+  </proto>
  ```
  3. 消息使用，可注册一个消息封装体，用来二次包装传送消息，方便拿取id后进行消息创建，如golang中通过id和二进制数据创建消息
  ``` golang

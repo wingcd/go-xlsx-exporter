@@ -96,6 +96,7 @@ var supportCSharpTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+	"bytes":   "byte[]",
 	"void":    "object",
 }
 

@@ -132,6 +132,8 @@ export namespace {{$NS}} {
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
         {{.FieldName}} =  $util.emptyArray;
+                {{- else if eq .StandardValueType "bytes"}}
+        {{.FieldName}} =  $util.newBuffer([]);
                 {{else}}
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = {{default .}};
                 {{end -}}   
@@ -336,6 +338,9 @@ export namespace {{$NS}} {
                     {{- else if is_string .StandardValueType}}
                     if (!$util.isString(message.{{.FieldName}}))
                         return "{{.FieldName}}: string expected";
+                    {{- else if is_bytes .StandardValueType}} 
+                    if (!(message.{{.FieldName}} && typeof message.{{.FieldName}}.length === "number" || $util.isString(message.{{.FieldName}})))
+                        return "{{.FieldName}}: buffer expected";
                     {{- else if .IsMessage}}
                         return {{.ValueType}}.verify(message.{{.FieldName}});
                     {{- else}}
@@ -432,6 +437,11 @@ export namespace {{$NS}} {
                 message.{{.FieldName}} = Number(object.{{.FieldName}});
                     {{- else if eq .StandardValueType "string"}}
                 message.{{.FieldName}} = String(object.{{.FieldName}});
+                    {{- else if eq .StandardValueType "bytes"}}
+                if (typeof object.{{.FieldName}} === "string")
+                    $util.base64.decode(object.{{.FieldName}}, message.{{.FieldName}} = $util.newBuffer($util.base64.length(object.{{.FieldName}})), 0);
+                else if (object.{{.FieldName}}.length)
+                    message.{{.FieldName}} = object.{{.FieldName}};
                     {{- else if .IsMessage}}
                 if (typeof object.{{.FieldName}}[i] !== "object")
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");

@@ -44,6 +44,7 @@ var supportDTSTypes = map[string]string{
 	"float":  "number",
 	"double": "number",
 	"string": "string",
+	"bytes":  "Uint8Array",
 	"void":   "any",
 }
 
@@ -56,6 +57,7 @@ var sdefaultDTSValue = map[string]string{
 	"float":  "0",
 	"double": "0",
 	"string": "\"\"",
+	"bytes":  "new ArrayBuffer(0)",
 	"void":   "null",
 }
 

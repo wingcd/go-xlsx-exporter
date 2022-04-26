@@ -115,6 +115,8 @@ $root.{{$NS}} = (function() {
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
         {{$TypeName}}.prototype.{{.FieldName}} =  $util.emptyArray;
+                {{- else if eq .StandardValueType "bytes"}}
+        {{$TypeName}}.prototype.{{.FieldName}} =  $util.newBuffer([]);
                 {{else}}
         {{$TypeName}}.prototype.{{.FieldName}} =  {{default .}};
                 {{end -}}   
@@ -266,7 +268,7 @@ $root.{{$NS}} = (function() {
                     {{- else if is_string .StandardValueType}}
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (!$util.isString(message.{{.FieldName}}[i]))
-                            return "{{.FieldName}}: string[] expected";    
+                            return "{{.FieldName}}: string[] expected";
                     {{- else if .IsMessage}}     
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i) {
                         var error = {{.ValueType}}.verify(message.{{.FieldName}}[i]);
@@ -299,6 +301,9 @@ $root.{{$NS}} = (function() {
                     {{- else if is_string .StandardValueType}}
                     if (!$util.isString(message.{{.FieldName}}))
                         return "{{.FieldName}}: string expected";
+                    {{- else if is_bytes .StandardValueType}} 
+                    if (!(message.{{.FieldName}} && typeof message.{{.FieldName}}.length === "number" || $util.isString(message.{{.FieldName}})))
+                        return "{{.FieldName}}: buffer expected";
                     {{- else if .IsMessage}}
                         return {{.ValueType}}.verify(message.{{.FieldName}});
                     {{- else}}
@@ -395,6 +400,11 @@ $root.{{$NS}} = (function() {
                 message.{{.FieldName}} = Number(object.{{.FieldName}});
                     {{- else if eq .StandardValueType "string"}}
                 message.{{.FieldName}} = String(object.{{.FieldName}});
+                    {{- else if eq .StandardValueType "bytes"}}
+                if (typeof object.{{.FieldName}} === "string")
+                    $util.base64.decode(object.{{.FieldName}}, message.{{.FieldName}} = $util.newBuffer($util.base64.length(object.{{.FieldName}})), 0);
+                else if (object.{{.FieldName}}.length)
+                    message.{{.FieldName}} = object.{{.FieldName}};
                     {{- else if .IsMessage}}
                 if (typeof object.{{.FieldName}}[i] !== "object")
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");

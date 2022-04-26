@@ -29,6 +29,7 @@ var floatList = []string{"float", "double"}
 var numbersList = []string{"int", "uint", "int64", "uint64", "float", "double"}
 var boolsList = []string{"bool"}
 var stringList = []string{"string"}
+var bytesList = []string{"bytes"}
 
 type commonFileDesc struct {
 	Version        string
@@ -100,6 +101,15 @@ func isBool(valueType string) bool {
 
 func isString(valueType string) bool {
 	for _, v := range stringList {
+		if v == valueType {
+			return true
+		}
+	}
+	return false
+}
+
+func isBytes(valueType string) bool {
+	for _, v := range bytesList {
 		if v == valueType {
 			return true
 		}
@@ -277,6 +287,8 @@ func init() {
 	funcs["is_bool"] = isBool
 
 	funcs["is_string"] = isString
+
+	funcs["is_bytes"] = isBytes
 
 	funcs["get_enum"] = func(pbType string) *model.DefineTableInfo {
 		return utils.GetEnum(pbType)

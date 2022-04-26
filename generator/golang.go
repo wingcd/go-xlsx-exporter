@@ -31,6 +31,7 @@ var supportGoTypes = map[string]string{
 	"double":  "float64",
 	"float64": "float64",
 	"string":  "string",
+	"bytes":   "[]byte",
 	"void":    "interface{}",
 }
 
@@ -47,6 +48,7 @@ var defaultGoValues = map[string]string{
 	"double":      "0",
 	"float64":     "0",
 	"string":      "\"\"",
+	"[]byte":      "[]byte{}",
 	"interface{}": "nil",
 }
 

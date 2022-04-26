@@ -124,6 +124,7 @@ var supportJSTypes = map[string]string{
 	"float":  "float",
 	"double": "double",
 	"string": "string",
+	"bytes":  "Uint8Array",
 	"void":   "",
 }
 
@@ -136,6 +137,7 @@ var defaultJsValue = map[string]string{
 	"float":  "0",
 	"double": "0",
 	"string": "\"\"",
+	"bytes":  "new Uint8Array(0)",
 	"void":   "null",
 }
 

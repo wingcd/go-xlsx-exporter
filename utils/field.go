@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"regexp"
@@ -107,6 +108,7 @@ var standardTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+	"bytes":   "bytes",
 }
 
 var standardDefaultValue = map[string]interface{}{
@@ -122,6 +124,7 @@ var standardDefaultValue = map[string]interface{}{
 	"double":  float64(0),
 	"float64": float64(0),
 	"string":  "",
+	"bytes":   []byte{},
 }
 
 var supportProtoTypes = map[string]string{
@@ -137,6 +140,7 @@ var supportProtoTypes = map[string]string{
 	"double":  "double",
 	"float64": "double",
 	"string":  "string",
+	"bytes":   "bytes",
 }
 
 /**
@@ -362,6 +366,9 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 				ret, err = strconv.ParseFloat(value, 64)
 			case "string":
 				ret = value
+			case "bytes":
+				val := strings.TrimLeft(value, "0x")
+				ret, err = hex.DecodeString(val)
 			}
 		}
 	}
@@ -419,6 +426,8 @@ func TableType2PbType(pbType string, pbDesc *descriptorpb.FieldDescriptorProto) 
 		pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_BOOL.Enum()
 	case "string":
 		pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()
+	case "bytes":
+		pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_BYTES.Enum()
 	default:
 		if IsEnum(pbType) {
 			pbDesc.Type = descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum()
@@ -452,6 +461,8 @@ func Convert2PBValue(valueType string, value interface{}) (val pref.Value, err e
 		val = pref.ValueOfBool(value.(bool))
 	case "string":
 		val = pref.ValueOfString(value.(string))
+	case "bytes":
+		val = pref.ValueOfBytes(value.([]byte))
 	default:
 		if IsEnum(valueType) {
 			val = pref.ValueOfEnum(pref.EnumNumber(value.(int32)))

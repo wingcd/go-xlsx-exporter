@@ -8,11 +8,13 @@ package {{.Package}}
 import (
 	reflect "reflect"
 	sync "sync"	
-	"fmt"	
 	
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	{{- if .HasMessage}} 
+	"fmt"	
 	"google.golang.org/protobuf/proto"
+	{{- end}}
 
 	{{- range .Info.Imports}}
 	{{.}}

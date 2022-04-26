@@ -16,6 +16,8 @@ func TestGoPBMode(t *testing.T) {
 	data.Name = "test"
 	data.Type = EDataType_CSHARP
 	data.Level = 1
+	data.Test = []byte("test")
+
 	bts, err := proto.Marshal(&data)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -67,7 +69,7 @@ func TestGoPBListData(t *testing.T) {
 
 func TestGoLoadPBFile(t *testing.T) {
 	var classes = PClass_ARRAY{}
-	var bytes, _ = ioutil.ReadFile("./bytes/pclass.bytes")
+	var bytes, _ = ioutil.ReadFile("./data/pclass.bytes")
 	err := proto.Unmarshal(bytes, &classes)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -84,7 +86,7 @@ func TestGoLoadPBFile(t *testing.T) {
 
 func TestLoadConfigFile(t *testing.T) {
 	var settings = Settings{}
-	var bytes, _ = ioutil.ReadFile("./bytes/settings.bytes")
+	var bytes, _ = ioutil.ReadFile("./data/settings.bytes")
 	err := proto.Unmarshal(bytes, &settings)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -97,7 +99,7 @@ func TestLoadConfigFile(t *testing.T) {
 
 func TestGoLoadLanguage(t *testing.T) {
 	var lans_cn = gxe.Language_ARRAY{}
-	var bytes, _ = ioutil.ReadFile("./bytes/language.cn.bytes")
+	var bytes, _ = ioutil.ReadFile("./data/language.cn.bytes")
 	err := proto.Unmarshal(bytes, &lans_cn)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -105,7 +107,7 @@ func TestGoLoadLanguage(t *testing.T) {
 	}
 
 	var lans_en = gxe.Language_ARRAY{}
-	bytes, _ = ioutil.ReadFile("./bytes/language.en.bytes")
+	bytes, _ = ioutil.ReadFile("./data/language.en.bytes")
 	err = proto.Unmarshal(bytes, &lans_en)
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -113,7 +115,7 @@ func TestGoLoadLanguage(t *testing.T) {
 	}
 
 	var lans_jp = gxe.Language_ARRAY{}
-	bytes, _ = ioutil.ReadFile("./bytes/language.jp.bytes")
+	bytes, _ = ioutil.ReadFile("./data/language.jp.bytes")
 	err = proto.Unmarshal(bytes, &lans_jp)
 	if err != nil {
 		fmt.Printf(err.Error())

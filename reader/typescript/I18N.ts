@@ -1,7 +1,7 @@
 import { DataAccess, DataTable } from "./DataAccess";
 import { Language, Language_ARRAY } from "./Lang";
 
-export class I18N extends DataTable
+export class I18N extends DataTable<Language>
 {
     private static _inst;
     private static get inst(): I18N {

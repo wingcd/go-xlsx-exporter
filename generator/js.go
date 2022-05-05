@@ -157,8 +157,11 @@ type jsGenerator struct {
 func (g *jsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	registJSFuncs()
 
-	if jsTemplate == "" {
-		data, err := ioutil.ReadFile("./template/js.gtpl")
+	if jsTemplate == "" {		
+		temp := getTemplate(info, "./template/js.gtpl")
+		log.Printf("[提示] 加载模板: %s \n", temp)
+
+		data, err := ioutil.ReadFile(temp)
 		if err != nil {
 			log.Println(err)
 			return false, nil
@@ -182,10 +185,10 @@ func (g *jsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) 
 	fd.Version = settings.TOOL_VERSION
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
-	utils.PreProcessDefine(fd.Consts)
+	utils.PreProcessDefines(fd.Consts)
 
 	tables := settings.GetAllTables()
-	utils.PreProcessTable(tables)
+	utils.PreProcessTables(tables)
 	for _, t := range tables {
 		if t.TableType == model.ETableType_Message {
 			fd.HasMessage = true
@@ -232,7 +235,7 @@ func (g *jsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) 
 			fd.Tables = append(fd.Tables, &table)
 		}
 	}
-	utils.PreProcessTable(fd.Tables)
+	utils.PreProcessTables(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

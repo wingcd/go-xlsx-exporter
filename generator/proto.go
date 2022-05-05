@@ -45,7 +45,10 @@ type protoGenerator struct {
 
 func (g *protoGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	if protoTemplate == "" {
-		data, err := ioutil.ReadFile("./template/proto.gtpl")
+		temp := getTemplate(info, "./template/proto.gtpl")
+		log.Printf("[提示] 加载模板: %s \n", temp)
+
+		data, err := ioutil.ReadFile(temp)
 		if err != nil {
 			log.Println(err)
 			return false, nil
@@ -69,7 +72,7 @@ func (g *protoGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffe
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
 	tables := settings.GetAllTables()
-	utils.PreProcessTable(tables)
+	utils.PreProcessTables(tables)
 	for _, t := range tables {
 		if t.TableType == model.ETableType_Message {
 			fd.HasMessage = true
@@ -114,7 +117,7 @@ func (g *protoGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffe
 			fd.Tables = append(fd.Tables, &table)
 		}
 	}
-	utils.PreProcessTable(fd.Tables)
+	utils.PreProcessTables(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

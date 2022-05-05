@@ -128,23 +128,43 @@ func GetEncodeType(valueType string) (string, bool, bool) {
 	return "", isEnum, isStruct
 }
 
-func PreProcessDefine(defines []*model.DefineTableInfo) {
+func PreProcessDefine(define *model.DefineTableInfo) {
+	if define == nil {
+		return
+	}
+	
+	for _, st := range define.Items {
+		st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
+	}
+}
+
+func PreProcessDefines(defines []*model.DefineTableInfo) {
 	for _, d := range defines {
-		for _, st := range d.Items {
-			st.EncodeType, st.IsEnum, st.IsStruct = GetEncodeType(st.RawValueType)
-		}
+		PreProcessDefine(d)
 	}
 }
 
 func PreProcessHeader(header *model.DataTableHeader) {
+	if header == nil {
+		return
+	}
+	
 	header.EncodeType, header.IsEnum, header.IsStruct = GetEncodeType(header.RawValueType)
 }
 
-func PreProcessTable(tables []*model.DataTable) {
+func PreProcessTable(table *model.DataTable) {
+	if table == nil {
+		return
+	}
+
+	for _, header := range table.Headers {
+		PreProcessHeader(header)
+	}
+}
+
+func PreProcessTables(tables []*model.DataTable) {
 	for _, table := range tables {
-		for _, header := range table.Headers {
-			PreProcessHeader(header)
-		}
+		PreProcessTable(table)
 	}
 }
 

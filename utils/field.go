@@ -522,7 +522,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 		}
 	}
 
-	PreProcessTable(tables)
+	PreProcessTables(tables)
 	// 创建表数据结构
 	for _, tab := range tables {
 		var desc descriptorpb.DescriptorProto
@@ -592,7 +592,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 
 	// 创建表数据结构
 	var tables = settings.GetAllTables()
-	PreProcessTable(tables)
+	PreProcessTables(tables)
 
 	for _, tab := range tables {
 		// 当不生成语言类型时，过滤语言类型

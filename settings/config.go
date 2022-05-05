@@ -28,9 +28,11 @@ type ExportInfo struct {
 	ID         int      `yaml:"id"`
 	Type       string   `yaml:"type"`
 	Path       string   `yaml:"path"`
-	Sheets     string   `yaml:"sheets"`
+	Includes   string   `yaml:"includes"`
+	Excludes   string   `yaml:"excludes"`
 	ExportType int      `yaml:"export_type"`
 	Package    string   `yaml:"package"`
+	Template   string   `yaml:"template"`
 	Imports    []string `yaml:"imports"`
 }
 

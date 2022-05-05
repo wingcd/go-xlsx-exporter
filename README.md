@@ -74,7 +74,7 @@ golang编写的将xlsx表文件数据及结构导出工具
 
 - [x] 支持typescript数据接口代码导出(type:ts)
 
-- [ ] 支持json结构及数据导出
+- [x] 支持json数据导出(type:json)
 
 - [ ] 支持lua结构及数据导出
 
@@ -149,7 +149,7 @@ rules: #数据规则，可在字段类型后加入规则id,在数据导出时进
   rule: '\d+'
   desc: '数字'
   disable: false
-sheets: # 所有表格数据
+includes: # 所有表格数据
  -
   id: 1 # 表格编号，用于生成时过滤
   type: "define" # 表格数据类型,包含： define/table/language
@@ -181,19 +181,21 @@ exports: # 导出任务集合
  id: 1 # 编号，用于任务过滤
  type: "proto"  # 任务类型，包含：proto/proto_bytes/golang/csharp或后续支持类型
  path: "./gen/code/all_proto.proto" # 生成文件名，或者导出路径（针对多文件输出）
- sheets: "" # 导出表id集合，默认为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
- export_type: 2  # 可单独设置导出类型，覆盖全局设置（忽略导出除外，只认全局配置）
+ includes: "" # 导出表id集合，默认为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
+ excludes: "" # 排除id结合，同includes
+ export_type: 2  # 可单独设置导出类型，覆盖全局设置（忽略导出除外，只认全局配置） 
+ template: "template/proto.gtpl" # 用于自定义模板，默认为空，使用系统指定模板，否则使用指定模板输出
 -
  id: 2
  type: "golang"
  path: "./gen/code/data_model.pb.go"
- sheets: "1,3-7"
+ includes: "1,3-7"
  package: "game_data" # 可单独设置包名，覆盖全局设置，但是会被参数设置的包名覆盖
 -
  id: 3
  type: "csharp"
  path: "./gen/code/DataModel.cs"
- sheets: ""
+ includes: ""
  package: "Cfg"
 -
  id: 4

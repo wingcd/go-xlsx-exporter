@@ -28,6 +28,10 @@ func (g *protoBytesGenerator) Generate(info *BuildInfo) (save bool, data *bytes.
 		xlsx.CheckTable(table)
 	}
 
+	if info.Output[len(info.Output)-1] != '/' {
+		info.Output += "/"
+	}
+
 	tables := make([]*model.DataTable, 0)
 	for _, table := range settings.TABLES {
 		if table.TableType != model.ETableType_Message {

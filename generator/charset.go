@@ -27,7 +27,10 @@ func (g *charsetGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buf
 	utils.CheckPath(info.Output)
 
 	if charsetTemplate == "" {
-		data, err := ioutil.ReadFile("./template/charset.gtpl")
+		temp := getTemplate(info, "./template/charset.gtpl")
+		log.Printf("[提示] 加载模板: %s \n", temp)
+
+		data, err := ioutil.ReadFile(temp)
 		if err != nil {
 			log.Println(err)
 			return false, nil

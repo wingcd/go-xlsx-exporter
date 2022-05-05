@@ -118,7 +118,10 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 	registCSFuncs()
 
 	if csharpTemplate == "" {
-		data, err := ioutil.ReadFile("./template/csharp.gtpl")
+		temp := getTemplate(info, "./template/csharp.gtpl")
+		log.Printf("[提示] 加载模板: %s \n", temp)
+
+		data, err := ioutil.ReadFile(temp)
 		if err != nil {
 			log.Println(err)
 			return false, nil
@@ -143,8 +146,8 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 	fd.Version = settings.TOOL_VERSION
 	fd.GoProtoVersion = settings.GO_PROTO_VERTION
 
-	utils.PreProcessDefine(fd.Structs)
-	utils.PreProcessDefine(fd.Consts)
+	utils.PreProcessDefines(fd.Structs)
+	utils.PreProcessDefines(fd.Consts)
 
 	for _, c := range fd.Structs {
 		for _, it := range c.Items {
@@ -162,7 +165,7 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 		}
 	}
 
-	utils.PreProcessTable(settings.TABLES)
+	utils.PreProcessTables(settings.TABLES)
 	for _, t := range settings.TABLES {
 		if t.TableType == model.ETableType_Message {
 			fd.HasMessage = true
@@ -205,7 +208,7 @@ func (g *csharpGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buff
 			fd.Tables = append(fd.Tables, &table)
 		}
 	}
-	utils.PreProcessTable(fd.Tables)
+	utils.PreProcessTables(fd.Tables)
 
 	var buf = bytes.NewBufferString("")
 

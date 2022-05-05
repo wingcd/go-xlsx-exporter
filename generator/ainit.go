@@ -40,11 +40,20 @@ type commonFileDesc struct {
 type BuildInfo struct {
 	Imports []string
 	Output  string
+	Template string
 }
 
 func NewBuildInfo(output string) *BuildInfo {
 	info := new(BuildInfo)
 	info.Output = output
+	info.Imports = make([]string, 0)
+	return info
+}
+
+func NewBuildInfo2(output, template string) *BuildInfo {
+	info := new(BuildInfo)
+	info.Output = output
+	info.Template = template
 	info.Imports = make([]string, 0)
 	return info
 }
@@ -130,6 +139,18 @@ func init() {
 	funcs = make(template.FuncMap)
 
 	funcs["get_pb_type"] = getPBType
+
+	funcs["inc"] = func(i int) int {
+		return i + 1
+	}
+
+	funcs["dec"] = func(i int) int {
+		return i - 1
+	}
+
+	funcs["strs_index"] = func(array []string, i int) string {
+		return array[i]
+	}
 
 	funcs["upperF"] = func(str string) string {
 		if len(str) < 1 {
@@ -364,6 +385,13 @@ func Regist(name string, g Generator) {
 func HasGenerator(name string) bool {
 	_, ok := generators[name]
 	return ok
+}
+
+func getTemplate(info *BuildInfo, defaultName string) string {
+	if info.Template != "" {
+		return info.Template
+	}
+	return defaultName
 }
 
 func Build(typeName string, info *BuildInfo) bool {

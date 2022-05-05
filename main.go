@@ -167,8 +167,12 @@ func process() {
 		if strings.Contains(info.Type, ",") {
 			types := strings.Split(info.Type, ",")
 			paths := strings.Split(info.Path, ",")
-			if len(types) != len(paths) {
+			temls := strings.Split(info.Template, ",")
+			if len(types) != len(paths){
 				log.Fatalf("类型数量与输出数量必须相同")
+			}
+			if len(types) != len(temls) && len(temls) > 0 {
+				log.Fatalf("类型数量与模板数量必须相同")
 			}
 			for i := 0; i < len(types); i++ {
 				newInfo := new(settings.ExportInfo)
@@ -176,8 +180,10 @@ func process() {
 				newInfo.Type = types[i]
 				newInfo.Package = info.Package
 				newInfo.Path = paths[i]
-				newInfo.Sheets = info.Sheets
+				newInfo.Includes = info.Includes
+				newInfo.Excludes = info.Excludes
 				newInfo.ExportType = info.ExportType
+				newInfo.Template = temls[i]
 				newInfo.Imports = info.Imports
 
 				finalExports = append(finalExports, newInfo)
@@ -238,10 +244,11 @@ func doExport(exportInfo *settings.ExportInfo) {
 		settings.PackageName = "Deploy"
 	}
 
-	fmt.Printf("执行导出任务，id:%v, 类型：%v, 表：%v, 导出路径：%v, 导出类型：%v \n",
-		exportInfo.ID, exportInfo.Type, exportInfo.Sheets, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1])
+	fmt.Printf("执行导出任务，id:%v, 类型：%v, 包含：%v, 排除：%v, 导出路径：%v, 导出类型：%v \n",
+		exportInfo.ID, exportInfo.Type, exportInfo.Includes, exportInfo.Excludes, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1])
 
-	sheetsIds := getIds(exportInfo.Sheets)
+	sheetsIds := getIds(exportInfo.Includes)
+	exceptIds := getIds(exportInfo.Excludes)
 	var sheets []*settings.SheetInfo
 
 	if len(sheetsIds) == 0 {
@@ -260,7 +267,11 @@ func doExport(exportInfo *settings.ExportInfo) {
 	langSheets := make([]*settings.SheetInfo, 0)
 	messageDefinss := make([]*settings.SheetInfo, 0)
 	messages := make([]*settings.SheetInfo, 0)
-	for _, info := range sheets {
+	for _, info := range sheets {		
+		if _, ok := exceptIds[info.ID]; ok {
+			continue
+		}
+
 		if info.File == "" {
 			continue
 		}
@@ -368,7 +379,7 @@ func doExport(exportInfo *settings.ExportInfo) {
 
 	settings.SetTables(tables...)
 
-	info := generator.NewBuildInfo(exportInfo.Path)
+	info := generator.NewBuildInfo2(exportInfo.Path, exportInfo.Template)
 	if exportInfo.Imports != nil {
 		info.Imports = exportInfo.Imports
 	}

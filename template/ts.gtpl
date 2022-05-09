@@ -29,17 +29,6 @@ export interface Long {
     unsigned: boolean;
 }
 
-export interface Long {
-    /** Low bits */
-    low: number;
-
-    /** High bits */
-    high: number;
-
-    /** Whether unsigned or not */
-    unsigned: boolean;
-}
-
 export class DataConverter {
     static convertHandler: (data: DataModel, fieldName:string, value: string)=>any = null;
 }

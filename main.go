@@ -168,6 +168,10 @@ func process() {
 			types := strings.Split(info.Type, ",")
 			paths := strings.Split(info.Path, ",")
 			temls := strings.Split(info.Template, ",")
+			if(info.Template == "") {
+				temls = make([]string, len(types))
+			}
+			
 			if len(types) != len(paths){
 				log.Fatalf("类型数量与输出数量必须相同")
 			}

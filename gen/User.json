@@ -1,0 +1,6 @@
+[
+    {"ID":1,"Name":"张三","Age":18,"Sex":true,"Head":"abc_def.png","PClass":1,"VarInt64":1,"VarUint64":2,"VarFloat":1.1,"VarDouble":2.1,"Sexs":[true],"Heads":["abc_def.png"],"PClasses":[1],"VarInt64s":[1],"VarUint64s":[2],"VarFloats":[1.1],"VarDoubles":[2.1],"Type":2,"Types":[2],"Test":[254 172],"Test2":[[254],[192]],"Test3":"0xFEAC","Test4":["FE","C0"]},
+    {"ID":2,"Name":"李四","Age":19,"Sex":false,"Head":"abc_defg.png","PClass":1,"VarInt64":1,"VarUint64":2,"VarFloat":2.1,"VarDouble":3.1,"Sexs":[false],"Heads":["abc_defg.png"],"PClasses":[1],"VarInt64s":[1],"VarUint64s":[2],"VarFloats":[2.1],"VarDoubles":[3.1],"Type":5,"Types":[5],"Test":[],"Test2":[],"Test3":"","Test4":[]},
+    {"ID":3,"Name":"王五","Age":18,"Sex":true,"Head":"a.png","PClass":2,"VarInt64":1,"VarUint64":2,"VarFloat":3.1,"VarDouble":4.1,"Sexs":[true],"Heads":["a.png"],"PClasses":[2],"VarInt64s":[1],"VarUint64s":[2],"VarFloats":[3.1],"VarDoubles":[4.1],"Type":5,"Types":[5],"Test":[],"Test2":[],"Test3":"","Test4":[]},
+    {"ID":4,"Name":"王五","Age":19,"Sex":true,"Head":"a.png","PClass":2,"VarInt64":1,"VarUint64":2,"VarFloat":4.1,"VarDouble":5.1,"Sexs":[true],"Heads":["a.png"],"PClasses":[2],"VarInt64s":[1],"VarUint64s":[2],"VarFloats":[4.1],"VarDoubles":[5.1],"Type":0,"Types":[],"Test":[],"Test2":[],"Test3":"","Test4":[]}
+]

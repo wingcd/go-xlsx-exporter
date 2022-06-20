@@ -18,13 +18,28 @@ var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.ut
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
 var DataConverter = $root.DataConverter = {
-    convertHandler: null,
+    convertHandler: null,    
+
+    getConvertData: function(target, fieldName, value, alias) {
+        target._converted = target._converted || {};
+        if(target._converted[fieldName]) {
+            return target._converted[fieldName];
+        }
+
+        if(DataConverter.convertHandler == null) {
+            throw `convert field ${fieldName} value need a convetor`;
+        }
+
+        var data = DataConverter.convertHandler(target, fieldName, value, alias);
+        target._converted[fieldName] = data;
+        return data;
+    },
 };
 
 var DataModel = $root.DataModel = function() {
     this._converted = {};
 
-    this.getConvertData = function(fieldName, value)
+    this.getConvertData = function(fieldName, value, alias)
     {
         if(this._converted[fieldName])
         {
@@ -36,10 +51,10 @@ var DataModel = $root.DataModel = function() {
             throw `convert field ${fieldName} value need a convetor`;
         }
 
-        var data = DataConverter.convertHandler(this, fieldName, value);
+        var data = DataConverter.convertHandler(this, fieldName, value, alias);
         this._converted[fieldName] = data;
         return data;
-    } 
+    };
 };
 
 $root.{{$NS}} = (function() {
@@ -75,7 +90,12 @@ $root.{{$NS}} = (function() {
     {{- if not .IsVoid }}
         {{if ne .Desc ""}} //{{.Desc}} {{end}}
         values.{{.FieldName}} = {{value_format .Value .}};
-    {{- end}}
+    {{- end}}    
+        {{- if .Convertable}}
+        values.get{{upperF .FieldName}} = function() {
+            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}');
+        };
+        {{- end}}
     {{end}}
         return values;
     })();
@@ -123,7 +143,7 @@ $root.{{$NS}} = (function() {
             {{end -}} 
             {{- if .Convertable}}
         {{$TypeName}}.prototype.get{{upperF .FieldName}} = function() {
-            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}});
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}');
         };
             {{- end}}
         {{end}} 

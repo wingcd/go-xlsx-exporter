@@ -113,6 +113,13 @@ func registJSFuncs() {
 	funcs["value_format"] = jsValueFormat
 
 	funcs["default"] = jsValueDefault
+
+	funcs["get_alias"] = func(alias string) string {
+		if alias == "" {
+			return "any"
+		}
+		return alias
+	}
 }
 
 var supportJSTypes = map[string]string{

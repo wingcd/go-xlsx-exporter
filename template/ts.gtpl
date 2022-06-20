@@ -30,17 +30,12 @@ export interface Long {
 }
 
 export class DataConverter {
-    static convertHandler: (data: DataModel, fieldName:string, value: string)=>any = null;
-}
-
-export class DataModel {
-    private _converted = {};
-
-    protected getConvertData(fieldName: string, value: any): any
-    {
-        if(this._converted[fieldName])
+    static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any = null;      
+    static getConvertData(target: any, fieldName: string, value: any, alias?: string) {
+        target._converted = target._converted || {};
+        if(target._converted[fieldName])
         {
-            this._converted[fieldName];
+            return target._converted[fieldName];
         }
 
         if(DataConverter.convertHandler == null)
@@ -48,7 +43,28 @@ export class DataModel {
             throw `convert field ${fieldName} value need a convetor`;
         }
 
-        var data = DataConverter.convertHandler(this, fieldName, value);
+        var data = DataConverter.convertHandler(target, fieldName, value, alias);
+        target._converted[fieldName] = data;
+        return data;
+    }
+}
+
+export class DataModel {
+    private _converted = {};
+
+    protected getConvertData(fieldName: string, value: any, alias?: string): any
+    {
+        if(this._converted[fieldName])
+        {
+            return this._converted[fieldName];
+        }
+
+        if(DataConverter.convertHandler == null)
+        {
+            throw `convert field ${fieldName} value need a convetor`;
+        }
+
+        var data = DataConverter.convertHandler(this, fieldName, value, alias);
         this._converted[fieldName] = data;
         return data;
     } 
@@ -79,12 +95,20 @@ export namespace {{$NS}} {
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
             {{end}}
+            {{- if .Convertable}}
+        get{{upperF .FieldName}}(): {{get_alias .Alias}},
+            {{- end}}
         {{end}} {{/*end .Items */}}
     } = {
         {{- range .Items}}
             {{- if not .IsVoid }}
         {{.FieldName}} : {{value_format .Value .}},
             {{end}}
+            {{- if .Convertable}}
+        get{{upperF .FieldName}}: function() {
+            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}');
+        },
+            {{- end}}
         {{end}} {{/*end .Items */}}
     }
     {{end}}{{/*end .Consts */}}
@@ -129,7 +153,7 @@ export namespace {{$NS}} {
             {{end -}} 
             {{- if .Convertable}}    
         get{{upperF .FieldName}}(): {{get_alias .Alias}} {
-            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}});
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}');
         };
             {{end}}
         {{end}}

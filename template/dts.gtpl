@@ -21,10 +21,15 @@ export interface Long {
     unsigned: boolean;
 }
 
+export class DataConverter {
+    static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any;      
+    static getConvertData(target: any, fieldName: string, value: any, alias?: string);
+}
+
 export class DataModel {
     private _converted: object;
 
-    protected getConvertData(fieldName: string, value: any): any;
+    protected getConvertData(fieldName: string, value: any, alias?: string): any;
 }
 
 /** Namespace  */
@@ -51,6 +56,9 @@ export namespace {{$NS}} {
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
         {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
             {{end}}
+            {{- if .Convertable}}
+        get{{upperF .FieldName}}(): {{get_alias .Alias}},
+            {{- end}}
         {{end}} {{/*end .Items */}}
     }
     {{end}}{{/*end .Consts */}}

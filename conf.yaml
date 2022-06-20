@@ -22,11 +22,11 @@ sheets:
   type: define #type: define/table/language
   file: 'data/define.xlsx'
   sheet: 'define'
-#  -
-#   id: 2
-#   type: define
-#   file: 'data/define.xlsx'
-#   sheet: 'consts'
+ -
+  id: 2
+  type: define
+  file: 'data/define.xlsx'
+  sheet: 'consts'
  - 
   id: 3
   type: table

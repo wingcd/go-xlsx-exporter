@@ -46,7 +46,12 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 			return
 		}
 
-		rows = append(rows, rs...)
+		if(i == 0) {
+			rows = append(rows, rs...)
+		}else{
+			// 第二张开始，不需要表头
+			rows = append(rows, rs[1:]...)
+		}
 	}
 
 	for ri, row := range rows {

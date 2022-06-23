@@ -269,19 +269,24 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
 		filterRows := make([][]string, 0)
 		for ri, row := range rs {
+			var comment = utils.IsComment(row[0]);
 			// 索引列不能为空，否则过滤掉
-			var emptyIndex = row == nil || len(row) > 0 && row[0] == ""
+			var emptyIndex = false
 			var emptyRow = false;
-			if !emptyIndex && len(row) > 0 {
-				emptyRow = true;
-				for i:=0; i<len(row);i++ {
-					if row[i] != "" {
-						emptyRow = false;
-						break;
+			if !comment {
+				emptyIndex = row == nil || len(row) > 0 && row[0] == ""
+				if !emptyIndex && len(row) > 0 {
+					emptyRow = true;
+					for i:=0; i<len(row);i++ {
+						if row[i] != "" {
+							emptyRow = false;
+							break;
+						}
 					}
 				}
 			}
-			if emptyIndex || emptyRow || utils.IsComment(row[0]) {
+			
+			if emptyIndex || emptyRow || comment {
 				if emptyIndex {
 					log.Printf("[警告] 有空索引 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
 				}else if emptyRow {

@@ -270,9 +270,21 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		filterRows := make([][]string, 0)
 		for ri, row := range rs {
 			// 索引列不能为空，否则过滤掉
-			var emptyIndex = row == nil
-			if emptyIndex || utils.IsComment(row[0]) {
+			var emptyIndex = row == nil || row[0] == ""
+			var emptyRow = false;
+			if !emptyIndex && len(row) > 0 {
+				emptyRow = true;
+				for i:=0; i<len(row);i++ {
+					if row[i] != "" {
+						emptyRow = false;
+						break;
+					}
+				}
+			}
+			if emptyIndex || emptyRow || utils.IsComment(row[0]) {
 				if emptyIndex {
+					log.Printf("[警告] 有空索引 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
+				}else if emptyRow {
 					log.Printf("[警告] 有空数据行 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
 				}
 				continue
@@ -336,8 +348,13 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 
 		// 处理空列
 		if col[model.DATA_ROW_FIELD_INDEX] == "" || col[model.DATA_ROW_TYPE_INDEX] == "" {
-			log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", table.DefinedTable, ci+1)
-			return
+			if settings.StrictMode {
+				log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", table.DefinedTable, ci+1)
+				return
+			}else{
+				log.Printf("[警告] 数据类型或字段名不能为空,将跳过此列 表：%v 第%v列 \n", table.DefinedTable, ci+1)
+				continue
+			}
 		}
 
 		header := new(model.DataTableHeader)

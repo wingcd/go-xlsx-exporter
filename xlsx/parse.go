@@ -270,7 +270,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		filterRows := make([][]string, 0)
 		for ri, row := range rs {
 			// 索引列不能为空，否则过滤掉
-			var emptyIndex = row == nil || row[0] == ""
+			var emptyIndex = row == nil || len(row) > 0 && row[0] == ""
 			var emptyRow = false;
 			if !emptyIndex && len(row) > 0 {
 				emptyRow = true;

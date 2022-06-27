@@ -16,12 +16,13 @@ const (
 )
 
 type SheetInfo struct {
-	ID       int    `yaml:"id"`
-	Type     string `yaml:"type"`
-	File     string `yaml:"file"`
-	Sheet    string `yaml:"sheet"`
-	TypeName string `yaml:"type_name"`
-	IsLang   bool   `yaml:"is_lang"`
+	ID        int    `yaml:"id"`
+	Type      string `yaml:"type"`
+	File      string `yaml:"file"`
+	Sheet     string `yaml:"sheet"`
+	TypeName  string `yaml:"type_name"`
+	IsLang    bool   `yaml:"is_lang"`
+	Transpose bool   `yaml:"transpose"`
 }
 
 type ExportInfo struct {

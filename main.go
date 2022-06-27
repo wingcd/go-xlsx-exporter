@@ -303,9 +303,9 @@ func doExport(exportInfo *settings.ExportInfo) {
 	// 定义表
 	defineTables := make(map[string]*model.DefineTableInfo, 0)
 	if len(defineSheets) > 0 {
-		defines := make([]string, 0)
+		defines := make([]*settings.SheetInfo, 0)
 		for _, info := range defineSheets {
-			defines = append(defines, info.File, info.Sheet)
+			defines = append(defines, info)
 		}
 		d := xlsx.ParseDefineSheet(defines...)
 		for _, info := range d {
@@ -344,9 +344,9 @@ func doExport(exportInfo *settings.ExportInfo) {
 		}
 
 		for _, infos := range tableMap {
-			defines := make([]string, 0)
+			defines := make([]*settings.SheetInfo, 0)
 			for _, info := range infos {
-				defines = append(defines, info.File, info.Sheet)
+				defines = append(defines, info)
 			}
 			var table = xlsx.ParseDataSheet(defines...)
 			if table != nil {
@@ -359,9 +359,9 @@ func doExport(exportInfo *settings.ExportInfo) {
 
 	// 语言表
 	if len(langSheets) > 0 {
-		defines := make([]string, 0)
+		defines := make([]*settings.SheetInfo, 0)
 		for _, info := range langSheets {
-			defines = append(defines, info.File, info.Sheet)
+			defines = append(defines, info)
 		}
 
 		table := xlsx.ParseDataSheet(defines...)

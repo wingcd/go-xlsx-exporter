@@ -3,6 +3,7 @@ package xlsx
 import (
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,11 +18,35 @@ const (
 	totalSize = 6
 )
 
+func transpose(arr [][]string) [][]string {
+	cnt1 := len(arr)
+	if cnt1 == 0 {
+		return arr
+	}
+	cnt2 := 0
+	for i:=0;i<cnt1;i++ {
+		cnt2 = int(math.Max(float64(len(arr[i])), float64(cnt2)));
+	}
+
+	var arr2 [][]string = make([][]string, cnt2);
+	for i:=0;i<cnt2;i++ {
+		arr2[i]=make([]string, cnt1)
+	}
+
+	//遍历数组并进行转置
+	for i := 0; i < cnt1; i++ {
+		for j := 0; j < len(arr[i]); j++ {
+			arr2[j][i] = arr[i][j]
+		}
+	}
+
+	return arr2
+}
+
 // @params filename 文件名,表格名，文件名，表格名...
-func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo) {
-	var size = len(files)
-	var cnt = size / 2
-	if size == 0 || size%2 != 0 {
+func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.DefineTableInfo) {
+	var cnt = len(files)
+	if cnt == 0  {
 		log.Print("[错误] 参数错误 \n")
 		return
 	}
@@ -30,8 +55,9 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 
 	rows := make([][]string, 0)
 	for i := 0; i < cnt; i++ {
-		filename := files[i*2]
-		sheet := files[i*2+1]
+		file:=files[i]
+		filename := file.File
+		sheet := file.Sheet
 
 		fmt.Printf("parse file %s:%s...\n", filename, sheet)
 		f, err := excelize.OpenFile(filename)
@@ -44,6 +70,10 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 		if err != nil {
 			fmt.Println(err)
 			return
+		}
+
+		if(file.Transpose) {
+			rs = transpose(rs)
 		}
 
 		if(i == 0) {
@@ -89,7 +119,7 @@ func ParseDefineSheet(files ...string) (infos map[string]*model.DefineTableInfo)
 			info = new(model.DefineTableInfo)
 			info.DefinedTable = ""
 			for i := 0; i < cnt; i++ {
-				info.DefinedTable += fmt.Sprintf("%s:%s;", files[i*2], files[i*2+1])
+				info.DefinedTable += fmt.Sprintf("%s:%s;", files[i].File, files[i].Sheet)
 			}
 
 			infos[typename] = info
@@ -212,10 +242,9 @@ func DefinesPreProcess(infos map[string]*model.DefineTableInfo) {
 }
 
 // @params filename 文件名,表格名，文件名，表格名...
-func ParseDataSheet(files ...string) (table *model.DataTable) {
-	var size = len(files)
-	var cnt = size / 2
-	if size == 0 || size%2 != 0 {
+func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
+	var cnt = len(files)
+	if cnt == 0 {
 		log.Print("[错误] 参数错误 \n")
 		return
 	}
@@ -224,8 +253,9 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	rows := make([][]string, 0)
 
 	for i := 0; i < cnt; i++ {
-		filename := files[i*2]
-		sheet := files[i*2+1]
+		file := files[i]
+		filename := file.File
+		sheet := file.Sheet
 
 		fmt.Printf("parse file %s:%s...\n", filename, sheet)
 
@@ -241,6 +271,10 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 			if err != nil {
 				fmt.Println(err)
 				return
+			}
+
+			if(file.Transpose) {
+				cls = transpose(cls)
 			}
 
 			// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
@@ -264,6 +298,10 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 		if err != nil {
 			fmt.Println(err)
 			return
+		}
+
+		if(file.Transpose) {
+			rs = transpose(rs)
 		}
 
 		// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
@@ -303,7 +341,7 @@ func ParseDataSheet(files ...string) (table *model.DataTable) {
 	table = new(model.DataTable)
 	table.DefinedTable = ""
 	for i := 0; i < cnt; i++ {
-		table.DefinedTable += fmt.Sprintf("%s:%s;", files[i*2], files[i*2+1])
+		table.DefinedTable += fmt.Sprintf("%s:%s;", files[i].File, files[i].Sheet)
 	}
 
 	table.Headers = make([]*model.DataTableHeader, 0)

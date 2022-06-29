@@ -343,6 +343,10 @@ func ConvertValue(vtype, value string) (error, interface{}) {
 		if value == "" && !settings.StrictMode {
 			ret = standardDefaultValue[vtype]
 		} else {
+			if(vtype != "string") {				
+				value = strings.TrimSpace(value)
+			}
+
 			switch vtype {
 			case "bool":
 				ret, err = ParseBool(value)

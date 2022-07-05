@@ -29,6 +29,7 @@ includes: # 所有表格数据
   type: "define" # 表格数据类型,包含： define/table/language
   file: 'data/define.xlsx' # xlsx文件路径
   sheet: 'define' # xlsx中的表格名
+  transpose: true  # 是否转置表格(行列翻转)
  - 
   id: 2
   type: "table"

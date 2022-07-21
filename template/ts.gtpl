@@ -30,7 +30,7 @@ export interface Long {
 }
 
 export class DataConverter {
-    static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any = null;      
+    static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any;      
     static getConvertData(target: any, fieldName: string, value: any, alias?: string) {
         target._converted = target._converted || {};
         if(target._converted[fieldName])
@@ -93,10 +93,10 @@ export namespace {{$NS}} {
         {{- range .Items}}
             {{- if not .IsVoid }}   
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
-        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}
-        get{{upperF .FieldName}}(): {{get_alias .Alias}},
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>,
             {{- end}}
         {{end}} {{/*end .Items */}}
     } = {
@@ -122,10 +122,10 @@ export namespace {{$NS}} {
     export interface I{{$TypeName}} {
         {{range .Headers}}
             {{- if not .IsVoid }}               
-        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>;
             {{end}} {{/*end not Void*/}}
             {{- if .Convertable}}
-        get{{upperF .FieldName}}(): {{get_alias .Alias}};
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>;
             {{- end}}
         {{end}} {{/*end .Headers */}}
     }
@@ -144,15 +144,15 @@ export namespace {{$NS}} {
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
                     {{- if ne .Desc ""}} //{{.Desc}} {{end}}
-        {{.FieldName}} =  $util.emptyArray;
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.emptyArray;
                 {{- else if eq .StandardValueType "bytes"}}
-        {{.FieldName}} =  $util.newBuffer([]);
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.newBuffer([]);
                 {{else}}
-        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = {{default .}};
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = {{default .}};
                 {{end -}}   
             {{end -}} 
             {{- if .Convertable}}    
-        get{{upperF .FieldName}}(): {{get_alias .Alias}} {
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}> {
             return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}');
         };
             {{end}}
@@ -238,7 +238,8 @@ export namespace {{$NS}} {
         static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new {{$TypeName}}();
+            var end = length === undefined ? reader.len : reader.pos + length;
+            var message: any = new {{$TypeName}}();
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
@@ -377,7 +378,7 @@ export namespace {{$NS}} {
         static fromObject(object: { [k: string]: any }): {{$TypeName}} {
             if (object instanceof {{$TypeName}})
                 return object;
-            var message = new {{$TypeName}}();
+            var message: any = new {{$TypeName}}();
             {{- range .Headers}}  
             {{- if not .IsVoid}}
                 {{- if .IsArray}}

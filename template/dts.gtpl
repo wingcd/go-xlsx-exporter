@@ -54,10 +54,10 @@ export namespace {{$NS}} {
         {{- range .Items}}
             {{- if not .IsVoid }}   
                 {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
-        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}},
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}
-        get{{upperF .FieldName}}(): {{get_alias .Alias}},
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>,
             {{- end}}
         {{end}} {{/*end .Items */}}
     }
@@ -71,10 +71,10 @@ export namespace {{$NS}} {
     interface I{{$TypeName}} {
         {{range .Headers}}
             {{- if not .IsVoid }}                
-        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
+        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>;
             {{end}} {{/*end not Void*/}}
             {{- if .Convertable}}    
-        get{{upperF .FieldName}}(): {{get_alias .Alias}};
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>;
             {{end}}
         {{end}} {{/*end .Headers */}}
     }
@@ -91,10 +91,10 @@ export namespace {{$NS}} {
 
         {{range .Headers}}
             {{- if not .IsVoid }}
-        public {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
+        public {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>;
             {{- end}} {{/*end not Void*/}}
             {{- if .Convertable}}    
-        get{{upperF .FieldName}}(): {{get_alias .Alias}};
+        get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>;
             {{end}}
         {{- end}} {{/*end .Headers */}}
 

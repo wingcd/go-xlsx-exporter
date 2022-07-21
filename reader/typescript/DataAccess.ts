@@ -45,8 +45,6 @@ export class DataAccess
         this.dataDir = dataDir;
         this.generator = fileNameGenerateHandle;
         this.loader = loadHandle;
-
-        $protobuf.Method
     }
 
     /**
@@ -162,7 +160,7 @@ export class DataItem<T> {
     }
 
     private _item: T;
-    public get data(): T {
+    public get data(): Readonly<T> {
         if (this._item == null)
         {
             this._item = this.load();
@@ -199,7 +197,7 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     private _itemMap: DataKeyMap;
-    public get itemMap(): DataKeyMap {
+    public get itemMap(): Readonly<DataKeyMap> {
         if (this._itemMap == null)
         {
             this._itemMap = this.initDataAsDict();
@@ -208,7 +206,7 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     private _items: T[];
-    public get items(): T[] {
+    public get items(): Readonly<T[]> {
         try{
             if (this._items == null){
                 this._items = this.initDataAsList();
@@ -220,18 +218,19 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     private _ids: KeyType[];
-    public get IDs(): KeyType[]
+    public get IDs(): Readonly<KeyType[]>
     {
         if (this._ids == null)
         {
             this._ids = this.items.map((val, idx, arr)=>{
+                //@ts-ignore
                 arr.push(val[this.keyName]);
             }, []) as any as KeyType[];
         }
         return this._ids;
     }
 
-    public getItem(key: KeyType): T
+    public getItem(key: KeyType): Readonly<T>
     {
         return this.itemMap[key];
     }

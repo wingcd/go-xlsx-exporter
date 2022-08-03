@@ -234,7 +234,7 @@ func ConvertEnumValue(info *model.DefineTableInfo, valueType, value string) (err
 	for _, item := range info.Items {
 		if info.TypeName == valueType {
 			findType = true
-			if item.FieldName == value {
+			if item.FieldName == value || item.Value == value{
 				ret, _ = strconv.ParseInt(item.Value, 10, 32)
 				findField = true
 				break
@@ -494,7 +494,7 @@ func BuildDynamicType(tables []*model.DataTable) (protoreflect.FileDescriptor, e
 
 			for _, field := range item.Items {
 				var vd descriptorpb.EnumValueDescriptorProto
-				vd.Name = proto.String(field.FieldName)
+				vd.Name = proto.String(item.TypeName + "_" + field.FieldName)
 				v, _ := strconv.Atoi(field.Value)
 				vd.Number = proto.Int32(int32(v))
 				ed.Value = append(ed.Value, &vd)
@@ -585,7 +585,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 
 			for _, field := range item.Items {
 				var vd descriptorpb.EnumValueDescriptorProto
-				vd.Name = proto.String(field.FieldName)
+				vd.Name = proto.String(item.TypeName + "_" + field.FieldName)
 				v, _ := strconv.Atoi(field.Value)
 				vd.Number = proto.Int32(int32(v))
 				ed.Value = append(ed.Value, &vd)

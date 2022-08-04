@@ -169,7 +169,8 @@ func PreProcessTables(tables []*model.DataTable) {
 }
 
 func IsVoid(value string) bool {
-	return strings.ToLower(value) == "void"
+	value = strings.ToLower(value) 
+	return value == "void" || value == "void!"
 }
 
 func IsComment(value string) bool {

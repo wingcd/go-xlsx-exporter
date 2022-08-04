@@ -20,7 +20,7 @@ var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 var DataConverter = $root.DataConverter = {
     convertHandler: null,    
 
-    getConvertData: function(target, fieldName, value, alias) {
+    getConvertData: function(target, fieldName, value, alias, cachable) {
         target._converted = target._converted || {};
         if(target._converted[fieldName]) {
             return target._converted[fieldName];
@@ -31,7 +31,9 @@ var DataConverter = $root.DataConverter = {
         }
 
         var data = DataConverter.convertHandler(target, fieldName, value, alias);
-        target._converted[fieldName] = data;
+        if(cachable) {
+            target._converted[fieldName] = data;
+        }
         return data;
     },
 };
@@ -39,7 +41,7 @@ var DataConverter = $root.DataConverter = {
 var DataModel = $root.DataModel = function() {
     this._converted = {};
 
-    this.getConvertData = function(fieldName, value, alias)
+    this.getConvertData = function(fieldName, value, alias, cachable)
     {
         if(this._converted[fieldName])
         {
@@ -52,7 +54,9 @@ var DataModel = $root.DataModel = function() {
         }
 
         var data = DataConverter.convertHandler(this, fieldName, value, alias);
-        this._converted[fieldName] = data;
+        if(cachable) {
+            this._converted[fieldName] = data;
+        }
         return data;
     };
 };
@@ -73,7 +77,7 @@ $root.{{$NS}} = (function() {
     var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
         var valuesById = {}, values = Object.create(valuesById);
     {{range .Items}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
         values[valuesById[{{.Index}}] = "{{.FieldName}}"] = {{.Value}};
     {{end}}
         return values;
@@ -88,12 +92,12 @@ $root.{{$NS}} = (function() {
         var valuesById = {}, values = Object.create(valuesById);
     {{range .Items}}
     {{- if not .IsVoid }}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
         values.{{.FieldName}} = {{value_format .Value .}};
     {{- end}}    
         {{- if .Convertable}}
         values.get{{upperF .FieldName}} = function() {
-            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}');
+            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}', {{.Cachable}});
         };
         {{- end}}
     {{end}}
@@ -133,7 +137,7 @@ $root.{{$NS}} = (function() {
         {{range .Headers}}
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
-                    {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+                    {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
         {{$TypeName}}.prototype.{{.FieldName}} =  $util.emptyArray;
                 {{- else if eq .StandardValueType "bytes"}}
         {{$TypeName}}.prototype.{{.FieldName}} =  $util.newBuffer([]);
@@ -143,7 +147,7 @@ $root.{{$NS}} = (function() {
             {{end -}} 
             {{- if .Convertable}}
         {{$TypeName}}.prototype.get{{upperF .FieldName}} = function() {
-            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}');
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}', {{.Cachable}});
         };
             {{- end}}
         {{end}} 
@@ -162,7 +166,7 @@ $root.{{$NS}} = (function() {
                 
                 {{- if not .IsVoid }}
                     {{- if .IsArray}}
-                        {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+                        {{- if ne .Desc ""}} /** {{.Desc}} */ {{end}}
                             {{- if .IsMessage}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)

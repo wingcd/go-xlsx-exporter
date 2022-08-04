@@ -23,13 +23,13 @@ export interface Long {
 
 export class DataConverter {
     static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any;      
-    static getConvertData(target: any, fieldName: string, value: any, alias?: string);
+    static getConvertData(target: any, fieldName: string, value: any, alias?: string, cachable?: boolean);
 }
 
 export class DataModel {
     private _converted: object;
 
-    protected getConvertData(fieldName: string, value: any, alias?: string): any;
+    protected getConvertData(fieldName: string, value: any, alias?: string, cachable?: boolean): any;
 }
 
 /** Namespace  */
@@ -41,7 +41,7 @@ export namespace {{$NS}} {
     // Defined in table: {{.DefinedTable}}
     enum {{.TypeName}} {
         {{- range .Items}}
-        {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
         {{.FieldName}} = {{.Value}},
         {{end}}
     }
@@ -53,7 +53,7 @@ export namespace {{$NS}} {
     var {{.TypeName}}: {
         {{- range .Items}}
             {{- if not .IsVoid }}   
-                {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
+                {{- if ne .Desc ""}} /** {{.Desc}} */ {{end}}                    
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}

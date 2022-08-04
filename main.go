@@ -79,7 +79,7 @@ func parseParams() {
 	settings.Rules = config.Rules
 
 	if settings.ArraySplitChar == "" {
-		settings.ArraySplitChar = "|"
+		settings.ArraySplitChar = ","
 	}
 	settings.StrictMode = config.StrictMode
 	if p_silence {

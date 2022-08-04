@@ -22,7 +22,7 @@ var (
 	PackageName    = "PBGen"
 	PbBytesFileExt = ".bytes"
 	CommentSymbol  = "#"
-	ArraySplitChar = "|"
+	ArraySplitChar = ","
 	StrictMode     = false
 
 	// just for debug

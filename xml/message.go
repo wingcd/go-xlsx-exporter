@@ -101,6 +101,7 @@ func ParseDefine(files ...string) (infos map[string]*model.DefineTableInfo) {
 				item.ValueType = finfo.ValueType
 				item.ArraySplitChar = finfo.SplitChar
 				item.Convertable = finfo.Convertable
+				item.Cachable = finfo.Cachable
 				item.IsVoid = finfo.IsVoid
 				item.Alias = finfo.Alias
 				item.Rule = finfo.Rule
@@ -175,6 +176,7 @@ func Parse(files ...string) (tables []*model.DataTable) {
 				header.ValueType = finfo.ValueType
 				header.ArraySplitChar = finfo.SplitChar
 				header.Convertable = finfo.Convertable
+				header.Cachable = finfo.Cachable
 				header.IsVoid = finfo.IsVoid
 				header.Alias = finfo.Alias
 				header.Rule = finfo.Rule

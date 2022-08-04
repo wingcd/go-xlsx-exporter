@@ -24,7 +24,7 @@ var (
 
 func init() {
 	// like: Name[,]?Type<1>
-	valueTypeRegx, _ = regexp.Compile(`^(?P<array>\w+)(\[(?P<split>.?)\])?(?P<conv>(\?|\?.*?))?(\<(?P<rule>\d+)\>)?$`)
+	valueTypeRegx, _ = regexp.Compile(`^(?P<array>\w+)(\[(?P<split>.?)\])?(?P<conv>([\?!].*?))?(\<(?P<rule>\d+)\>)?$`)
 }
 
 type FiledInfo struct {
@@ -33,6 +33,7 @@ type FiledInfo struct {
 	IsArray     bool
 	SplitChar   string
 	Convertable bool
+	Cachable    bool
 	Alias       string
 	IsVoid      bool
 	Rule        int
@@ -53,8 +54,13 @@ func CompileValueType(valueType string) *FiledInfo {
 		finfo.SplitChar = settings.ArraySplitChar
 	}
 	finfo.Convertable = match[4] != ""
-	if finfo.Convertable && match[4] != "?" {
+	if(finfo.Convertable) {
+		finfo.Cachable = match[4][0] == '?'
+	}
+
+	if finfo.Convertable && match[4] != "?" && match[4] != "!" {
 		finfo.Alias = strings.Replace(match[4], "?", "", 1)
+		finfo.Alias = strings.Replace(finfo.Alias, "!", "", 1)
 	}
 	finfo.IsVoid = IsVoid(finfo.ValueType)
 	if finfo.IsVoid {
@@ -74,22 +80,38 @@ func CompileValueType(valueType string) *FiledInfo {
 }
 
 func Split(s, sep string) []string {
-	strs := strings.Split(s, sep)
 	rstrs := make([]string, 0)
-	needConn := false
+	str := ""
+	rline := "\\";
+	hasRline := false
+	size := len(s)
+	flag := false
 	// 解决分隔符转义问题
-	for si := 0; si < len(strs); si++ {
-		s := strs[si]
-		if s != "" {
-			if needConn {
-				last := rstrs[len(rstrs)-1] + s
-				rstrs[len(rstrs)-1] = last
-				needConn = false
-			} else {
-				rstrs = append(rstrs, s)
+	for i:= 0; i<size; i++ {
+		flag = false
+		char := string(s[i])
+		if char == rline{
+			hasRline = !hasRline
+		}else{
+			if(sep == char) {
+				if(!hasRline) {
+					rstrs = append(rstrs, str)
+					str = ""
+					flag = i != size-1
+				}else{
+					str += char
+				}
+			}else{
+				if(hasRline) {
+					str += rline;
+				}
+				str += char
 			}
-		} else if si > 0 {
-			needConn = true
+			hasRline = false
+		}
+
+		if i == size-1 && !flag {
+			rstrs = append(rstrs, str)
 		}
 	}
 	return rstrs

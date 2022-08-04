@@ -52,7 +52,7 @@ sheets:
 package: "GameData"
 pb_bytes_file_ext: ".bytes"
 comment_symbol: "#"
-array_split_char: "|"
+array_split_char: ","
 export_type: 4
 
 sheets:

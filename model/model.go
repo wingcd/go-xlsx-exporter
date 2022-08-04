@@ -29,7 +29,9 @@ type StructInfo struct {
 	ArraySplitChar string
 	// 此字段是否可转换对象
 	Convertable bool
-	IsVoid      bool
+	// 换换后的类型是否需要缓存
+	Cachable bool
+	IsVoid   bool
 	// 是否消息类型
 	IsMessage bool
 	// 别名（可转换对象显示类型）

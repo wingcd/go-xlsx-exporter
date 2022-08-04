@@ -31,7 +31,7 @@ export interface Long {
 
 export class DataConverter {
     static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any;      
-    static getConvertData(target: any, fieldName: string, value: any, alias?: string) {
+    static getConvertData(target: any, fieldName: string, value: any, alias?: string, cachable?: boolean) {
         target._converted = target._converted || {};
         if(target._converted[fieldName])
         {
@@ -44,7 +44,9 @@ export class DataConverter {
         }
 
         var data = DataConverter.convertHandler(target, fieldName, value, alias);
-        target._converted[fieldName] = data;
+        if(cachable) {
+            target._converted[fieldName] = data;
+        }
         return data;
     }
 }
@@ -52,7 +54,7 @@ export class DataConverter {
 export class DataModel {
     private _converted = {};
 
-    protected getConvertData(fieldName: string, value: any, alias?: string): any
+    protected getConvertData(fieldName: string, value: any, alias?: string, cachable?: boolean): any
     {
         if(this._converted[fieldName])
         {
@@ -65,7 +67,9 @@ export class DataModel {
         }
 
         var data = DataConverter.convertHandler(this, fieldName, value, alias);
-        this._converted[fieldName] = data;
+        if(cachable) {
+            this._converted[fieldName] = data;
+        }
         return data;
     } 
 }
@@ -78,7 +82,7 @@ export namespace {{$NS}} {
     // Defined in table: {{.DefinedTable}}
     export enum {{.TypeName}} {
         {{- range .Items}}
-        {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /** {{.Desc}} */ {{end}}
         {{.FieldName}} = {{.Value}},
         {{end}}
     }
@@ -92,7 +96,7 @@ export namespace {{$NS}} {
     export var {{.TypeName}}: {
         {{- range .Items}}
             {{- if not .IsVoid }}   
-                {{- if ne .Desc ""}} //{{.Desc}} {{end}}                    
+                {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}                    
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}
@@ -106,7 +110,7 @@ export namespace {{$NS}} {
             {{end}}
             {{- if .Convertable}}
         get{{upperF .FieldName}}: function() {
-            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}');
+            return DataConverter.getConvertData({{$TypeName}}, '{{.FieldName}}', {{$TypeName}}.{{.FieldName}}, '{{get_alias .Alias}}', {{.Cachable}});
         },
             {{- end}}
         {{end}} {{/*end .Items */}}
@@ -143,7 +147,7 @@ export namespace {{$NS}} {
         {{range .Headers}}
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
-                    {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+                    {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.emptyArray;
                 {{- else if eq .StandardValueType "bytes"}}
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.newBuffer([]);
@@ -153,7 +157,7 @@ export namespace {{$NS}} {
             {{end -}} 
             {{- if .Convertable}}    
         get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}> {
-            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}');
+            return this.getConvertData("{{.FieldName}}", {{if .IsVoid}}null{{else}}this.{{.FieldName}}{{end}}, '{{get_alias .Alias}}', {{.Cachable}});
         };
             {{end}}
         {{end}}
@@ -192,7 +196,7 @@ export namespace {{$NS}} {
                 
                 {{- if not .IsVoid }}
                     {{- if .IsArray}}
-                        {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+                        {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
                             {{- if .IsMessage}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)

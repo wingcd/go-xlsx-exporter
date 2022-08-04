@@ -150,6 +150,7 @@ func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.Def
 		item.ValueType = finfo.ValueType
 		item.ArraySplitChar = finfo.SplitChar
 		item.Convertable = finfo.Convertable
+		item.Cachable = finfo.Cachable
 		item.IsVoid = finfo.IsVoid
 		item.Alias = finfo.Alias
 		item.Rule = finfo.Rule
@@ -452,6 +453,7 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 			header.ValueType = finfo.ValueType
 			header.ArraySplitChar = finfo.SplitChar
 			header.Convertable = finfo.Convertable
+			header.Cachable = finfo.Cachable
 			header.IsVoid = finfo.IsVoid
 			header.Alias = finfo.Alias
 			header.Rule = finfo.Rule

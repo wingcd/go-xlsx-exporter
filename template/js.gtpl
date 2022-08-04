@@ -91,8 +91,8 @@ $root.{{$NS}} = (function() {
     var {{.TypeName}} = {{$NS}}.{{.TypeName}} = (function() {
         var valuesById = {}, values = Object.create(valuesById);
     {{range .Items}}
-    {{- if not .IsVoid }}
         {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
+    {{- if not .IsVoid }}
         values.{{.FieldName}} = {{value_format .Value .}};
     {{- end}}    
         {{- if .Convertable}}
@@ -135,9 +135,9 @@ $root.{{$NS}} = (function() {
         }{{/*end function */}}
 
         {{range .Headers}}
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
-                    {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
         {{$TypeName}}.prototype.{{.FieldName}} =  $util.emptyArray;
                 {{- else if eq .StandardValueType "bytes"}}
         {{$TypeName}}.prototype.{{.FieldName}} =  $util.newBuffer([]);
@@ -164,9 +164,9 @@ $root.{{$NS}} = (function() {
                 {{- $wireType := get_wire_type .}}
                 {{- $count := calc_wire_offset .}}           
                 
+            {{if ne .Desc ""}} /** {{.Desc}} */ {{end}}
                 {{- if not .IsVoid }}
                     {{- if .IsArray}}
-                        {{- if ne .Desc ""}} /** {{.Desc}} */ {{end}}
                             {{- if .IsMessage}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)

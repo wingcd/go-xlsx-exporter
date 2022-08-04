@@ -52,8 +52,8 @@ export namespace {{$NS}} {
     // Defined in table: {{.DefinedTable}}
     var {{.TypeName}}: {
         {{- range .Items}}
-            {{- if not .IsVoid }}   
-                {{- if ne .Desc ""}} /** {{.Desc}} */ {{end}}                    
+        {{if ne .Desc ""}} /** {{.Desc}} */ {{end}}  
+            {{- if not .IsVoid }}                     
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}

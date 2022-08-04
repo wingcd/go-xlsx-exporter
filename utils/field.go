@@ -80,16 +80,17 @@ func CompileValueType(valueType string) *FiledInfo {
 }
 
 func Split(s, sep string) []string {
+	arr := strings.Split(s, "");
 	rstrs := make([]string, 0)
 	str := ""
 	rline := "\\";
 	hasRline := false
-	size := len(s)
+	size := len(arr)
 	flag := false
 	// 解决分隔符转义问题
 	for i:= 0; i<size; i++ {
 		flag = false
-		char := string(s[i])
+		char := arr[i]
 		if char == rline{
 			hasRline = !hasRline
 		}else{

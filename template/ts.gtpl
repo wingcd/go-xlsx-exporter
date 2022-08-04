@@ -95,8 +95,8 @@ export namespace {{$NS}} {
     // Defined in table: {{.DefinedTable}}
     export var {{.TypeName}}: {
         {{- range .Items}}
-            {{- if not .IsVoid }}   
-                {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}                    
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}  
+            {{- if not .IsVoid }}                     
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>,
             {{end}}
             {{- if .Convertable}}
@@ -125,6 +125,7 @@ export namespace {{$NS}} {
     /** Properties of a {{$TypeName}}. */
     export interface I{{$TypeName}} {
         {{range .Headers}}
+        {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
             {{- if not .IsVoid }}               
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>;
             {{end}} {{/*end not Void*/}}
@@ -145,9 +146,9 @@ export namespace {{$NS}} {
         {{- end}}
 
         {{range .Headers}}
+            {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
             {{- if not .IsVoid }}
                 {{- if .IsArray}}
-                    {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.emptyArray;
                 {{- else if eq .StandardValueType "bytes"}}
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.newBuffer([]);
@@ -194,9 +195,9 @@ export namespace {{$NS}} {
                 {{- $wireType := get_wire_type .}}
                 {{- $count := calc_wire_offset .}}           
                 
+            {{if ne .Desc ""}} /** {{.Desc}} */{{end}}  
                 {{- if not .IsVoid }}
-                    {{- if .IsArray}}
-                        {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
+                    {{- if .IsArray}}                       
                             {{- if .IsMessage}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)

@@ -13,7 +13,7 @@ export interface IMessage {
     toJSON(): { [k: string]: any };
 }
 
-interface IDataArray {
+export interface IDataArray {
     Items: any[];
 }
 

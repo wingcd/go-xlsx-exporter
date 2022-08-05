@@ -1,20 +1,26 @@
-import { DataAccess, DataTable } from "./DataAccess";
+import { DataAccess, DataTable, IDataArray, IMessage } from "./DataAccess";
 import { Language, Language_ARRAY } from "./Lang";
 
 export class I18N extends DataTable<Language>
 {
     private static _inst;
-    private static get inst(): I18N {
+    static get inst(): I18N {
         if(!this._inst) {
-            this._inst = new I18N(Language_ARRAY);
+            this._inst = new I18N();
         }
         return this._inst;
     }
 
-    private constructor(dataType:Function, keyName = "ID") {
-        super(dataType, keyName);
+    private constructor(keyName = "ID") {
+        super(Language, keyName);
 
         this.initial(this.dataType, null, I18N.getFilename);
+    }
+
+    protected load() : Language[] {
+        var buffer = this.onLoadData("Language_ARRAY");
+        var message = Language_ARRAY.decode(buffer);
+        return (message as IDataArray).Items;        
     }
 
     public static currentLanguage: string = "cn";

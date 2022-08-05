@@ -297,7 +297,7 @@ export class Language_ARRAY {
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
-     static decode(reader, length) {
+     static decode(reader, length?) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
         var end = length === undefined ? reader.len : reader.pos + length, message = new Language_ARRAY();

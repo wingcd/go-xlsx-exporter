@@ -17,22 +17,22 @@ rules: #数据规则，可在字段类型后加入规则id,在数据导出时进
   desc: '数字'
   disable: false
 sheets:
- -
-  id: 1
-  type: define #type: define/table/language
-  file: 'data/define.xlsx'
-  sheet: 'define'
+#  -
+#   id: 1
+#   type: define #type: define/table/language
+#   file: 'data/define.xlsx'
+#   sheet: 'define'
 #  -
 #   id: 2
 #   type: define
 #   file: 'data/define.xlsx'
 #   sheet: 'consts'
- - 
-  id: 3
-  type: table
-  file: 'data/model.xlsx'
-  sheet: 'class'
-  type_name: 'PClass'
+#  - 
+#   id: 3
+#   type: table
+#   file: 'data/model.xlsx'
+#   sheet: 'class'
+#   type_name: 'PClass'
 #  - 
 #   id: 4
 #   type: table
@@ -52,12 +52,12 @@ sheets:
 #   sheet: 'test'
 #   type_name: 'Test'
 #   transpose: true
-#  - 
-#   id: 6
-#   type: table
-#   file: 'data/i18n.xlsx'
-#   sheet: 'location1'
-#   is_lang: true
+ - 
+  id: 6
+  type: table
+  file: 'data/i18n.xlsx'
+  sheet: 'location1'
+  is_lang: true
 #  - 
 #   id: 7
 #   type: table
@@ -80,24 +80,24 @@ sheets:
 #   file: 'data/message.xml'
 
 exports:
--
- id: 1
- type: "proto"
- path: "./gen/code/all_proto.proto"
- includes: "" #导出表id集合，不设置为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
- export_type: 1 #单项导出类型设置，1-ignore,2-client,3-server
--
- id: 2
- type: "golang"
- path: "./gen/code/data_model.pb.go"
- sheets: ""
- package: "game_data"
--
- id: 3
- type: "csharp"
- path: "./gen/code/DataModel.cs"
- sheets: ""
- package: "Cfg"
+# -
+#  id: 1
+#  type: "proto"
+#  path: "./gen/code/all_proto.proto"
+#  includes: "" #导出表id集合，不设置为导出所有表，逗号分割表示数组，如：1,2,3，横杠分割表示范围,如：1-7，可混用如：1,2-4,6-7
+#  export_type: 1 #单项导出类型设置，1-ignore,2-client,3-server
+# -
+#  id: 2
+#  type: "golang"
+#  path: "./gen/code/data_model.pb.go"
+#  sheets: ""
+#  package: "game_data"
+# -
+#  id: 3
+#  type: "csharp"
+#  path: "./gen/code/DataModel.cs"
+#  sheets: ""
+#  package: "Cfg"
 -
  id: 4
  type: "proto_bytes"
@@ -106,21 +106,21 @@ exports:
 #  id: 5
 #  type: "charset"
 #  path: "./gen/data/lang.txt"
--
- id: 6
- type: "js,dts"
- path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
- imports:
-  - "import UserData from './userdata'"
-  - "import XXX from './xxx'"
--
- id: 7
- type: "dts"
- path: "./gen/code/data_mode.d.ts"
--
- id: 8
- type: "ts"
- path: "./gen/code/data_mode.ts"
+# -
+#  id: 6
+#  type: "js,dts"
+#  path: "./gen/code/data_mode.js,./gen/code/data_mode.d.ts"
+#  imports:
+#   - "import UserData from './userdata'"
+#   - "import XXX from './xxx'"
+# -
+#  id: 7
+#  type: "dts"
+#  path: "./gen/code/data_mode.d.ts"
+# -
+#  id: 8
+#  type: "ts"
+#  path: "./gen/code/data_mode.ts"
 # -
 #  id: 10
 #  type: "csharp"

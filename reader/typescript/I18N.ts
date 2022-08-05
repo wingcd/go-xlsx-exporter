@@ -35,7 +35,7 @@ export class I18N extends DataTable<Language>
         return `${datafile}.${I18N.currentLanguage}`;
     }
 
-    public static translate(key: string): string
+    public static translate(key: string|number): string
     {
         let lan:Language = this.inst.itemMap[key];
         if (lan)

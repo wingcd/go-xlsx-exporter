@@ -649,7 +649,7 @@ func BuildFileDesc(filename string, includeLanguage bool) (protoreflect.FileDesc
 		}
 		file.MessageType = append(file.MessageType, &desc)
 
-		if tab.TableType == model.ETableType_Data {
+		if tab.TableType == model.ETableType_Data || tab.TableType == model.ETableType_Language{
 			// 创建列表结构
 			var itemsDesc descriptorpb.DescriptorProto
 			itemsDesc.Name = proto.String(tab.TypeName + "_ARRAY")

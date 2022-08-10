@@ -206,7 +206,7 @@ export class DataTable<T> extends DataItem<T> {
     }
 
     private _items: T[];
-    public get items(): Readonly<T[]> {
+    public get items(): Readonly<Readonly<T>[]> {
         try{
             if (this._items == null){
                 this._items = this.initDataAsList();

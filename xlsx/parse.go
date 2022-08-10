@@ -308,11 +308,11 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 		// 过滤数据项（列）,不管前面有多少注释，过滤后的前四行必须按规则编写
 		filterRows := make([][]string, 0)
 		for ri, row := range rs {
-			var comment = utils.IsComment(row[0]);
 			// 索引列不能为空，否则过滤掉
 			var emptyIndex = false
-			var emptyRow = false;
-			if !comment {
+			var emptyRow = len(row) == 0;
+			var comment = !emptyRow && utils.IsComment(row[0]);
+			if !comment && !emptyRow {
 				emptyIndex = row == nil || len(row) > 0 && row[0] == ""
 				if !emptyIndex && len(row) > 0 {
 					emptyRow = true;
@@ -431,6 +431,11 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 		if !ignore {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
 			finfo := utils.CompileValueType(header.RawValueType)
+			if !settings.StrictMode && !finfo.Valiable {
+				ignore = true;
+				continue;
+			}
+
 			if !finfo.Valiable {
 				log.Fatalf("[错误] 字段定义错误 表：%s 类型：%s 列：%s 描述：%s\n", table.DefinedTable, table.TypeName, header.FieldName, header.Desc)
 			}

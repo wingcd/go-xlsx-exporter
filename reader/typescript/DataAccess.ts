@@ -52,7 +52,7 @@ export class DataAccess
      * @param dataType 配置的数据类型
      * @returns 
      */
-    public static getDataItem<T>(dataType: Function): DataItem<T> {
+    public static getDataItem<T>(dataType: new()=>T): DataItem<T> {
         let typename = dataType["__type_name__"];
         if(this._items[typename]) {
             return this._items[typename];
@@ -66,7 +66,7 @@ export class DataAccess
      * @param keyName 主键名称
      * @returns 
      */
-    public static getDataTable<T>(dataType:Function, keyName = "ID") : DataTable<T> {
+    public static getDataTable<T>(dataType:new()=>T, keyName = "ID") : DataTable<T> {
         let typename = dataType["__type_name__"];
         if(this._tables[typename]) {
             return this._tables[typename];
@@ -79,11 +79,11 @@ export class DataItem<T> {
     protected localGenerator: FileNameGenerateHandler;
     protected localLoader: LoadDataHandler;
 
-    protected dataType: ObjectConstructor;
+    protected dataType: new()=>T;
     protected source: BufferAsset;
 
-    public constructor(dataType: Function) {
-        this.dataType = dataType as ObjectConstructor;
+    public constructor(dataType: new()=>T) {
+        this.dataType = dataType;
     }
 
     private onGenerateFilename(typeName: string): string
@@ -133,13 +133,13 @@ export class DataItem<T> {
         this.source = source;
     }
 
-    public initial(dataType:ObjectConstructor, loadHandle?:LoadDataHandler, fileNameGenerateHandle?:FileNameGenerateHandler) : void {
+    public initial(dataType:new()=>T, loadHandle?:LoadDataHandler, fileNameGenerateHandle?:FileNameGenerateHandler) : void {
         this.dataType = dataType;
         this.localLoader = loadHandle;
         this.localGenerator = fileNameGenerateHandle;
     }
 
-    public static create<T>(dataType: ObjectConstructor, source: BufferAsset): DataItem<T> {
+    public static create<T>(dataType: new()=>T, source: BufferAsset): DataItem<T> {
         var instance = new DataItem<T>(dataType);
         instance.setSource(source);
         return instance;
@@ -175,7 +175,7 @@ export class DataTable<T> extends DataItem<T> {
         return this._keyName;
     }
 
-    constructor(dataType:Function, keyName = "ID") {
+    constructor(dataType:new()=>T, keyName = "ID") {
         super(dataType);
 
         this._keyName = keyName;
@@ -190,7 +190,7 @@ export class DataTable<T> extends DataItem<T> {
         return (message as IDataArray).Items;        
     }
 
-    public static create<T>(dataType: ObjectConstructor, source: BufferAsset, keyName = "ID"): DataTable<T>{
+    public static create<T>(dataType: new()=>T, source: BufferAsset, keyName = "ID"): DataTable<T>{
         var instance = new DataTable<T>(dataType, keyName);
         instance.setSource(source);
         return instance;

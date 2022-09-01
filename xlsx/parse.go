@@ -24,13 +24,13 @@ func transpose(arr [][]string) [][]string {
 		return arr
 	}
 	cnt2 := 0
-	for i:=0;i<cnt1;i++ {
-		cnt2 = int(math.Max(float64(len(arr[i])), float64(cnt2)));
+	for i := 0; i < cnt1; i++ {
+		cnt2 = int(math.Max(float64(len(arr[i])), float64(cnt2)))
 	}
 
-	var arr2 [][]string = make([][]string, cnt2);
-	for i:=0;i<cnt2;i++ {
-		arr2[i]=make([]string, cnt1)
+	var arr2 [][]string = make([][]string, cnt2)
+	for i := 0; i < cnt2; i++ {
+		arr2[i] = make([]string, cnt1)
 	}
 
 	//遍历数组并进行转置
@@ -46,7 +46,7 @@ func transpose(arr [][]string) [][]string {
 // @params filename 文件名,表格名，文件名，表格名...
 func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.DefineTableInfo) {
 	var cnt = len(files)
-	if cnt == 0  {
+	if cnt == 0 {
 		log.Print("[错误] 参数错误 \n")
 		return
 	}
@@ -55,7 +55,7 @@ func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.Def
 
 	rows := make([][]string, 0)
 	for i := 0; i < cnt; i++ {
-		file:=files[i]
+		file := files[i]
 		filename := file.File
 		sheet := file.Sheet
 
@@ -72,13 +72,13 @@ func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.Def
 			return
 		}
 
-		if(file.Transpose) {
+		if file.Transpose {
 			rs = transpose(rs)
 		}
 
-		if(i == 0) {
+		if i == 0 {
 			rows = append(rows, rs...)
-		}else{
+		} else {
 			// 第二张开始，不需要表头
 			rows = append(rows, rs[1:]...)
 		}
@@ -274,7 +274,7 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 				return
 			}
 
-			if(file.Transpose) {
+			if file.Transpose {
 				cls = transpose(cls)
 			}
 
@@ -301,7 +301,7 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 			return
 		}
 
-		if(file.Transpose) {
+		if file.Transpose {
 			rs = transpose(rs)
 		}
 
@@ -310,25 +310,25 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 		for ri, row := range rs {
 			// 索引列不能为空，否则过滤掉
 			var emptyIndex = false
-			var emptyRow = len(row) == 0;
-			var comment = !emptyRow && utils.IsComment(row[0]);
+			var emptyRow = len(row) == 0
+			var comment = !emptyRow && utils.IsComment(row[0])
 			if !comment && !emptyRow {
 				emptyIndex = row == nil || len(row) > 0 && row[0] == ""
 				if !emptyIndex && len(row) > 0 {
-					emptyRow = true;
-					for i:=0; i<len(row);i++ {
+					emptyRow = true
+					for i := 0; i < len(row); i++ {
 						if row[i] != "" {
-							emptyRow = false;
-							break;
+							emptyRow = false
+							break
 						}
 					}
 				}
 			}
-			
+
 			if emptyIndex || emptyRow || comment {
 				if emptyIndex {
 					log.Printf("[警告] 有空索引 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
-				}else if emptyRow {
+				} else if emptyRow {
 					log.Printf("[警告] 有空数据行 表：%v-%v 第%v行 \n", filename, sheet, ri+1)
 				}
 				continue
@@ -395,7 +395,7 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 			if settings.StrictMode {
 				log.Fatalf("[错误] 数据类型或字段名不能为空 表：%v 第%v列 \n", table.DefinedTable, ci+1)
 				return
-			}else{
+			} else {
 				log.Printf("[警告] 数据类型或字段名不能为空,将跳过此列 表：%v 第%v列 \n", table.DefinedTable, ci+1)
 				continue
 			}
@@ -432,8 +432,8 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 			header.RawValueType = col[model.DATA_ROW_TYPE_INDEX]
 			finfo := utils.CompileValueType(header.RawValueType)
 			if !settings.StrictMode && !finfo.Valiable {
-				ignore = true;
-				continue;
+				ignore = true
+				continue
 			}
 
 			if !finfo.Valiable {
@@ -529,6 +529,11 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 func CheckTable(table *model.DataTable) {
 	for i, row := range table.Data {
 		for j, col := range row {
+			if j >= len(table.Headers) {
+				log.Fatalf("[错误] 数据列数超出定义 表：%s 类型：%s 行：%v 列：%v 数据：%v\n", table.DefinedTable, table.TypeName, i+1, j+1, col)
+				continue
+			}
+
 			header := table.Headers[j]
 			if header.Rule > 0 {
 				if !settings.CheckRule(header.Rule, col) {

@@ -168,11 +168,11 @@ func process() {
 			types := strings.Split(info.Type, ",")
 			paths := strings.Split(info.Path, ",")
 			temls := strings.Split(info.Template, ",")
-			if(info.Template == "") {
+			if info.Template == "" {
 				temls = make([]string, len(types))
 			}
-			
-			if len(types) != len(paths){
+
+			if len(types) != len(paths) {
 				log.Fatalf("类型数量与输出数量必须相同")
 			}
 			if len(types) != len(temls) && len(temls) > 0 {
@@ -271,7 +271,7 @@ func doExport(exportInfo *settings.ExportInfo) {
 	langSheets := make([]*settings.SheetInfo, 0)
 	messageDefinss := make([]*settings.SheetInfo, 0)
 	messages := make([]*settings.SheetInfo, 0)
-	for _, info := range sheets {		
+	for _, info := range sheets {
 		if _, ok := exceptIds[info.ID]; ok {
 			continue
 		}

@@ -19,6 +19,10 @@ export class I18N extends DataTable<Language>
 
     protected load() : Language[] {
         var buffer = this.onLoadData("Language_ARRAY");
+        if(buffer.length == 0) {
+            return null;
+        }
+        
         var message = Language_ARRAY.decode(buffer);
         return (message as IDataArray).Items;        
     }

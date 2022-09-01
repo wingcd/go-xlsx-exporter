@@ -28,8 +28,10 @@ func GenDataTables(pbFilename string, fd pref.FileDescriptor, dir string, tables
 	}
 
 	for _, table := range tables {
-		if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
-			return false
+		if table.TableType == model.ETableType_Data {
+			if ok, _ := GenDataTable(fd, dir, table, ""); !ok {
+				return false
+			}
 		}
 	}
 

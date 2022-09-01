@@ -530,7 +530,9 @@ func CheckTable(table *model.DataTable) {
 	for i, row := range table.Data {
 		for j, col := range row {
 			if j >= len(table.Headers) {
-				log.Fatalf("[错误] 数据列数超出定义 表：%s 类型：%s 行：%v 列：%v 数据：%v\n", table.DefinedTable, table.TypeName, i+1, j+1, col)
+				if settings.StrictMode {
+					log.Printf("[警告] 数据列数超出定义 表：%s 类型：%s 行：%v 列：%v 数据：%v\n", table.DefinedTable, table.TypeName, i+1, j+1, col)
+				}
 				continue
 			}
 

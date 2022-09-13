@@ -380,7 +380,6 @@ func doExport(exportInfo *settings.ExportInfo) {
 	}
 
 	sort.Sort(model.DataTables(tables))
-
 	settings.SetTables(tables...)
 
 	info := generator.NewBuildInfo2(exportInfo.Path, exportInfo.Template)

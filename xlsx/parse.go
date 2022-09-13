@@ -117,6 +117,7 @@ func ParseDefineSheet(files ...*settings.SheetInfo) (infos map[string]*model.Def
 		var info *model.DefineTableInfo
 		if info, ok := infos[typename]; !ok {
 			info = new(model.DefineTableInfo)
+			info.StartID = int64(ri)
 			info.DefinedTable = ""
 			for i := 0; i < cnt; i++ {
 				info.DefinedTable += fmt.Sprintf("%s:%s;", files[i].File, files[i].Sheet)

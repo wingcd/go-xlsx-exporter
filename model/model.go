@@ -55,6 +55,7 @@ func (a DefineTableItems) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // 定义表类型（同类型分组）
 type DefineTableInfo struct {
+	StartID int64
 	// 类型（enum/struct）
 	Category string
 	// 类型名
@@ -64,6 +65,12 @@ type DefineTableInfo struct {
 	// 类型子项
 	Items []*DefineTableItem
 }
+
+type DefineTableInfos []*DefineTableInfo
+
+func (a DefineTableInfos) Len() int           { return len(a) }
+func (a DefineTableInfos) Less(i, j int) bool { return a[i].StartID < a[j].StartID }
+func (a DefineTableInfos) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // 判断是否为当前定义类型
 func (d *DefineTableInfo) IsValid(typeName string) bool {

@@ -2,6 +2,7 @@ package settings
 
 import (
 	"log"
+	"sort"
 	"strings"
 
 	"github.com/wingcd/go-xlsx-exporter/model"
@@ -94,6 +95,10 @@ func SetDefines(defines ...map[string]*model.DefineTableInfo) {
 			CONSTS = append(CONSTS, info)
 		}
 	}
+
+	sort.Sort(model.DefineTableInfos(ENUMS))
+	sort.Sort(model.DefineTableInfos(STRUCTS))
+	sort.Sort(model.DefineTableInfos(CONSTS))
 }
 
 func AddLanguageTable() *model.DataTable {

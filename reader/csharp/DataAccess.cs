@@ -26,9 +26,9 @@ public class PBDataModel
 {
     private Dictionary<string,object> _converted = new Dictionary<string, object>();
 
-    protected object GetConvertData(string fieldName, object value)
+    protected object GetConvertData(string fieldName, object value, string alias, bool cachable)
     {
-        if(_converted.ContainsKey(fieldName))
+        if(cachable && _converted.ContainsKey(fieldName))
         {
             return _converted[fieldName];
         }
@@ -38,10 +38,13 @@ public class PBDataModel
             throw new Exception($"convert field {fieldName} value need a convetor");
         }
 
-        var data = DataAccess.DataConvertHandler(this, fieldName, value);
-        _converted[fieldName] = data;
+        var data = DataAccess.DataConvertHandler(this, fieldName, value, alias, cachable);
+        if (cachable)
+        {
+            _converted[fieldName] = data;
+        }
         return data;
-    }    
+    }     
     
     public object Clone()
     {
@@ -139,7 +142,7 @@ public partial class DataAccess
     public static LoadDataHandler Loader { get; private set; }
     public static FileNameGenerateHandler Generator { get; private set; }
 
-    public delegate object ConvertHandler(object item, string field, object data);
+    public delegate object ConvertHandler(object item, string field, object data, string alias, bool cachable);
     public static ConvertHandler DataConvertHandler;
 
     public static void Initial(string dataDir, LoadDataHandler loadHandle = null, FileNameGenerateHandler fileNameGenerateHandle = null)

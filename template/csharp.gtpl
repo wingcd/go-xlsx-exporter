@@ -64,7 +64,7 @@ namespace {{.Namespace}}
         {{- if .Convertable}}
         public {{get_alias .Alias}} Get{{camel_case .FieldName}}()
         {
-            return GetConvertData("{{.FieldName}}", {{.FieldName}});
+            return GetConvertData("{{.FieldName}}", {{.FieldName}}, "{{get_alias .Alias}}", {{.Cachable}});
         }
         {{- end}}
     {{end}}
@@ -92,14 +92,14 @@ namespace {{.Namespace}}
         {{- if .Convertable}}
         public {{get_alias .Alias}} Get{{$fieldName}}()
         {
-            return GetConvertData("{{$fieldName}}", {{$fieldName}});
+            return GetConvertData("{{$fieldName}}", {{$fieldName}}, "{{get_alias .Alias}}", {{.Cachable}});
         }
         {{- end}}
     {{- else}}    
         {{- if .Convertable}}
         public {{get_alias .Alias}} Get{{$fieldName}}()
         {
-            return GetConvertData("{{$fieldName}}", null);
+            return GetConvertData("{{$fieldName}}", null, "{{get_alias .Alias}}", {{.Cachable}});
         }
         {{- end}}
     {{- end}}

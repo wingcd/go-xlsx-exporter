@@ -20,7 +20,7 @@ namespace {{.Namespace}}
     [ProtoContract]
     public enum {{.TypeName}}
     { {{range .Items}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /* {{.Desc}} */ {{end}}
         [ProtoEnum]
         {{.FieldName}} = {{.Value}}, 
     {{end -}}
@@ -34,7 +34,7 @@ namespace {{.Namespace}}
     [ProtoContract]
     public struct {{.TypeName}}
     { {{range .Items}}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /* {{.Desc}} */ {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
         public List<{{.ValueType}}> {{.FieldName}} { get; set; }
@@ -53,7 +53,7 @@ namespace {{.Namespace}}
     public class {{.TypeName}} : PBDataModel
     { {{range .Items}}
         {{- if not .IsVoid }}
-            {{- if ne .Desc ""}} //{{.Desc}} {{end}}
+            {{- if ne .Desc ""}} /* {{.Desc}} */ {{end}}
         [ProtoMember({{.Index}})]
             {{- if .IsArray}}
         public List<{{.ValueType}}> {{.FieldName}} { get; set; }
@@ -82,7 +82,7 @@ namespace {{.Namespace}}
     {{range .Headers}}
         {{- $fieldName := camel_case .FieldName -}}
     {{- if not .IsVoid }}
-        {{if ne .Desc ""}} //{{.Desc}} {{end}}
+        {{if ne .Desc ""}} /* {{.Desc}} */ {{end}}
         [ProtoMember({{.Index}})]
         {{- if .IsArray}}
         public List<{{.ValueType}}> {{$fieldName}} { get; set; }

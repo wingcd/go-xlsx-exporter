@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -379,7 +378,6 @@ func doExport(exportInfo *settings.ExportInfo) {
 		tables = append(xml.Parse(defines...))
 	}
 
-	sort.Sort(model.DataTables(tables))
 	settings.SetTables(tables...)
 
 	info := generator.NewBuildInfo2(exportInfo.Path, exportInfo.Template)

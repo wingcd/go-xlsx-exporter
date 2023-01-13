@@ -160,6 +160,8 @@ func SetTables(tables ...*model.DataTable) {
 	}
 
 	TABLES = CombineTables(TABLES)
+	
+	sort.Sort(model.DataTables(TABLES))
 }
 
 func GetEnum(pbType string) *model.DefineTableInfo {

@@ -89,8 +89,8 @@ export class ConfigManager {
         this.SettingsTable = new DataTable(GameConfig.SettingsCfg);
 
         // 设置自定义类型转换函数
-        this._modelConverter["DropGroup"] = this.parseDropGroup;
-        this._modelConverter["DropGroup[]"] = this.parseDropGroups;
+        this._modelConverter["DropGroup"] = this.parseDropGroup.bind(this);
+        this._modelConverter["DropGroup[]"] = this.parseDropGroups.bind(this);
     }    
 
     // 通过注册的自定类型转换相关类型

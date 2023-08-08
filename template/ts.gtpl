@@ -93,7 +93,7 @@ export namespace {{$NS}} {
     {{$TypeName := .TypeName}}
 
     // Defined in table: {{.DefinedTable}}
-    export var {{.TypeName}}: {
+    export const {{.TypeName}}: {
         {{- range .Items}}
         {{if ne .Desc ""}} /** {{.Desc}} */{{end}}  
             {{- if not .IsVoid }}                     

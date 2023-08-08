@@ -50,7 +50,7 @@ export namespace {{$NS}} {
     {{- /*生成配置类类型*/}}
     {{- range .Consts}}
     // Defined in table: {{.DefinedTable}}
-    var {{.TypeName}}: {
+    const {{.TypeName}}: {
         {{- range .Items}}
         {{if ne .Desc ""}} /** {{.Desc}} */ {{end}}  
             {{- if not .IsVoid }}                     

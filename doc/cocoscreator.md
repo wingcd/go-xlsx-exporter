@@ -1,5 +1,7 @@
 ### 如何在cocoscreator中使用
 
+[CCC Demo](./demo/GoXlsxExportDemo-ccc.rar)
+
 1. 下载并解压文件gxe.zip
 2. 修改conf.yaml文件，定义项目中使用的表格
 

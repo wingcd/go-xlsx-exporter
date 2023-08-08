@@ -64,7 +64,8 @@ export class DropGroup { //类型|ID|数量|权重|解锁等级
 ```
 
 5. 下载源码中的reader/typescript/DataAccess.ts至项目中
-6. 添加自定义脚本用于管理配置表：
+6. 安装protobufjs: `npm i protobufjs -S`(可能需要重启编辑器)
+7. 添加自定义脚本用于管理配置表：
 ``` typescript
 export class ConfigManager {
     // 配置表实例，外部直接使用

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +18,15 @@ import (
 const (
 	totalSize = 6
 )
+
+var (
+	channelRegex *regexp.Regexp = nil
+)
+
+func init() {
+	// [channel]xxx
+	channelRegex = regexp.MustCompile(`\[(.+)\](.+)`)
+}
 
 func transpose(arr [][]string) [][]string {
 	cnt1 := len(arr)
@@ -226,6 +236,36 @@ func DefinesPreProcess(infos map[string]*model.DefineTableInfo) {
 				item.Index = idx
 			}
 		} else if info.Category == model.DEFINE_TYPE_CONST {
+			var newItems = make([]*model.DefineTableItem, 0)
+			var channelItems = make([]*model.DefineTableItem, 0)
+			// 将channel变量值覆盖到同名的变量上
+			for _, item := range info.Items {
+				if channelRegex.MatchString(item.FieldName) {
+					channelItems = append(channelItems, item)
+				} else {
+					newItems = append(newItems, item)
+				}
+			}
+
+			if settings.Channel != "" && len(channelItems) > 0 {
+				for _, item := range channelItems {
+					matches := channelRegex.FindStringSubmatch(item.FieldName)
+					if len(matches) == 3 {
+						channelValue := matches[1]
+						filedName := matches[2]
+						if settings.Channel == channelValue {
+							for _, item2 := range newItems {
+								if item2.FieldName == filedName {
+									item2.Value = item.Value
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+			info.Items = newItems
+
 			var idx = 0
 			names := make(map[string]int)
 			for _, item := range info.Items {
@@ -524,7 +564,58 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 
 	table.Data = rows
 
+	DataSheetPreProcess(table)
 	return
+}
+
+func DataSheetPreProcess(table *model.DataTable) {
+	var newHeaders = make([]*model.DataTableHeader, 0)
+	var channelHeaders = make([]*model.DataTableHeader, 0)
+	var data = table.Data
+	// 将channel变量值覆盖到同名的变量上
+	for _, header := range table.Headers {
+		if channelRegex.MatchString(header.FieldName) {
+			channelHeaders = append(channelHeaders, header)
+		} else {
+			newHeaders = append(newHeaders, header)
+		}
+	}
+
+	if len(channelHeaders) > 0 {
+		var newData = make([][]string, 0)
+		var deleteIndices = make(map[int]bool, 0)
+		for _, item := range channelHeaders {
+			matches := channelRegex.FindStringSubmatch(item.FieldName)
+			if len(matches) == 3 {
+				deleteIndices[item.Index-1] = true
+				channelValue := matches[1]
+				filedName := matches[2]
+				if settings.Channel == channelValue {
+					for _, item2 := range newHeaders {
+						if item2.FieldName == filedName {
+							for i, row := range data {
+								row[item2.Index-1] = row[item.Index-1]
+								data[i] = row
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+
+		for _, data := range table.Data {
+			var newRow = make([]string, 0)
+			for ci, cellValue := range data {
+				if _, ignore := deleteIndices[ci]; !ignore {
+					newRow = append(newRow, cellValue)
+				}
+			}
+			newData = append(newData, newRow)
+		}
+		table.Data = newData
+	}
+	table.Headers = newHeaders
 }
 
 func CheckTable(table *model.DataTable) {

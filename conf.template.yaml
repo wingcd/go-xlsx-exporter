@@ -1,7 +1,12 @@
 package: "GameData"
-pb_bytes_file_ext: ".bytes" #unity must use .bytes extension
+channel: "" #导出渠道, 可以根据渠道导出不同的数据
+pb_bytes_file_ext: ".bytes" #unity must use .bytes extension, cocoscreator use .bin
 comment_symbol: "#"
-export_type: 1 #全局导出类型设置，1-ignore,2-client,3-server
+export_type: 4 #全局导出类型设置，1-all,2-client,3-server,4-ignore-不支持此行
+array_split_char: "," #默认数组分割符号
+pause_on_end: false # 运行完毕后是否暂停
+strict_mode: false # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
+rules: #数据规则，可在字段类型后加入规则id,在数据导出时进行规则检测，严格模式会中断输出，否则只进行日志提示
 
 sheets:
  -

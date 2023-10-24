@@ -48,6 +48,7 @@ type RuleInfo struct {
 
 type YamlConf struct {
 	Package        string `yaml:"package"`
+	Channel        string `yaml:"channel"`
 	PBBytesFileExt string `yaml:"pb_bytes_file_ext"`
 	CommentSymbol  string `yaml:"comment_symbol"`
 	ExportType     int    `yaml:"export_type"`

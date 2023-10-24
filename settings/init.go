@@ -17,10 +17,11 @@ const (
 
 var (
 	GO_PROTO_VERTION = "v1.27.1"
-	TOOL_VERSION     = "1.2"
+	TOOL_VERSION     = "1.3"
 
 	ExportType     = EXPORT_TYPE_ALL
 	PackageName    = "PBGen"
+	Channel        = ""
 	PbBytesFileExt = ".bytes"
 	CommentSymbol  = "#"
 	ArraySplitChar = ","
@@ -160,7 +161,7 @@ func SetTables(tables ...*model.DataTable) {
 	}
 
 	TABLES = CombineTables(TABLES)
-	
+
 	sort.Sort(model.DataTables(TABLES))
 }
 

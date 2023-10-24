@@ -29,6 +29,7 @@ var (
 	p_comment_symbol    string
 	p_config            string
 	p_silence           bool
+	p_channel           string
 )
 
 func init() {
@@ -43,6 +44,7 @@ func init() {
 
 	flag.BoolVar(&p_gen_language_code, "lang", false, "是否生成语言类型到代码（仅测试用，默认为false）")
 	flag.BoolVar(&p_silence, "silence", false, "是否静默执行（默认为false）")
+	flag.StringVar(&p_channel, "channel", "", "设置渠道名（默认为空）")
 }
 
 func main() {
@@ -247,8 +249,14 @@ func doExport(exportInfo *settings.ExportInfo) {
 		settings.PackageName = "Deploy"
 	}
 
-	fmt.Printf("执行导出任务，id:%v, 类型：%v, 包含：%v, 排除：%v, 导出路径：%v, 导出类型：%v \n",
-		exportInfo.ID, exportInfo.Type, exportInfo.Includes, exportInfo.Excludes, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1])
+	settings.Channel = config.Channel
+	if p_channel != "" {
+		settings.Channel = p_channel
+	}
+	settings.Channel = strings.Trim(settings.Channel, " ")
+
+	fmt.Printf("执行导出任务，id:%v, 类型：%v, 包含：%v, 排除：%v, 导出路径：%v, 导出类型：%v, 渠道：%v\n",
+		exportInfo.ID, exportInfo.Type, exportInfo.Includes, exportInfo.Excludes, exportInfo.Path, []string{"所有", "仅客户端", "仅服务器", "忽略"}[settings.ExportType-1], settings.Channel)
 
 	sheetsIds := getIds(exportInfo.Includes)
 	exceptIds := getIds(exportInfo.Excludes)

@@ -1,8 +1,9 @@
 package: "GameData"
+channel: "" #导出渠道, 可以根据渠道导出不同的数据
 pb_bytes_file_ext: ".bytes" #unity must use .bytes extension, cocoscreator use .bin
 comment_symbol: "#"
-export_type: 1 #全局导出类型设置，1-all,2-client,3-server,4-ignore-不支持此行
-array_split_char: "|" #默认数组分割符号
+export_type: 4 #全局导出类型设置，1-all,2-client,3-server,4-ignore-不支持此行
+array_split_char: "," #默认数组分割符号
 pause_on_end: false # 运行完毕后是否暂停
 strict_mode: false # 是否严格模式,如：int配置为空时，严格模式将会报错，非严格模式默认为0
 rules: #数据规则，可在字段类型后加入规则id,在数据导出时进行规则检测，严格模式会中断输出，否则只进行日志提示
@@ -17,11 +18,11 @@ rules: #数据规则，可在字段类型后加入规则id,在数据导出时进
   desc: '数字'
   disable: false
 sheets:
-#  -
-#   id: 1
-#   type: define #type: define/table/language
-#   file: 'data/define.xlsx'
-#   sheet: 'define'
+ -
+  id: 1
+  type: define #type: define/table/language
+  file: 'data/define.xlsx'
+  sheet: 'define'
 #  -
 #   id: 2
 #   type: define
@@ -45,19 +46,24 @@ sheets:
 #   file: 'data/model.xlsx'
 #   sheet: 'user'
 #   type_name: 'User'
+ - 
+  id: 8
+  type: table
+  file: 'data/enemy.xlsx'
+  sheet: 'enemy'
+  type_name: 'EnemyCfg'
 #  - 
 #   id: 6
 #   type: table
-#   file: 'data/model.xlsx'
-#   sheet: 'test'
-#   type_name: 'Test'
-#   transpose: true
- - 
-  id: 6
-  type: table
-  file: 'data/i18n.xlsx'
-  sheet: 'location1'
-  is_lang: true
+#   file: 'data/bubble.xlsx'
+#   sheet: 'bubble'
+#   type_name: 'Bubble'
+#  - 
+#   id: 7
+#   type: table
+#   file: 'data/i18n.xlsx'
+#   sheet: 'location1'
+#   is_lang: true
 #  - 
 #   id: 7
 #   type: table
@@ -92,12 +98,12 @@ exports:
 #  path: "./gen/code/data_model.pb.go"
 #  sheets: ""
 #  package: "game_data"
-# -
-#  id: 3
-#  type: "csharp"
-#  path: "./gen/code/DataModel.cs"
-#  sheets: ""
-#  package: "Cfg"
+-
+ id: 3
+ type: "csharp"
+ path: "./gen/code/DataModel.cs"
+ sheets: ""
+ package: "Cfg"
 -
  id: 4
  type: "proto_bytes"

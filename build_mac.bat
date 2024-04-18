@@ -9,7 +9,7 @@ set binPath=%prjPath%bin\
 echo Project Dir:%prjPath%
 echo Target Dir:%binPath%
 
-set GOARCH=amd64
+set GOARCH=arm64
 set GOOS=darwin
 set GOPATH=%prjPath%../../
 

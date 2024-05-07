@@ -109,16 +109,16 @@ type {{.TypeName}} struct {
 	{{- $fieldTag := "opt"}}
     {{- if .IsEnum}} {{$typeDesc = join ",enum=" $TypeDescPrefix .ValueType}}{{end}}    
 	{{- $arratDesc := ""}}
+	{{- $typeDesc := .ValueType}}
 	{{- if .IsArray}} 
 		{{- $fieldTag = "rep"}}
-		{{- if .IsStruct}} 
-			{{- $arratDesc = "[]*"}} 
-		{{- else}} 
-			{{- $arratDesc = "[]"}} 
-		{{- end}} 
+		{{- $arratDesc = "[]"}}
+	{{- end}}
+	{{- if .IsStruct}}
+		{{$typeDesc = join "*" .ValueType}}
 	{{- end}}
 	{{- if not .IsVoid}}
-    {{.TitleFieldName}} {{$arratDesc}}{{.ValueType}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} //{{.Desc}} {{end}}
+    {{.TitleFieldName}} {{$arratDesc}}{{$typeDesc}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} //{{.Desc}} {{end}}
     {{end -}}
 	{{- space -}}
 {{end}}
@@ -163,6 +163,10 @@ func (*{{.TypeName}}) Descriptor() ([]byte, []int) {
 	{{- $arratDesc := ""}}
  	{{- if .IsArray}} {{if .IsStruct}} {{$arratDesc = "[]*"}} {{else}} {{$arratDesc = "[]"}} {{end}} {{end}}
 	{{- $returnType = join $arratDesc $returnType}} 
+{{- else}}
+	{{- if .IsStruct}}
+		{{$returnType = join "*" .ValueType}}
+	{{- end}}
 {{- end}}
 {{- if not .IsVoid}}
 func (x *{{$item.TypeName}}) Get{{.TitleFieldName}}() {{$returnType}} {
@@ -261,6 +265,17 @@ func {{$innerVarPrefix}}_init() {
 
 {{- if .HasMessage}}    
 // regist all messages
+type EMessageNames int32
+const (
+	{{- range .Tables}}
+		{{- if is_message_table .TableType}}
+			{{- if gt .Id 0}}
+	E_MSG_{{.TypeName}} EMessageNames = {{.Id}}
+			{{- end}}
+		{{- end}}
+	{{- end}}  
+)
+
 var Messages = make(map[int] reflect.Type)
 func {{$innerVarPrefix}}_regist() {
 	{{- range .Tables}}

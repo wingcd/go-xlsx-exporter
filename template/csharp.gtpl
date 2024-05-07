@@ -109,6 +109,17 @@ namespace {{.Namespace}}
 
     {{- if .HasMessage}}    
     // regist all messages
+
+    public enum EMessageNames {
+        {{- range .Tables}}
+            {{- if is_message_table .TableType}}
+                {{- if gt .Id 0}}
+        E_MSG_{{.TypeName}} = {{.Id}};
+                {{- end}}
+            {{- end}}
+        {{- end}} 
+    }
+
     public static class MessageFactory
     {    
         public static Dictionary<int, Type> Types = new Dictionary<int, Type>()

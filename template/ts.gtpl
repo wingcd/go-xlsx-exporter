@@ -573,4 +573,52 @@ export namespace {{$NS}} {
     ALLTYPES["{{$TypeName}}"] = {{$TypeName}};
     
         {{- end}} {{/*end tables */}}
+
+    {{- if .HasMessage}}
+    // regist all messages
+    export enum EMessageNames {
+        {{- range .Tables}}
+            {{- if is_message_table .TableType}}
+                {{- if gt .Id 0}}
+        E_MSG_{{.TypeName}} = {{.Id}},
+                {{- end}}
+            {{- end}}
+        {{- end}} 
+    }
+
+    export class MessageFactory
+    {    
+        public static Types:{[id: any]: typeof MessageWrapper} = {
+        {{- range .Tables}}
+            {{- if is_message_table .TableType}}
+                {{- if gt .Id 0}}
+            {{.Id}}: typeof({{.TypeName}}),
+                {{- end}}
+            {{- end}}
+        {{- end}}  
+        }; 
+
+        public static CreateMessage<T extends MessageWrapper>(id: number): T
+        {
+            if(!this.Types[id]) 
+            {                
+                return null as any;
+            }
+
+            return new this.Types[id]() as T;
+        }
+
+        public static LoadMessage<T extends MessageWrapper>(id: number, bytes: Uint8Array): T
+        {
+            if(!this.Types[id]) 
+            {                
+                return null as any;
+            }
+
+            let message = new this.Types[id]();
+            message.decode(bytes);
+            return message as T;
+        }
+    }
+    {{- end}}
 }{{/*end namespace */}}

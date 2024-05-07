@@ -114,7 +114,7 @@ namespace {{.Namespace}}
         {{- range .Tables}}
             {{- if is_message_table .TableType}}
                 {{- if gt .Id 0}}
-        E_MSG_{{.TypeName}} = {{.Id}};
+        E_MSG_{{.TypeName}} = {{.Id}},
                 {{- end}}
             {{- end}}
         {{- end}} 

@@ -29,6 +29,11 @@ export interface Long {
     unsigned: boolean;
 }
 
+export type TMessage = {
+    static encode(message: DataModel, writer?: $protobuf.Writer): $protobuf.Writer;
+    static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): DataModel;
+}
+
 export class DataConverter {
     static convertHandler: (data: DataModel | object, fieldName:string, value: string, alias?: string)=>any;      
     static getConvertData(target: any, fieldName: string, value: any, alias?: string, cachable?: boolean) {
@@ -391,7 +396,7 @@ export namespace {{$NS}} {
                 if (!Array.isArray(object.{{.FieldName}}))
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: array expected");            
                 message.{{.FieldName}} = [];
-                for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i) {
                     {{- $Ofn := .FieldName}}
                     {{- if .IsEnum}} 
                         {{- $enum := get_enum .StandardValueType}}
@@ -432,7 +437,10 @@ export namespace {{$NS}} {
                     if (typeof object.{{.FieldName}}[i] !== "object")
                         throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                     message.{{.FieldName}}[i] = {{$TypeName}}.fromObject(object.{{.FieldName}}[i]);
+                    {{- else}}
+                        throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                     {{- end}}
+                }
             }
                 {{- else}}{{/**end if Array */}}    
                     {{- if not .IsEnum}}                
@@ -588,7 +596,7 @@ export namespace {{$NS}} {
 
     export class MessageFactory
     {    
-        public static Types:{[id: any]: typeof MessageWrapper} = {
+        public static Types:{[id: any]: TMessage} = {
         {{- range .Tables}}
             {{- if is_message_table .TableType}}
                 {{- if gt .Id 0}}
@@ -598,7 +606,7 @@ export namespace {{$NS}} {
         {{- end}}  
         }; 
 
-        public static CreateMessage<T extends MessageWrapper>(id: number): T
+        public static CreateMessage<T extends TMessage>(id: number): T
         {
             if(!this.Types[id]) 
             {                
@@ -608,7 +616,7 @@ export namespace {{$NS}} {
             return new this.Types[id]() as T;
         }
 
-        public static LoadMessage<T extends MessageWrapper>(id: number, bytes: Uint8Array): T
+        public static LoadMessage<T extends TMessage>(id: number, bytes: Uint8Array): T
         {
             if(!this.Types[id]) 
             {                

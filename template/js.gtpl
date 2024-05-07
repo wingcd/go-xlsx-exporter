@@ -359,7 +359,7 @@ $root.{{$NS}} = (function() {
                 if (!Array.isArray(object.{{.FieldName}}))
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: array expected");            
                 message.{{.FieldName}} = [];
-                for (var i = 0; i < object.{{.FieldName}}.length; ++i)
+                for (var i = 0; i < object.{{.FieldName}}.length; ++i) {
                     {{- if .IsEnum}} 
                         {{- $Ofn := .FieldName}}
                         {{- $enum := get_enum .StandardValueType}}
@@ -400,7 +400,10 @@ $root.{{$NS}} = (function() {
                     if (typeof object.{{.FieldName}}[i] !== "object")
                         throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                     message.{{.FieldName}}[i] = {{$TypeName}}.fromObject(object.{{.FieldName}}[i]);
+                    {{- else}}
+                        throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                     {{- end}}
+                }
             }
                 {{- else}}{{/**end if Array */}}
                     {{- if not .IsEnum}}                

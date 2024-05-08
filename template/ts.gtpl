@@ -14,7 +14,7 @@ import $protobuf from "protobufjs";
 
 {{ $ENABLE_LONG:=false }}
 {{ $ENABLE_TRIM:=false }}
-{{ $ENABLE_READONLEY:=true }}
+{{ $ENABLE_READONLEY:=false }}
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -151,6 +151,7 @@ export namespace {{$NS}} {
 
      /** Represents a {{$TypeName}}. */
     export class {{$TypeName}} extends DataModel implements I{{$TypeName}} { 
+        private static __id__ = {{.Id}};
         private static __type_name__ = "{{$TypeName}}";
         {{- if not .IsArray}}
         private static __array_type_name__ = "{{$TypeName}}_ARRAY";
@@ -628,11 +629,11 @@ export namespace {{$NS}} {
         {{- range .Tables}}
             {{- if is_message_table .TableType}}
                 {{- if gt .Id 0}}
-            {{.Id}}: typeof({{.TypeName}}),
+            {{.Id}}: {{.TypeName}},
                 {{- end}}
             {{- end}}
         {{- end}}  
-        }; 
+        };
 
         public static CreateMessage<T extends DataModel>(id: number): T
         {
@@ -651,9 +652,14 @@ export namespace {{$NS}} {
                 return null as any;
             }
 
-            let message = new this.Types[id]();
-            message.decode(bytes);
-            return message as T;
+            const cls = this.Types[id];
+            try {
+                let msg = cls.decode(bytes) as T;
+                return msg;
+            }catch(e) {
+                console.error(e, "decode message error, id:" + id + " bytes:" + bytes.length);
+                return null as any;
+            }
         }
     }
     {{- end}}

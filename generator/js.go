@@ -164,7 +164,7 @@ type jsGenerator struct {
 func (g *jsGenerator) Generate(info *BuildInfo) (save bool, data *bytes.Buffer) {
 	registJSFuncs()
 
-	if jsTemplate == "" {		
+	if jsTemplate == "" {
 		temp := getTemplate(info, "./template/js.gtpl")
 		log.Printf("[提示] 加载模板: %s \n", temp)
 

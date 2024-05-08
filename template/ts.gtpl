@@ -12,8 +12,18 @@
 
 import $protobuf from "protobufjs";
 
+{{ $ENABLE_LONG:=false }}
+{{ $ENABLE_TRIM:=false }}
+{{ $ENABLE_READONLEY:=true }}
+
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+
+declare module $utils {
+    interface Long {
+
+    }
+}
 
 // Exported root namespace
 var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {} as any);
@@ -27,11 +37,6 @@ export interface Long {
 
     /** Whether unsigned or not */
     unsigned: boolean;
-}
-
-export type TMessage = {
-    static encode(message: DataModel, writer?: $protobuf.Writer): $protobuf.Writer;
-    static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): DataModel;
 }
 
 export class DataConverter {
@@ -131,8 +136,12 @@ export namespace {{$NS}} {
     export interface I{{$TypeName}} {
         {{range .Headers}}
         {{if ne .Desc ""}} /** {{.Desc}} */{{end}}
-            {{- if not .IsVoid }}               
+            {{- if not .IsVoid }}             
+                {{- if $ENABLE_READONLEY}}                  
         {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}>;
+                {{- else}}
+        {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}};
+                {{- end}}
             {{end}} {{/*end not Void*/}}
             {{- if .Convertable}}
         get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}>;
@@ -152,14 +161,24 @@ export namespace {{$NS}} {
 
         {{range .Headers}}
             {{- if ne .Desc ""}} /** {{.Desc}} */{{end}}
-            {{- if not .IsVoid }}
-                {{- if .IsArray}}
-        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.emptyArray;
-                {{- else if eq .StandardValueType "bytes"}}
-        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.newBuffer([]);
-                {{else}}
-        {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = {{default .}};
-                {{end -}}   
+            {{- if not .IsVoid }} 
+                {{- if $ENABLE_READONLEY}}   
+                    {{- if .IsArray}}
+            {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.emptyArray;
+                    {{- else if eq .StandardValueType "bytes"}}
+            {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = $util.newBuffer([]);
+                    {{else}}
+            {{.FieldName}}?: Readonly<{{type_format .StandardValueType .ValueType .IsArray}}> = {{default .}};
+                    {{end -}}   
+                {{- else}}
+                    {{- if .IsArray}}
+                {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = $util.emptyArray;
+                    {{- else if eq .StandardValueType "bytes"}}
+                {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = $util.newBuffer([]);
+                    {{else}}
+                {{.FieldName}}?: {{type_format .StandardValueType .ValueType .IsArray}} = {{default .}};
+                    {{end -}}  
+                {{- end}}
             {{end -}} 
             {{- if .Convertable}}    
         get{{upperF .FieldName}}(): Readonly<{{get_alias .Alias}}> {
@@ -192,6 +211,7 @@ export namespace {{$NS}} {
             return new {{$TypeName}}(properties);
         }
 
+        {{- if not $ENABLE_TRIM }}
         static encode(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             if (!writer)
                 writer = $Writer.create();
@@ -203,7 +223,7 @@ export namespace {{$NS}} {
             {{if ne .Desc ""}} /** {{.Desc}} */{{end}}  
                 {{- if not .IsVoid }}
                     {{- if .IsArray}}                       
-                            {{- if .IsMessage}}
+                            {{- if is_struct .ValueType}}
             if (message.{{.FieldName}} != null && message.{{.FieldName}}.length)
                 for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                     {{.ValueType}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
@@ -228,8 +248,8 @@ export namespace {{$NS}} {
                             {{- end}}{{/*end message*/}}
                     {{- else}}
             if (message.{{.FieldName}} != null && Object.hasOwnProperty.call(message, "{{.FieldName}}"))
-                            {{- if .IsMessage}}
-                {{.ValueType}}.encode(message.{{.FieldName}}[i], writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
+                            {{- if is_struct .ValueType}}
+                {{.ValueType}}.encode(message.{{.FieldName}}, writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).fork()).ldelim();
                             {{- else}}
                     {{- $pbType := get_pb_type .StandardValueType}}
                 writer.uint32(/* id {{.Index}}, wireType {{$wireType}} =*/{{$count}}).{{$pbType}}(message.{{.FieldName}});
@@ -244,6 +264,8 @@ export namespace {{$NS}} {
         static encodeDelimited(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             return this.encode(message, writer).ldelim();
         }
+
+        {{- end}} {{/** end if trime */}}
 
         static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
             if (!(reader instanceof $Reader))
@@ -260,7 +282,7 @@ export namespace {{$NS}} {
                     if (!(message.{{.FieldName}} && message.{{.FieldName}}.length))
                         message.{{.FieldName}} = [];
 
-                        {{- if .IsMessage}}
+                        {{- if is_struct .ValueType}}
                     message.{{.FieldName}}.push({{.ValueType}}.decode(reader, reader.uint32()));                    
                         {{- else}}
                             {{- if out .ValueType "string" "bytes"}}
@@ -275,8 +297,8 @@ export namespace {{$NS}} {
                             {{- end}} {{/*end if string */}}
                         {{- end}} {{/*end if message*/}}
                     {{- else}}
-                        {{- if .IsMessage}}
-                    {{.ValueType}}.decode(reader, reader.uint32());
+                        {{- if is_struct .ValueType}}
+                    message.{{.FieldName}} = {{.ValueType}}.decode(reader, reader.uint32());
                         {{- else}}
                     message.{{.FieldName}} = reader.{{.PBValueType}}();
                         {{- end}} {{/*end message*/}}
@@ -292,6 +314,7 @@ export namespace {{$NS}} {
             return message;
         }
 
+        {{- if not $ENABLE_TRIM }}
         static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
@@ -322,7 +345,7 @@ export namespace {{$NS}} {
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (!$util.isInteger(message.{{.FieldName}}[i]))
                             return "{{.FieldName}}: integer[] expected";
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (typeof message.{{.FieldName}}[i] !== "number")
                             return "{{.FieldName}}: number[] expected";
@@ -338,7 +361,7 @@ export namespace {{$NS}} {
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (!(message.{{.FieldName}}[i] && typeof message.{{.FieldName}}[i].length === "number" || $util.isString(message.{{.FieldName}}[i])))
                             return "{{.FieldName}}: buffer[] expected";  
-                    {{- else if .IsMessage}}     
+                    {{- else if is_struct .ValueType}}     
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i) {
                         var error = {{.ValueType}}.verify(message.{{.FieldName}}[i]);
                         if (error)
@@ -361,7 +384,7 @@ export namespace {{$NS}} {
                     {{- else if is_interger .StandardValueType}}
                     if (!$util.isInteger(message.{{.FieldName}}))
                         return "{{.FieldName}}: integer expected";
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     if (typeof message.{{.FieldName}} !== "number")
                         return "{{.FieldName}}: number expected";
                     {{- else if is_bool .StandardValueType}}
@@ -373,8 +396,12 @@ export namespace {{$NS}} {
                     {{- else if is_bytes .StandardValueType}} 
                     if (!(message.{{.FieldName}} && typeof message.{{.FieldName}}.length === "number" || $util.isString(message.{{.FieldName}})))
                         return "{{.FieldName}}: buffer expected";
-                    {{- else if .IsMessage}}
-                        return {{.ValueType}}.verify(message.{{.FieldName}});
+                    {{- else if is_struct .ValueType}}
+                        if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}")) {
+                        var error = {{.ValueType}}.verify(message.{{.FieldName}});
+                        if (error)
+                            return "{{.FieldName}}." + error;
+                        }
                     {{- else}}
                         "error type {{.ValueType}} {{.FieldName}}";
                     {{- end}}
@@ -409,7 +436,7 @@ export namespace {{$NS}} {
                             break;
                         {{- end}}    
                     }                
-                    {{- else if is_long .StandardValueType}}
+                    {{- else if and $ENABLE_LONG (is_long .StandardValueType)}}
                     if ($util.Long)
                         (message.{{.FieldName}}[i] = $util.Long.fromValue(object.{{.FieldName}})).unsigned = {{if eq .StandardValueType "uint64"}}true{{else}}false{{end}};
                     else if (typeof object.{{.FieldName}} === "string")
@@ -424,7 +451,7 @@ export namespace {{$NS}} {
                     message.{{.FieldName}}[i] = object.{{.FieldName}}[i] >>> 0;
                     {{- else if eq .StandardValueType "bool"}}
                     message.{{.FieldName}}[i] = Boolean(object.{{.FieldName}}[i]);
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     message.{{.FieldName}}[i] = Number(object.{{.FieldName}}[i]);                
                     {{- else if eq .StandardValueType "string"}}
                     message.{{.FieldName}}[i] = String(object.{{.FieldName}}[i]);
@@ -433,7 +460,7 @@ export namespace {{$NS}} {
                         $util.base64.decode(object.{{.FieldName}}[i], message.{{.FieldName}}[i] = $util.newBuffer($util.base64.length(object.{{.FieldName}}[i])), 0);
                     else if (object.{{.FieldName}}[i].length)
                         message.{{.FieldName}}[i] = object.{{.FieldName}}[i];
-                    {{- else if .IsMessage}}
+                    {{- else if is_struct .ValueType}}
                     if (typeof object.{{.FieldName}}[i] !== "object")
                         throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                     message.{{.FieldName}}[i] = {{$TypeName}}.fromObject(object.{{.FieldName}}[i]);
@@ -458,7 +485,7 @@ export namespace {{$NS}} {
                     break;
                     {{- end}}    
                 }               
-                    {{- else if is_long .StandardValueType}}
+                    {{- else if and $ENABLE_LONG (is_long .StandardValueType)}}
                 if ($util.Long)
                     (message.{{.FieldName}} = $util.Long.fromValue(object.{{.FieldName}})).unsigned = {{if eq .StandardValueType "uint64"}}true{{else}}false{{end}};
                 else if (typeof object.{{.FieldName}} === "string")
@@ -473,7 +500,7 @@ export namespace {{$NS}} {
                 message.{{.FieldName}} = object.{{.FieldName}} >>> 0;
                     {{- else if eq .StandardValueType "bool"}}
                 message.{{.FieldName}} = Boolean(object.{{.FieldName}});
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                 message.{{.FieldName}} = Number(object.{{.FieldName}});
                     {{- else if eq .StandardValueType "string"}}
                 message.{{.FieldName}} = String(object.{{.FieldName}});
@@ -482,8 +509,8 @@ export namespace {{$NS}} {
                     $util.base64.decode(object.{{.FieldName}}, message.{{.FieldName}} = $util.newBuffer($util.base64.length(object.{{.FieldName}})), 0);
                 else if (object.{{.FieldName}}.length)
                     message.{{.FieldName}} = object.{{.FieldName}};
-                    {{- else if .IsMessage}}
-                if (typeof object.{{.FieldName}}[i] !== "object")
+                    {{- else if is_struct .ValueType}}
+                if (typeof object.{{.FieldName}} !== "object")
                     throw TypeError("{{$TypeName}}.{{.FieldName}}: object expected");
                 message.{{.FieldName}} = {{$TypeName}}.fromObject(object.{{.FieldName}});
                     {{- end}}
@@ -510,7 +537,7 @@ export namespace {{$NS}} {
             if (options.defaults) {
             {{- range .Headers}}  
             {{- if not .IsVoid}}
-                {{- if is_long .StandardValueType}}
+                {{- if and $ENABLE_LONG (is_long .StandardValueType)}}
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
                     object.{{.FieldName}} = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
@@ -533,9 +560,9 @@ export namespace {{$NS}} {
             if (message.{{.FieldName}} && message.{{.FieldName}}.length) {
                 object.{{.FieldName}} = [];
                 for (var j = 0; j < message.{{.FieldName}}.length; ++j)
-                    {{- if is_float .StandardValueType}}
+                    {{- if is_number .StandardValueType}}
                     object.{{.FieldName}}[j] = options.json && !isFinite(message.{{.FieldName}}[j]) ? String(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
-                    {{- else if is_long .StandardValueType}}
+                    {{- else if and $ENABLE_LONG (is_long .StandardValueType)}}
                     if (typeof message.{{.FieldName}}[j] === "number")
                         object.{{.FieldName}}[j] = options.longs === String ? String(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
                     else
@@ -544,17 +571,17 @@ export namespace {{$NS}} {
                     object.{{.FieldName}}[j] = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}[j]] : message.{{.FieldName}}[j];
                     {{- else if eq .StandardValueType "bytes"}}
                     object.{{.FieldName}}[j] = options.bytes === String ? $util.base64.encode(message.{{.FieldName}}[j], 0, message.{{.FieldName}}[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
-                    {{- else if .IsMessage}}
-                    object.{{.FieldName}}[j] = {{.ValueType}}.toObject(message.{{.FieldName}}[j], options);
+                    {{- else if  is_struct .ValueType}}
+                    object.{{.FieldName}}[j] = {{.ValueType}}.toObject(message.{{.FieldName}}[j] as any, options);
                     {{- else}}
                     object.{{.FieldName}}[j] = message.{{.FieldName}}[j];
                     {{- end}}
             }
                 {{- else}}
             if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}"))
-                    {{- if is_float .StandardValueType}}
+                    {{- if is_number .StandardValueType}}
                 object.{{.FieldName}} = options.json && !isFinite(message.{{.FieldName}}) ? String(message.{{.FieldName}}) : message.{{.FieldName}};
-                    {{- else if is_long .StandardValueType}}
+                    {{- else if and $ENABLE_LONG (is_long .StandardValueType)}}
                 if (typeof message.{{.FieldName}} === "number")
                     object.{{.FieldName}} = options.longs === String ? String(message.{{.FieldName}}) : message.{{.FieldName}};
                 else
@@ -563,8 +590,8 @@ export namespace {{$NS}} {
                     object.{{.FieldName}} = options.enums === String ? {{.ValueType}}[message.{{.FieldName}}] : message.{{.FieldName}};
                     {{- else if eq .StandardValueType "bytes"}}
                 object.{{.FieldName}} = options.bytes === String ? $util.base64.encode(message.{{.FieldName}}, 0, message.{{.FieldName}}.length) : options.bytes === Array ? Array.prototype.slice.call(message.{{.FieldName}}) : message.{{.FieldName}};
-                    {{- else if .IsMessage}}
-                object.{{.FieldName}} = {{.ValueType}}.toObject(message.{{.FieldName}}, options);
+                    {{- else if is_struct .ValueType}}
+                object.{{.FieldName}} = {{.ValueType}}.toObject(message.{{.FieldName}} as any, options);
                     {{- else}}
                 object.{{.FieldName}} = message.{{.FieldName}};
                     {{- end}}
@@ -577,6 +604,7 @@ export namespace {{$NS}} {
         toJSON(): { [k: string]: any } {
             return {{$TypeName}}.toObject(this, $protobuf.util.toJSONOptions);
         }
+        {{- end }} {{/** end if trim */}}
     } {{/*end class */}}
     ALLTYPES["{{$TypeName}}"] = {{$TypeName}};
     
@@ -596,7 +624,7 @@ export namespace {{$NS}} {
 
     export class MessageFactory
     {    
-        public static Types:{[id: any]: TMessage} = {
+        public static Types:{[id: number]: any} = {
         {{- range .Tables}}
             {{- if is_message_table .TableType}}
                 {{- if gt .Id 0}}
@@ -606,7 +634,7 @@ export namespace {{$NS}} {
         {{- end}}  
         }; 
 
-        public static CreateMessage<T extends TMessage>(id: number): T
+        public static CreateMessage<T extends DataModel>(id: number): T
         {
             if(!this.Types[id]) 
             {                
@@ -616,7 +644,7 @@ export namespace {{$NS}} {
             return new this.Types[id]() as T;
         }
 
-        public static LoadMessage<T extends TMessage>(id: number, bytes: Uint8Array): T
+        public static LoadMessage<T extends DataModel>(id: number, bytes: Uint8Array): T
         {
             if(!this.Types[id]) 
             {                

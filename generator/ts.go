@@ -18,14 +18,7 @@ var tsGenetatorInited = false
 
 func tsTypeFormat(standardValueType, valueType string, isArray bool) string {
 	if isArray {
-		if isLong(standardValueType) {
-			return fmt.Sprintf("((%s|Long)[]|null)", valueType)
-		} else {
-			return fmt.Sprintf("(%s[]|null)", valueType)
-		}
-	}
-	if isLong(standardValueType) {
-		return fmt.Sprintf("(%s|Long|null)", valueType)
+		return fmt.Sprintf("(%s[]|null)", valueType)
 	}
 	return fmt.Sprintf("(%s|null)", valueType)
 }

@@ -38,8 +38,8 @@ type commonFileDesc struct {
 }
 
 type BuildInfo struct {
-	Imports []string
-	Output  string
+	Imports  []string
+	Output   string
 	Template string
 }
 
@@ -292,6 +292,10 @@ func init() {
 			return false
 		}
 		return true
+	}
+
+	funcs["is_struct"] = func(valueType string) bool {
+		return utils.IsStruct(valueType) || utils.IsTable(valueType)
 	}
 
 	funcs["get_range"] = func(a, b int) []int {

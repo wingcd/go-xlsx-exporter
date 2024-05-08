@@ -285,7 +285,7 @@ $root.{{$NS}} = (function() {
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (!$util.isInteger(message.{{.FieldName}}[i]))
                             return "{{.FieldName}}: integer[] expected";
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     for (var i = 0; i < message.{{.FieldName}}.length; ++i)
                         if (typeof message.{{.FieldName}}[i] !== "number")
                             return "{{.FieldName}}: number[] expected";
@@ -324,7 +324,7 @@ $root.{{$NS}} = (function() {
                     {{- else if is_interger .StandardValueType}}
                     if (!$util.isInteger(message.{{.FieldName}}))
                         return "{{.FieldName}}: integer expected";
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     if (typeof message.{{.FieldName}} !== "number")
                         return "{{.FieldName}}: number expected";
                     {{- else if is_bool .StandardValueType}}
@@ -387,7 +387,7 @@ $root.{{$NS}} = (function() {
                     message.{{.FieldName}}[i] = object.{{.FieldName}}[i] >>> 0;
                     {{- else if eq .StandardValueType "bool"}}
                     message.{{.FieldName}}[i] = Boolean(object.{{.FieldName}}[i]);
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                     message.{{.FieldName}}[i] = Number(object.{{.FieldName}}[i]);                
                     {{- else if eq .StandardValueType "string"}}
                     message.{{.FieldName}}[i] = String(object.{{.FieldName}}[i]);
@@ -436,7 +436,7 @@ $root.{{$NS}} = (function() {
                 message.{{.FieldName}} = object.{{.FieldName}} >>> 0;
                     {{- else if eq .StandardValueType "bool"}}
                 message.{{.FieldName}} = Boolean(object.{{.FieldName}});
-                    {{- else if is_float .StandardValueType}}
+                    {{- else if is_number .StandardValueType}}
                 message.{{.FieldName}} = Number(object.{{.FieldName}});
                     {{- else if eq .StandardValueType "string"}}
                 message.{{.FieldName}} = String(object.{{.FieldName}});
@@ -496,7 +496,7 @@ $root.{{$NS}} = (function() {
             if (message.{{.FieldName}} && message.{{.FieldName}}.length) {
                 object.{{.FieldName}} = [];
                 for (var j = 0; j < message.{{.FieldName}}.length; ++j)
-                    {{- if is_float .StandardValueType}}
+                    {{- if is_number .StandardValueType}}
                     object.{{.FieldName}}[j] = options.json && !isFinite(message.{{.FieldName}}[j]) ? String(message.{{.FieldName}}[j]) : message.{{.FieldName}}[j];
                     {{- else if is_long .StandardValueType}}
                     if (typeof message.{{.FieldName}}[j] === "number")
@@ -515,7 +515,7 @@ $root.{{$NS}} = (function() {
             }
                 {{- else}}
             if (message.{{.FieldName}} != null && message.hasOwnProperty("{{.FieldName}}"))
-                    {{- if is_float .StandardValueType}}
+                    {{- if is_number .StandardValueType}}
                 object.{{.FieldName}} = options.json && !isFinite(message.{{.FieldName}}) ? String(message.{{.FieldName}}) : message.{{.FieldName}};
                     {{- else if is_long .StandardValueType}}
                 if (typeof message.{{.FieldName}} === "number")

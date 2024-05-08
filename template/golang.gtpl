@@ -38,7 +38,7 @@ const (
 // Defined in table: {{.DefinedTable}}
 type {{$item.TypeName}} int32
 const ( {{range .Items}}
-    {{$item.TypeName}}_{{.TitleFieldName}} {{$item.TypeName}} = {{.Value}} {{if ne .Desc ""}} //{{.Desc}} {{end -}}
+    {{$item.TypeName}}_{{.TitleFieldName}} {{$item.TypeName}} = {{.Value}} {{if ne .Desc ""}} /** {{.Desc}} */ {{end -}}
   {{end}}
 )
 
@@ -118,7 +118,7 @@ type {{.TypeName}} struct {
 		{{$typeDesc = join "*" .ValueType}}
 	{{- end}}
 	{{- if not .IsVoid}}
-    {{.TitleFieldName}} {{$arratDesc}}{{$typeDesc}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} //{{.Desc}} {{end}}
+    {{.TitleFieldName}} {{$arratDesc}}{{$typeDesc}} `protobuf:"{{.EncodeType}},{{.Index}},{{$fieldTag}},name={{.FieldName}},proto3{{$typeDesc}}" json:"{{.FieldName}},omitempty"` {{if ne .Desc ""}} /** {{.Desc}} */ {{end}}
     {{end -}}
 	{{- space -}}
 {{end}}

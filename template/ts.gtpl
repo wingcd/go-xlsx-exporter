@@ -12,9 +12,16 @@
 
 import $protobuf from "protobufjs";
 
-{{ $ENABLE_LONG:=false }}
-{{ $ENABLE_TRIM:=false }}
-{{ $ENABLE_READONLEY:=false }}
+{{- $ENABLE_LONG:=false }}
+{{- $ENABLE_READONLEY:=false }}
+
+{{- $TRIM_ENCODE:=false }}
+{{- $TRIM_DECODE:=false }}
+{{- $TRIM_FROM_OBJECT:=true }}
+{{- $TRIM_TO_OBJECT:=true }}
+{{- $TRIM_VERIFY:=true }}
+{{- $TRIM_TO_JSON:=true }}
+{{- $TRIM_DELIMITED:=true }}
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -212,7 +219,7 @@ export namespace {{$NS}} {
             return new {{$TypeName}}(properties);
         }
 
-        {{- if not $ENABLE_TRIM }}
+        {{- if not $TRIM_ENCODE }}
         static encode(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             if (!writer)
                 writer = $Writer.create();
@@ -262,12 +269,15 @@ export namespace {{$NS}} {
             return writer;
         }
 
+        {{- if not $TRIM_DELIMITED }}
         static encodeDelimited(message: I{{$TypeName}}, writer?: $protobuf.Writer): $protobuf.Writer {
             return this.encode(message, writer).ldelim();
         }
+        {{- end}} {{/** end if trim delimited */}}
 
-        {{- end}} {{/** end if trime */}}
+        {{- end}} {{/** end if trim encode */}}
 
+        {{- if not $TRIM_DECODE }}
         static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
@@ -315,13 +325,17 @@ export namespace {{$NS}} {
             return message;
         }
 
-        {{- if not $ENABLE_TRIM }}
+        {{- if not $TRIM_DELIMITED }}
         static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): {{$TypeName}} {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
-        }
+        }        
+        {{- end}} {{/** end if trim delimited */}}
 
+        {{- end }} {{/** end if trim decode */}}
+
+        {{- if not $TRIM_VERIFY }}
         static verify(message: { [k: string]: any }): (string|null) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
@@ -412,7 +426,9 @@ export namespace {{$NS}} {
             {{- end}} {{/**end range Headers */}}
             return null;
         }
+        {{- end }} {{/** end if trim verify */}}
 
+        {{- if not $TRIM_FROM_OBJECT }}
         static fromObject(object: { [k: string]: any }): {{$TypeName}} {
             if (object instanceof {{$TypeName}})
                 return object;
@@ -520,7 +536,9 @@ export namespace {{$NS}} {
             {{- end}} {{/* end range Headers */}}
             return message;
         }
+        {{- end }} {{/** end if trim from object */}}
 
+        {{- if not $TRIM_TO_OBJECT }}
         static toObject(message: {{$TypeName}}, options?: $protobuf.IConversionOptions): { [k: string]: any } {
             if (!options)
                 options = {};
@@ -600,12 +618,14 @@ export namespace {{$NS}} {
             {{- end}} {{/** end not .IsVoid */}}
             {{- end}}{{/*end range headers */}}
             return object;
-        }{{/*end toObject function*/}}
+        }{{/*end toObject function*/}}        
+        {{- end }} {{/** end if trim to object */}}
 
+        {{- if not $TRIM_TO_JSON }}
         toJSON(): { [k: string]: any } {
             return {{$TypeName}}.toObject(this, $protobuf.util.toJSONOptions);
         }
-        {{- end }} {{/** end if trim */}}
+        {{- end }} {{/** end if trim to json*/}}
     } {{/*end class */}}
     ALLTYPES["{{$TypeName}}"] = {{$TypeName}};
     

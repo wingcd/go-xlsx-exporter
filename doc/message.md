@@ -38,3 +38,17 @@
  ``` golang
 err, dt := LoadMessage(10001, bytes)
  ```
+4. 如果感觉直接使用id不够优雅，可以直接在代码导出模板里面加上消息枚举，以及给类加上id描述，下面用ts做演示（模板代码已经集成，且增加了pb代码导出裁剪功能）：
+增加如下模板代码（可忽略此处代码，至少表明生成代码可随意定制）：
+![](./imgs/ts-messsage-tpl.png)
+
+生成代码如下： 
+![](./imgs/ts-messages.png)
+
+5. 然后只需要在你收到服务器消息解析，或者发送消息时构建数据就可以了
+![](./imgs/ts-messages-serialize.png)
+
+6. 最后愉快的使用他来传输数据吧！  
+![](./imgs/ts-messages-use.png)
+
+[图中相关引用类](../reader/typescript/net)

@@ -126,6 +126,28 @@ func isBytes(valueType string) bool {
 	return false
 }
 
+func isStruct(valueType string) bool {
+	if utils.IsStruct(valueType) || utils.IsTable(valueType) {
+		return true
+	}
+	return false
+}
+
+func isValueType(valueType string) bool {
+	return !isStruct(valueType)
+}
+
+func getWireOffset(item interface{}) int {
+	wire := utils.GetWireType(item)
+	switch inst := item.(type) {
+	case *model.DefineTableItem:
+		return inst.Index*8 + wire
+	case *model.DataTableHeader:
+		return inst.Index*8 + wire
+	}
+	return 0
+}
+
 func init() {
 	var commonInitialismsForReplacer []string
 	var uncommonInitialismsForReplacer []string
@@ -287,16 +309,9 @@ func init() {
 		return true
 	}
 
-	funcs["is_value_type"] = func(valueType string) bool {
-		if utils.IsStruct(valueType) || utils.IsTable(valueType) {
-			return false
-		}
-		return true
-	}
+	funcs["is_value_type"] = isValueType
 
-	funcs["is_struct"] = func(valueType string) bool {
-		return utils.IsStruct(valueType) || utils.IsTable(valueType)
-	}
+	funcs["is_struct"] = isStruct
 
 	funcs["get_range"] = func(a, b int) []int {
 		ret := make([]int, 0)
@@ -316,16 +331,7 @@ func init() {
 
 	funcs["get_wire_type"] = utils.GetWireType
 
-	funcs["calc_wire_offset"] = func(item interface{}) int {
-		wire := utils.GetWireType(item)
-		switch inst := item.(type) {
-		case *model.DefineTableItem:
-			return inst.Index*8 + wire
-		case *model.DataTableHeader:
-			return inst.Index*8 + wire
-		}
-		return 0
-	}
+	funcs["calc_wire_offset"] = getWireOffset
 
 	funcs["is_interger"] = isInterger
 
@@ -357,15 +363,11 @@ func init() {
 		return utils.GetEnumNames(pbType)
 	}
 
-	funcs["is_message"] = func(pbType string) bool {
-		return utils.IsStruct(pbType) || utils.IsTable(pbType)
-	}
-
 	funcs["is_define_table"] = func(tableType model.ETableType) bool {
 		return tableType == model.ETableType_Define
 	}
 
-	funcs["is_table_table"] = func(tableType model.ETableType) bool {
+	funcs["is_data_table"] = func(tableType model.ETableType) bool {
 		return tableType == model.ETableType_Data
 	}
 

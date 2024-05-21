@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -161,56 +163,128 @@ type customFileDesc struct {
 type customGenerator struct {
 }
 
-func convertMapToLuaTable(L *lua.LState, m map[string]interface{}) *lua.LTable {
+func convertMapToLuaTable(L *lua.LState, m interface{}) *lua.LTable {
 	tb := L.NewTable()
-	for k, v := range m {
-		switch val := v.(type) {
-		case string:
-			tb.RawSetString(k, lua.LString(val))
-		case int:
-			tb.RawSetString(k, lua.LNumber(val))
-		case float64:
-			tb.RawSetString(k, lua.LNumber(val))
-		case bool:
-			tb.RawSetString(k, lua.LBool(val))
-		case map[string]interface{}:
-			tb.RawSetString(k, convertMapToLuaTable(L, val))
-		case []interface{}:
-			tb.RawSetString(k, convertArrayToLuaTable(L, val))
-		}
+
+	reflectValue := reflect.ValueOf(m)
+	for _, key := range reflectValue.MapKeys() {
+		setValueToTable(L, reflectValue.MapIndex(key).Interface(), tb, key.String())
 	}
 	return tb
 }
 
-func convertArrayToLuaTable(L *lua.LState, arr []interface{}) *lua.LTable {
+func convertArrayToLuaTable(L *lua.LState, arr interface{}) *lua.LTable {
 	tb := L.NewTable()
-	for i, v := range arr {
-		switch val := v.(type) {
-		case string:
-			tb.RawSetInt(i, lua.LString(val))
-		case int:
-			tb.RawSetInt(i, lua.LNumber(val))
-		case float64:
-			tb.RawSetInt(i, lua.LNumber(val))
-		case bool:
-			tb.RawSetInt(i, lua.LBool(val))
-		case map[string]interface{}:
-			tb.RawSetInt(i, convertMapToLuaTable(L, val))
-		case []interface{}:
-			tb.RawSetInt(i, convertArrayToLuaTable(L, val))
-		}
+
+	reflectValue := reflect.ValueOf(arr)
+	for i := 0; i < reflectValue.Len(); i++ {
+		setValueToTable(L, reflectValue.Index(i).Interface(), tb, strconv.Itoa(i+1))
 	}
 	return tb
 }
 
-func convertToLuaTable(L *lua.LState, data interface{}) *lua.LTable {
-	switch val := data.(type) {
-	case map[string]interface{}:
-		return convertMapToLuaTable(L, val)
-	case []interface{}:
-		return convertArrayToLuaTable(L, val)
+func structToLuaTable(L *lua.LState, obj interface{}) *lua.LTable {
+	if obj == nil {
+		return nil
 	}
-	return nil
+
+	reflectValue := reflect.ValueOf(obj)
+	if reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+
+	if reflectValue.IsZero() {
+		return nil
+	}
+
+	var tb = L.NewTable()
+
+	for i := 0; i < reflectValue.NumField(); i++ {
+		field := reflectValue.Type().Field(i)
+		if !field.IsExported() {
+			continue
+		}
+		value := reflectValue.Field(i).Interface()
+		setValueToTable(L, value, tb, field.Name)
+	}
+
+	return tb
+}
+
+func convertToLuaTable(L *lua.LState, obj interface{}) *lua.LTable {
+	if obj == nil {
+		return nil
+	}
+
+	reflectValue := reflect.ValueOf(obj)
+	if reflectValue.IsZero() {
+		return nil
+	}
+
+	if reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+	if reflectValue.IsZero() {
+		return nil
+	}
+
+	if reflectValue.Kind() == reflect.Struct {
+		return structToLuaTable(L, obj)
+	} else if reflectValue.Kind() == reflect.Map {
+		return convertMapToLuaTable(L, obj)
+	} else if reflectValue.Kind() == reflect.Array || reflectValue.Kind() == reflect.Slice {
+		return convertArrayToLuaTable(L, obj)
+	} else {
+		return nil
+	}
+}
+
+func convertToLuaValue(L *lua.LState, obj interface{}) lua.LValue {
+	if obj == nil {
+		return lua.LNil
+	}
+
+	reflectValue := reflect.ValueOf(obj)
+	if reflectValue.IsZero() {
+		return lua.LNil
+	}
+
+	if reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+
+	if reflectValue.IsZero() {
+		return lua.LNil
+	}
+
+	switch reflectValue.Kind() {
+	case reflect.String:
+		return lua.LString(reflectValue.String())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return lua.LNumber(reflectValue.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return lua.LNumber(reflectValue.Uint())
+	case reflect.Float32, reflect.Float64:
+		return lua.LNumber(reflectValue.Float())
+	case reflect.Bool:
+		return lua.LBool(reflectValue.Bool())
+	case reflect.Map:
+		return convertMapToLuaTable(L, reflectValue.Interface())
+	case reflect.Array:
+		return convertArrayToLuaTable(L, reflectValue.Interface())
+	case reflect.Slice:
+		return convertArrayToLuaTable(L, reflectValue.Interface())
+	case reflect.Struct:
+		return structToLuaTable(L, obj)
+	default:
+		return lua.LNil
+	}
+}
+
+func setValueToTable(L *lua.LState, obj interface{}, table *lua.LTable, fieldName string) *lua.LTable {
+	lValue := convertToLuaValue(L, obj)
+	table.RawSetString(fieldName, lValue)
+	return table
 }
 
 func luaValueFormat(L *lua.LState) int {
@@ -311,7 +385,7 @@ func luaGetEnum(L *lua.LState) int {
 	if ret == nil {
 		L.Push(lua.LNil)
 	} else {
-		L.Push(convertToLuaTable(L, ret))
+		L.Push(convertToLuaValue(L, ret))
 	}
 
 	return 1
@@ -323,7 +397,7 @@ func luaGetEnumDefault(L *lua.LState) int {
 	if ret == nil {
 		L.Push(lua.LNil)
 	} else {
-		L.Push(convertToLuaTable(L, ret))
+		L.Push(convertToLuaValue(L, ret))
 	}
 	return 1
 }
@@ -334,7 +408,7 @@ func luaGetEnumValues(L *lua.LState) int {
 	if ret == nil {
 		L.Push(lua.LNil)
 	} else {
-		L.Push(convertToLuaTable(L, ret))
+		L.Push(convertToLuaValue(L, ret))
 	}
 	return 1
 }
@@ -345,7 +419,7 @@ func luaGetEnumNames(L *lua.LState) int {
 	if ret == nil {
 		L.Push(lua.LNil)
 	} else {
-		L.Push(convertToLuaTable(L, ret))
+		L.Push(convertToLuaValue(L, ret))
 	}
 	return 1
 }
@@ -380,6 +454,8 @@ func luaIsMessageTable(L *lua.LState) int {
 }
 
 var customFunctions = map[string]lua.LGFunction{
+	"json_encode":      apiEncode,
+	"json_decode":      apiDecode,
 	"value_format":     luaValueFormat,
 	"default_value":    luaDefaultValue,
 	"is_interger":      luaIsInterger,
@@ -412,19 +488,30 @@ func callLuaFunc(L *lua.LState, funcName string, args ...interface{}) string {
 	L.Push(fn)
 
 	for _, arg := range args {
-		switch val := arg.(type) {
-		case string:
-			L.Push(lua.LString(val))
-		case int:
-			L.Push(lua.LNumber(val))
-		case float64:
-			L.Push(lua.LNumber(val))
-		case bool:
-			L.Push(lua.LBool(val))
-		case map[string]interface{}:
-			L.Push(convertMapToLuaTable(L, val))
-		case []interface{}:
-			L.Push(convertArrayToLuaTable(L, val))
+		reflectValue := reflect.ValueOf(arg)
+		switch reflectValue.Kind() {
+		case reflect.String:
+			L.Push(lua.LString(reflectValue.String()))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			L.Push(lua.LNumber(reflectValue.Int()))
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			L.Push(lua.LNumber(reflectValue.Uint()))
+		case reflect.Float32, reflect.Float64:
+			L.Push(lua.LNumber(reflectValue.Float()))
+		case reflect.Bool:
+			L.Push(lua.LBool(reflectValue.Bool()))
+		case reflect.Map:
+			L.Push(convertMapToLuaTable(L, arg))
+		case reflect.Array:
+			L.Push(convertArrayToLuaTable(L, arg))
+		case reflect.Slice:
+			L.Push(convertArrayToLuaTable(L, arg))
+		case reflect.Struct:
+			L.Push(structToLuaTable(L, arg))
+		case reflect.Ptr:
+			L.Push(structToLuaTable(L, reflectValue.Elem().Interface()))
+		default:
+			L.Push(lua.LNil)
 		}
 	}
 
@@ -456,12 +543,11 @@ func genByLua(fd *customFileDesc, info *BuildInfo, luaFile string) {
 	L.DoString("package.path = package.path .. ';" + exeDir + "' \n")
 
 	var envInfo = L.NewTable()
-	envInfo.RawSetString("version", lua.LString(settings.TOOL_VERSION))
-	envInfo.RawSetString("info", convertToLuaTable(L, info))
-	envInfo.RawSetString("fileDesc", convertToLuaTable(L, fd))
-
 	L.SetFuncs(envInfo, customFunctions)
-	L.SetGlobal("ENV_INFO", envInfo)
+	L.SetField(envInfo, "version", lua.LString(settings.TOOL_VERSION))
+	L.SetField(envInfo, "info", convertToLuaTable(L, info))
+	L.SetField(envInfo, "fileDesc", convertToLuaTable(L, fd))
+	L.SetGlobal("GXE", envInfo)
 
 	if err := L.DoFile(luaFile); err != nil {
 		log.Fatalf("[错误] %v \n", err)

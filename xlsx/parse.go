@@ -442,6 +442,13 @@ func ParseDataSheet(files ...*settings.SheetInfo) (table *model.DataTable) {
 			}
 		}
 
+		// 处理非渠道数据
+		fileName := col[model.DATA_ROW_FIELD_INDEX]
+		hasChannel := channelRegex.MatchString(fileName)
+		if hasChannel && (settings.Channel == "" || settings.Channel != "" && !strings.Contains(fileName, settings.Channel)) {
+			continue
+		}
+
 		header := new(model.DataTableHeader)
 		cs := ""
 		if settings.ExportType != settings.EXPORT_TYPE_ALL {

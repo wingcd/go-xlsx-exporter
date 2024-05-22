@@ -245,6 +245,20 @@ func convertToLuaValue(L *lua.LState, obj interface{}) lua.LValue {
 	}
 
 	reflectValue := reflect.ValueOf(obj)
+
+	switch reflectValue.Kind() {
+	case reflect.String:
+		return lua.LString(reflectValue.String())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return lua.LNumber(reflectValue.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return lua.LNumber(reflectValue.Uint())
+	case reflect.Float32, reflect.Float64:
+		return lua.LNumber(reflectValue.Float())
+	case reflect.Bool:
+		return lua.LBool(reflectValue.Bool())
+	}
+
 	if reflectValue.IsZero() {
 		return lua.LNil
 	}

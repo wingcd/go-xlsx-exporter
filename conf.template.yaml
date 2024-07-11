@@ -104,3 +104,18 @@ exports:
  type: "golang"
  path: "./gen/code/message.go"
  package: "Message"
+-
+ id: 12
+ type: "json"
+ path: "./gen/data/json/"
+ excludes: "5"
+-
+ id: 13
+ type: "custom"
+ path: "./gen/data/json/CustomTest/all.csv"
+ template: "./template/data-gen.lua"
+-
+ id: 14
+ type: "custom"
+ path: "./gen/data/json/CustomTest/all.d.ts"
+ template: "./template/dts-gen.lua"

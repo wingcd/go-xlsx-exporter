@@ -93,6 +93,7 @@ __Step.4 运行程序__
   - [字段规则](./doc/field_types.md#规则)
 - [导出配置](./doc/config.md)
   - [导出支持](./doc/export_types.md)
+  - [自定义导出](./doc/custom_export.md)
 - [读取支持](./doc/reader.md)
   - [CSHARP/JS/TS](./doc/reader.md#CSHARP)
   - [GOLANG](./doc/reader.md#GOLANG)

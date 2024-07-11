@@ -153,7 +153,8 @@ type customFileDesc struct {
 	Info      *BuildInfo
 	Enum      *model.DefineTableInfo
 	Const     *model.DefineTableInfo
-	Table     *model.DataTable
+	// 单个文件导出时使用
+	Table *model.DataTable
 
 	Enums  []*model.DefineTableInfo
 	Consts []*model.DefineTableInfo

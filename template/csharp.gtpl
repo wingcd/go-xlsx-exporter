@@ -3,6 +3,8 @@
 // VERSION {{.Version}}
 // go-protobuf {{.GoProtoVersion}}
 
+{{- $NS := .Namespace}}
+
 using System;
 using System.Collections.Generic;
 using ProtoBuf;
@@ -157,5 +159,15 @@ namespace {{.Namespace}}
             }
         }
     }
+    {{- end}}
+}
+
+{{- /*生成类类型*/}}
+public partial class ConfigManager
+{
+    {{- range .Tables}}
+    {{- if not .IsArray}}
+    public static DataContainer<uint, {{$NS}}.{{.TypeName}}> {{.TypeName}} = new ();
+    {{- end}}
     {{- end}}
 }
